@@ -650,8 +650,18 @@ input[type=color].wide{width:100%;height:38px}
           <div class="field"><label for="czMain">اللون الرئيسي</label><input type="color" id="czMain" class="wide"></div>
           <div class="field"><label for="czAcc">لون التمييز</label><input type="color" id="czAcc" class="wide"></div>
         </div>
-        <div class="field"><span class="lab">الشارة والشعار</span>
-          <div class="seg"><label><input type="radio" name="czsec" value="logo"><span>شعار فقط</span></label><label><input type="radio" name="czsec" value="eco"><span>اقتصاد</span></label><label><input type="radio" name="czsec" value="dar"><span>علوم الدار</span></label><label><input type="radio" name="czsec" value="none"><span>بدون</span></label></div></div>
+        <div class="field"><label for="czSecSel">القالب</label>
+          <select id="czSecSel">
+            <option value="news">قالب خبري</option>
+            <option value="statement">قالب تصريح</option>
+            <option value="eco">اقتصادي</option>
+            <option value="dar">علوم الدار</option>
+            <option value="sports">رياضي</option>
+            <option value="world">عالمي</option>
+            <option value="ent">ترفيه</option>
+            <option value="invite">دعوة</option>
+            <option value="none">بدون شعار</option>
+          </select></div>
         <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span>
           <div class="seg"><label><input type="radio" name="czlp" value="above"><span>فوقه</span></label><label><input type="radio" name="czlp" value="below"><span>تحته</span></label></div></div>
       </div>
@@ -1518,7 +1528,7 @@ var CPAL=[
   {n:'بنفسجي ونعناع',main:'#3E2A8C',accent:'#17B38C'},
   {n:'غابة وكورال',main:'#1B5E3B',accent:'#EE6A4D'}
 ];
-var CZ={lang:'ar',main:CPAL[0].main,accent:CPAL[0].accent,sec:'logo',labelPos:'above',cur:0,slides:[]};
+var CZ={lang:'ar',main:CPAL[0].main,accent:CPAL[0].accent,sec:'news',labelPos:'above',cur:0,slides:[]};
 var czcv=null,cx=null,CZ_S=2,czInited=false,czCtl=null,czPhotoFor=-1;
 var CZ_DEMO={
   lang:'ar',
@@ -1618,10 +1628,9 @@ function czPhoto(im,h,anchor){
 }
 function czLogo(){
   if(CZ.sec==='none')return;
-  var k=(CZ.sec==='dar'?'dar':'eco')+'_dark',im=OV[k],ek=OV['eco_dark'];
-  var lg=ek||im;
+  var lg=OV['eco_dark'],bd=CZ.sec==='news'?null:OV[CZ.sec+'_dark'];
   if(lg)cx.drawImage(lg,90,60,400,250,46,34,192,120);
-  if((CZ.sec==='eco'||CZ.sec==='dar')&&im)cx.drawImage(im,1920,60,260,250,W-46-125,34,125,120);
+  if(bd)cx.drawImage(bd,1920,60,260,250,W-46-125,34,125,120);
 }
 function czLogoBig(cxm,y,scale){
   if(CZ.sec==='none')return 0;var im=OV['eco_dark'];if(!im)return 0;
@@ -1898,7 +1907,7 @@ function czBuildThumbs(){
 function czSyncStyle(){
   $$('#czPal .chip').forEach(function(b,k){var P=CPAL[k];b.setAttribute('aria-pressed',String(P&&P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()))});
   $('#czMain').value=CZ.main.toLowerCase();$('#czAcc').value=CZ.accent.toLowerCase();
-  $$('input[name="czsec"]').forEach(function(r){r.checked=r.value===CZ.sec});
+  $('#czSecSel').value=CZ.sec;
   $$('input[name="czlp"]').forEach(function(r){r.checked=r.value===CZ.labelPos});
 }
 function czStatus(msg,err,busy){var s=$('#czStatus');s.className=err?'err':'';s.innerHTML=(busy?'<span class="spin"></span>':'')+esc(msg||'')}
@@ -1957,7 +1966,7 @@ function czInit(){
   CPAL.forEach(function(P,k){var b=document.createElement('button');b.type='button';b.className='chip pal';b.innerHTML='<i style="background:'+P.main+'"></i><i style="background:'+P.accent+'"></i>'+P.n;b.addEventListener('click',function(){CZ.main=P.main;CZ.accent=P.accent;czSyncStyle();czRenderAll()});pal.appendChild(b)});
   $('#czMain').addEventListener('input',function(){CZ.main=this.value.toUpperCase();czSyncStyle();czRenderAll()});
   $('#czAcc').addEventListener('input',function(){CZ.accent=this.value.toUpperCase();czSyncStyle();czRenderAll()});
-  $$('input[name="czsec"]').forEach(function(r){r.addEventListener('change',function(){CZ.sec=r.value;czRenderAll()})});
+  $('#czSecSel').addEventListener('change',function(){CZ.sec=this.value;czRenderAll()});
   $$('input[name="czlp"]').forEach(function(r){r.addEventListener('change',function(){CZ.labelPos=r.value;czRenderAll()})});
   $('#czLang').addEventListener('change',function(){if(this.value!=='auto'){CZ.lang=this.value;czRenderAll()}});
   $('#czGen').addEventListener('click',czGenerate);
