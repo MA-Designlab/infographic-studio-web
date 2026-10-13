@@ -556,7 +556,7 @@ input[type=color].wide{width:100%;height:38px}
         <div class="two">
           <div class="field"><label for="lang">لغة التصميم</label>
             <select id="lang"><option value="auto">تلقائي حسب النص</option><option value="ar">العربية</option><option value="en">English</option></select></div>
-          <div class="field"><label for="layoutSel">القالب</label>
+          <div class="field"><label for="layoutSel">التخطيط</label>
             <select id="layoutSel"><option value="auto">اختيار تلقائي</option><option value="stats">أرقام وإحصائيات</option><option value="list">نقاط مرقمة</option><option value="bars">ترتيب بالأعمدة</option><option value="cards">بطاقات نصية</option></select></div>
         </div>
         <div class="row">
@@ -569,13 +569,18 @@ input[type=color].wide{width:100%;height:38px}
 
       <div class="step">
         <h2><i>2</i> الشكل</h2>
-        <div class="field"><span class="lab">الشارة والشعار</span>
-          <div class="seg" role="radiogroup" aria-label="القسم" id="segSec">
-            <label><input type="radio" name="sec" value="eco"><span>اقتصاد</span></label>
-            <label><input type="radio" name="sec" value="dar"><span>علوم الدار</span></label>
-            <label><input type="radio" name="sec" value="logo"><span>الشعار فقط</span></label>
-            <label><input type="radio" name="sec" value="none"><span>بدون</span></label>
-          </div></div>
+        <div class="field"><label for="secSel">القالب</label>
+          <select id="secSel">
+            <option value="news">قالب خبري</option>
+            <option value="statement">قالب تصريح</option>
+            <option value="eco">اقتصادي</option>
+            <option value="dar">علوم الدار</option>
+            <option value="sports">رياضي</option>
+            <option value="world">عالمي</option>
+            <option value="ent">ترفيه</option>
+            <option value="invite">دعوة</option>
+            <option value="none">بدون شعار</option>
+          </select></div>
         <div class="two">
           <div class="field"><span class="lab">النمط</span>
             <div class="seg" id="segTheme"><label><input type="radio" name="theme" value="light"><span>فاتح</span></label><label><input type="radio" name="theme" value="dark"><span>داكن</span></label></div></div>
@@ -831,10 +836,11 @@ function drawBackground(){
   }
 }
 function drawOverlay(){
-  if(S.sec==='none')return;
-  var key=(S.sec==='dar'?'dar':'eco')+'_'+S.theme,im=OV[key];if(!im)return;
-  if(S.sec==='logo')ctx.drawImage(im,0,0,1125,520,0,0,1125/K,520/K);
-  else ctx.drawImage(im,0,0,W,2813/K);
+  var sec=S.sec;if(sec==='none')return;
+  var key=sec+'_'+S.theme,im=OV[key];
+  if(im&&sec!=='news'){ctx.drawImage(im,0,0,W,2813/K);return}
+  var base=OV['eco_'+S.theme];if(!base)return;
+  ctx.drawImage(base,0,0,1125,520,0,0,1125/K,520/K);
 }
 
 /* ---------- title block ---------- */
@@ -1039,13 +1045,13 @@ function buildBgChips(){
 function syncBg(){buildBgChips();$('#bgClear').hidden=!S.bgImg;$('#photoOpts').hidden=!S.bgImg}
 function setRadio(name,val){$$('input[name="'+name+'"]').forEach(function(r){r.checked=r.value===val})}
 function syncControls(){
-  setRadio('sec',S.sec);setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
+  $('#secSel').value=S.sec;setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
   $('#band').checked=S.band;$('#veil').value=Math.round(S.veil*100);$('#anchor').value=S.anchor;
   if($('#layoutSel').value!=='auto')$('#layoutSel').value=S.layout;
   syncSw();syncBg();
 }
 function bindControls(){
-  $$('input[name="sec"]').forEach(function(r){r.addEventListener('change',function(){S.sec=r.value;schedule()})});
+  $('#secSel').addEventListener('change',function(){S.sec=this.value;schedule()});
   $$('input[name="theme"]').forEach(function(r){r.addEventListener('change',function(){
     S.theme=r.value;S.bgPreset=0;
     if(S.theme==='dark'&&lum(S.main)<.2)S.main='#FFFFFF';
@@ -1195,6 +1201,7 @@ function download(){
 var AL_RANGE='U+0020-002F,U+003A-0040,U+005B-0060,U+007B-007E,U+00A0-00FF,U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+2000-206F';
 var FONT_FILES=[['BahijPlain','bahij_plain.woff',{}],['BahijBold','bahij_bold.woff',{}],['BahijXBold','bahij_xbold.woff',{}],['AlIttihad','ittihad_black.woff',{unicodeRange:AL_RANGE}],['DINCond','din_cond.woff',{}],['Acumin','acumin.woff',{weight:'100 900'}]];
 var OV_FILES=['eco_light','eco_dark','dar_light','dar_dark'];
+var OV_OPT=['sports','world','ent','statement','invite'].reduce(function(a,k){return a.concat([k+'_light',k+'_dark'])},[]);
 var assetsLoaded=false;
 async function loadAssets(){
   if(assetsLoaded)return 0;
@@ -1210,6 +1217,12 @@ async function loadAssets(){
       var r=await store.download('overlays/'+k+'.png');if(r.error||!r.data){missing++;return}
       await new Promise(function(res){var im=new Image();im.onload=function(){OV[k]=im;res()};im.onerror=res;im.src=URL.createObjectURL(r.data)});
     }catch(e){missing++}
+  }));
+  await Promise.all(OV_OPT.map(async function(k){
+    try{
+      var r=await store.download('overlays/'+k+'.png');if(r.error||!r.data)return;
+      await new Promise(function(res){var im=new Image();im.onload=function(){OV[k]=im;res()};im.onerror=res;im.src=URL.createObjectURL(r.data)});
+    }catch(e){}
   }));
   if(!missing)assetsLoaded=true;
   return missing;
