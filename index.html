@@ -211,7 +211,7 @@ body{padding:0;overflow:hidden;background:var(--bg);color:var(--ink);font-size:1
 .chip-user{display:flex;align-items:center;gap:10px;padding:5px 10px 5px 14px;border-radius:999px;border:1px solid rgba(201,187,255,.28);background:rgba(255,255,255,.07);color:#fff;font:inherit;cursor:pointer;transition:background .15s,border-color .15s}
 .chip-user:hover{background:rgba(255,255,255,.13);border-color:rgba(201,187,255,.5)}
 .chip-user .who-t{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;text-align:start}
-.chip-user b{font-size:13.5px;font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr}
+.chip-user b{font-size:13.5px;font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip-user small{font-size:11.5px;color:var(--lav);font-weight:400}
 .chip-user .chev{width:16px;height:16px;fill:none;stroke:var(--lav);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s var(--ease)}
 .chip-user[aria-expanded=true] .chev{transform:rotate(180deg)}
@@ -309,7 +309,7 @@ button.mini{border-radius:999px;padding:7px 13px;background:#fff}
 .chart text{font-family:inherit}
 .topu{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
 .topu li{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:baseline}
-.topu .em{direction:ltr;text-align:end;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topu .em{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .topu .n{font-variant-numeric:tabular-nums;font-weight:600}
 .topu i{grid-column:1/-1;display:block;height:4px;border-radius:4px;background:var(--soft);overflow:hidden}
 .topu i::after{content:"";display:block;height:100%;width:var(--w);border-radius:4px;background:linear-gradient(90deg,var(--violet),var(--pink))}
@@ -326,8 +326,10 @@ button.mini{border-radius:999px;padding:7px 13px;background:#fff}
 .uid .av{background:linear-gradient(140deg,var(--violet),#5a2a9a)}
 .uid .av.s{background:linear-gradient(140deg,var(--pink),var(--mag))}
 .uid .t{display:flex;flex-direction:column;min-width:0;line-height:1.4}
-.uid .em{direction:ltr;text-align:end;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.uid .seen{font-size:12.5px;color:var(--muted)}
+.uid .nm{font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uid .sub{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.uid .em{direction:ltr;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.uid .seen{white-space:nowrap}
 .pill{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:6px 11px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
 .pill.admin{background:#EFE6FC;color:#5a2a9a}
 .pill.super{background:var(--deep);color:#fff}
@@ -343,7 +345,7 @@ button.mini{border-radius:999px;padding:7px 13px;background:#fff}
 .menu button.confirm{background:#FDE6EF;color:#B3135F;font-weight:700}
 .menu hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
 .lock{font-size:12.5px;color:var(--muted);padding-inline:10px}
-@media (max-width:640px){.urow{grid-template-columns:minmax(0,1fr) auto;padding:14px 14px}.urow .pills{grid-column:1/-1;justify-content:flex-start;order:3}.uid .em{text-align:start}}
+@media (max-width:640px){.urow{grid-template-columns:minmax(0,1fr) auto;padding:14px 14px}.urow .pills{grid-column:1/-1;justify-content:flex-start;order:3}.uid .nm{white-space:normal}}
 
 /* ---- dialogs and toast ---- */
 .dlg-wrap{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(36,16,63,.5);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);animation:fadein .18s}
@@ -620,9 +622,10 @@ button.mini{border-radius:999px;padding:7px 13px;background:#fff}
   <div class="dlg-wrap" id="dlgUser" hidden>
     <form class="dlg" id="userForm" role="dialog" aria-modal="true" aria-labelledby="udTitle" autocomplete="off">
       <h3 id="udTitle">إضافة مستخدم</h3>
-      <p class="hint" id="udHint">اكتب الإيميل وكلمة سر مبدئية، وسلّمهما للشخص. يغيّر كلمة السر بنفسه بعد أول دخول.</p>
-      <div class="field"><label for="udEmail">الإيميل</label><input type="text" id="udEmail" dir="ltr" autocapitalize="off" spellcheck="false" inputmode="email"></div>
-      <div class="field"><label for="udPass">كلمة السر</label>
+      <p class="hint" id="udHint">اكتب اسم الشخص وإيميله وكلمة سر مبدئية، وسلّمها له. يغيّر كلمة السر بنفسه بعد أول دخول.</p>
+      <div class="field" id="udNameWrap"><label for="udName">الاسم</label><input type="text" id="udName" maxlength="40" autocomplete="off" placeholder="مثال: نورة الكعبي"></div>
+      <div class="field" id="udEmailWrap"><label for="udEmail">الإيميل</label><input type="text" id="udEmail" dir="ltr" autocapitalize="off" spellcheck="false" inputmode="email"></div>
+      <div class="field" id="udPassWrap"><label for="udPass">كلمة السر</label>
         <div class="pwrow"><input type="text" id="udPass" dir="ltr" autocomplete="off" spellcheck="false"><button type="button" class="btn ghost sm" id="udGen">توليد</button><button type="button" class="btn ghost sm" id="udCopy">نسخ</button></div>
       </div>
       <div class="field" id="udRoleWrap"><span class="lab">الصلاحية</span>
@@ -1061,7 +1064,7 @@ var ERR={
   empty_text:'الصق النص أولاً.',weak_password:'كلمة السر لازم تكون 8 أحرف على الأقل.',bad_email:'الإيميل غير صحيح.',cannot_remove_self:'لا يمكنك حذف حسابك بنفسك.',
   user_not_found:'المستخدم غير موجود.',not_admin:'هذه الميزة للمسؤول فقط.',cancelled:'تم الإيقاف.',
   account_disabled:'هذا الحساب موقوف. تواصل مع المسؤول.',protected_super_admin:'هذا حساب المالك وهو محمي، لا يمكن تعديله أو إيقافه أو حذفه.',forbidden:'لا تملك صلاحية على هذا الحساب.',super_admin_only:'هذه الميزة للمالك فقط.',cannot_modify_self:'لا يمكن تطبيق هذا على حسابك.',
-  ai_no_credit:'رصيد حساب Anthropic لم يُشحن أو انتهى. أضف رصيداً من صفحة الفوترة في Console ثم أعد المحاولة.',ai_bad_key:'مفتاح Anthropic غير صحيح أو انتهت صلاحيته.',ai_bad_model:'اسم النموذج غير مقبول من Anthropic.',ai_rate_limited:'ضغط كبير على الخدمة الآن. أعد المحاولة بعد قليل.'
+  empty_name:'اكتب الاسم.',ai_no_credit:'رصيد حساب Anthropic لم يُشحن أو انتهى. أضف رصيداً من صفحة الفوترة في Console ثم أعد المحاولة.',ai_bad_key:'مفتاح Anthropic غير صحيح أو انتهت صلاحيته.',ai_bad_model:'اسم النموذج غير مقبول من Anthropic.',ai_rate_limited:'ضغط كبير على الخدمة الآن. أعد المحاولة بعد قليل.'
 };
 function errText(c){return ERR[c]||'حصل خطأ غير متوقع. أعد المحاولة.'}
 async function callFn(name,payload,signal){
@@ -1124,8 +1127,9 @@ async function loadAssets(){
 /* ---------- app shell: side menu, views, users, dashboard, dialogs ---------- */
 var curView='studio',drawerOpen=false,lastFocus=null,toastT=0,userCache={};
 var NF=new Intl.NumberFormat('en-US');
-function initial(email){return (email||'?').trim().charAt(0).toUpperCase()}
+function initial(t){return Array.from((t||'?').trim())[0].toUpperCase()}
 function nameOf(email){return (email||'').split('@')[0]}
+function shown(u){return (u&&u.name&&u.name.trim())||nameOf(u&&u.email)}
 function roleLabel(u){u=u||me;return u.is_super?'المالك':u.role==='admin'?'مسؤول':'عضو'}
 function toast(msg,err){
   var t=$('#toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.hidden=false;
@@ -1180,29 +1184,36 @@ function randPass(){
   crypto.getRandomValues(b);for(var i=0;i<b.length;i++)out+=al[b[i]%al.length];return out;
 }
 function udMsg(m,ok){var e=$('#udMsg');e.textContent=m||'';e.className='dlg-msg'+(ok?' ok':'')}
-function openUserDlg(mode,email){
-  udMode=mode;udMsg('');
-  $('#udTitle').textContent=mode==='add'?'إضافة مستخدم':'كلمة سر جديدة';
-  $('#udHint').textContent=mode==='add'?'اكتب الإيميل وكلمة سر مبدئية، وسلّمهما للشخص. يغيّر كلمة السر بنفسه بعد أول دخول.':'اكتب كلمة سر جديدة لهذا الحساب وسلّمها للشخص.';
-  var em=$('#udEmail');em.value=email||'';em.readOnly=mode==='reset';
+function openUserDlg(mode,u){
+  udMode=mode;udMsg('');u=u||{};
+  var T={add:['إضافة مستخدم','اكتب اسم الشخص وإيميله وكلمة سر مبدئية، وسلّمها له. يغيّر كلمة السر بنفسه بعد أول دخول.','إضافة'],
+         reset:['كلمة سر جديدة','اكتب كلمة سر جديدة لهذا الحساب وسلّمها للشخص.','حفظ'],
+         rename:['تعديل الاسم','الاسم هو اللي يظهر في القوائم ولوحة التحكم بدل الإيميل.','حفظ']}[mode];
+  $('#udTitle').textContent=T[0];$('#udHint').textContent=T[1];$('#udSave').textContent=T[2];
+  $('#udName').value=u.name||'';$('#udEmail').value=u.email||'';$('#udEmail').readOnly=mode!=='add';
   $('#udPass').value='';
+  $('#udNameWrap').hidden=mode==='reset';
+  $('#udEmailWrap').hidden=mode==='rename';
+  $('#udPassWrap').hidden=mode==='rename';
   $('#udRoleWrap').hidden=!(mode==='add'&&me.is_super);
   var r=document.querySelector('input[name="nuRole"][value="member"]');if(r)r.checked=true;
-  $('#udSave').textContent=mode==='add'?'إضافة':'حفظ';
-  openDlg('#dlgUser',mode==='add'?'#udEmail':'#udPass');
+  openDlg('#dlgUser',mode==='add'?'#udName':mode==='rename'?'#udName':'#udPass');
 }
 async function saveUser(e){
   e.preventDefault();
-  var email=$('#udEmail').value.trim(),pass=$('#udPass').value,role=($('input[name="nuRole"]:checked')||{}).value||'member';
-  if(!email){udMsg('اكتب الإيميل.');return}
-  if(pass.length<8){udMsg(errText('weak_password'));return}
-  var exists=!!userCache[email.toLowerCase()],btn=$('#udSave');
-  if(udMode==='add'&&exists){udMsg('هذا الإيميل مضاف من قبل. استخدم «كلمة سر جديدة» من قائمته.');return}
+  var name=$('#udName').value.trim(),email=$('#udEmail').value.trim(),pass=$('#udPass').value,role=($('input[name="nuRole"]:checked')||{}).value||'member',btn=$('#udSave');
+  if(udMode!=='reset'&&!name){udMsg('اكتب الاسم.');return}
+  if(udMode!=='rename'&&!email){udMsg('اكتب الإيميل.');return}
+  if(udMode!=='rename'&&pass.length<8){udMsg(errText('weak_password'));return}
+  if(udMode==='add'&&userCache[email.toLowerCase()]){udMsg('هذا الإيميل مضاف من قبل. استخدم «كلمة سر جديدة» من قائمته.');return}
   btn.disabled=true;udMsg('');
   try{
     if(udMode==='reset')await callFn('manage-users',{action:'reset',email:email,password:pass});
-    else await callFn('manage-users',{action:'add',email:email,password:pass,role:role});
-    closeDlg('#dlgUser');toast(udMode==='reset'?'تم تغيير كلمة السر. سلّمها للشخص.':'تمت الإضافة. سلّم الشخص إيميله وكلمة السر.');
+    else if(udMode==='rename')await callFn('manage-users',{action:'set_name',email:email,name:name});
+    else await callFn('manage-users',{action:'add',email:email,password:pass,role:role,name:name});
+    closeDlg('#dlgUser');
+    toast(udMode==='reset'?'تم تغيير كلمة السر. سلّمها للشخص.':udMode==='rename'?'تم تعديل الاسم.':'تمت الإضافة. سلّم الشخص إيميله وكلمة السر.');
+    if(udMode==='rename'&&email.toLowerCase()===me.email){me.name=name;paintMe()}
     loadUsers();
   }catch(x){udMsg(errText(x.code))}
   finally{btn.disabled=false}
@@ -1227,11 +1238,14 @@ async function userAct(action,u,extra,okMsg){
 function userRow(u){
   var row=document.createElement('div');row.className='urow'+(u.active?'':' off');
   var id=document.createElement('div');id.className='uid';
-  var av=document.createElement('span');av.className='av'+(u.is_super?' s':'');av.textContent=initial(u.email);
+  var av=document.createElement('span');av.className='av'+(u.is_super?' s':'');av.textContent=initial(shown(u));
   var t=document.createElement('div');t.className='t';
+  var nm=document.createElement('span');nm.className='nm';nm.textContent=shown(u);
+  var sub=document.createElement('span');sub.className='sub';
   var em=document.createElement('span');em.className='em';em.textContent=u.email;
   var seen=document.createElement('span');seen.className='seen';seen.textContent='آخر دخول: '+ago(u.last_sign_in_at);
-  t.appendChild(em);t.appendChild(seen);id.appendChild(av);id.appendChild(t);
+  sub.appendChild(em);sub.appendChild(seen);
+  t.appendChild(nm);t.appendChild(sub);id.appendChild(av);id.appendChild(t);
   var pills=document.createElement('div');pills.className='pills';
   function pill(txt,c){var p=document.createElement('span');p.className='pill '+(c||'');p.textContent=txt;pills.appendChild(p)}
   if(u.is_super)pill('المالك','super');else pill(u.role==='admin'?'مسؤول':'عضو',u.role==='admin'?'admin':'');
@@ -1239,14 +1253,16 @@ function userRow(u){
   row.appendChild(id);row.appendChild(pills);
   var canPw=!u.is_super&&(me.is_super||u.role!=='admin');
   var canMore=me.is_super&&!u.is_super&&u.email!==me.email;
-  if(canPw||canMore){
+  var canName=u.email===me.email||(!u.is_super&&(me.is_super||u.role!=='admin'));
+  if(canPw||canMore||canName){
     var k=document.createElement('button');k.type='button';k.className='kebab';k.setAttribute('aria-haspopup','menu');k.setAttribute('aria-expanded','false');k.setAttribute('aria-label','إجراءات '+u.email);
     k.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>';
     k.addEventListener('click',function(ev){
       ev.stopPropagation();
       var was=openMenu&&openMenu.btn===k;closeMenu();if(was)return;
       var m=document.createElement('div');m.className='menu';m.setAttribute('role','menu');
-      if(canPw)m.appendChild(actionBtn('كلمة سر جديدة','',async function(){openUserDlg('reset',u.email)}));
+      if(canName)m.appendChild(actionBtn('تعديل الاسم','',async function(){openUserDlg('rename',u)}));
+      if(canPw)m.appendChild(actionBtn('كلمة سر جديدة','',async function(){openUserDlg('reset',u)}));
       if(canMore){
         m.appendChild(actionBtn(u.role==='admin'?'تحويله إلى عضو':'ترقيته إلى مسؤول','',function(){return userAct('set_role',u,{role:u.role==='admin'?'member':'admin'},'تم تغيير الصلاحية')},true));
         m.appendChild(document.createElement('hr'));
@@ -1293,7 +1309,7 @@ async function loadStats(){
     $('#ledger').innerHTML=items.map(function(x){return '<div><b>'+NF.format(x[0])+'</b><span>'+esc(x[1])+'</span></div>'}).join('');
     $('#chart').innerHTML=chartSvg(j.days||[]);
     var top=j.top||[],mx=Math.max(1,top.length?top[0].count:1);
-    $('#topUsers').innerHTML=top.length?top.map(function(u){return '<li><span class="em">'+esc(u.email)+'</span><span class="n">'+NF.format(u.count)+'</span><i style="--w:'+Math.round(u.count/mx*100)+'%"></i></li>'}).join(''):'<p class="empty">لا توجد تحويلات بعد. تظهر هنا بمجرد أن يبدأ الفريق الاستخدام.</p>';
+    $('#topUsers').innerHTML=top.length?top.map(function(u){return '<li><span class="em" title="'+esc(u.email)+'">'+esc(u.name||u.email)+'</span><span class="n">'+NF.format(u.count)+'</span><i style="--w:'+Math.round(u.count/mx*100)+'%"></i></li>'}).join(''):'<p class="empty">لا توجد تحويلات بعد. تظهر هنا بمجرد أن يبدأ الفريق الاستخدام.</p>';
     $('#dashSub').textContent='الحد اليومي لكل مستخدم '+NF.format(j.limit)+' تحويلة.';
   }catch(e){toast(errText(e.code),true)}
 }
@@ -1315,8 +1331,8 @@ function initUI(){
   window.addEventListener('resize',fit);
 }
 function paintMe(){
-  var n=nameOf(me.email);
-  $('#avatar').textContent=initial(me.email);$('#avatar2').textContent=initial(me.email);
+  var n=shown(me);
+  $('#avatar').textContent=initial(n);$('#avatar2').textContent=initial(n);
   $('#whoName').textContent=n;$('#whoRole').textContent=roleLabel();$('#drName').textContent=n;$('#drEmail').textContent=me.email;
   var adm=me.role==='admin';
   document.querySelectorAll('.dr-nav [data-admin]').forEach(function(b){b.hidden=!adm});
@@ -1324,10 +1340,10 @@ function paintMe(){
 }
 async function enter(session){
   var email=(session.user.email||'').toLowerCase();
-  var r=await sb.from('approved_users').select('email,role,active,is_super').eq('email',email).maybeSingle();
+  var r=await sb.from('approved_users').select('email,role,active,is_super,name').eq('email',email).maybeSingle();
   if(r.error||!r.data){showPending(email);return}
   if(r.data.active===false){await sb.auth.signOut();showLogin(true);$('#authErr').textContent=errText('account_disabled');return}
-  me={email:email,role:r.data.role,is_super:!!r.data.is_super};
+  me={email:email,role:r.data.role,is_super:!!r.data.is_super,name:r.data.name||''};
   $('#auth').hidden=true;paintMe();
   if(!inited){initUI();inited=true}
   go('studio');
