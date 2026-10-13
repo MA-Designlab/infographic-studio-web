@@ -1673,8 +1673,8 @@ function czCover(s,i,n){
   var label=s.cta||'اسحب للمزيد',pf=czFont('strap',30),ph=74;cx.font=pf;cx.direction=R?'rtl':'ltr';var pw=cx.measureText(label).width+ph+54;
   var px=R?M:W-M-pw,py=1190;
   czRR(px,py,pw,ph,ph/2);cx.fillStyle='rgba(255,255,255,.12)';cx.fill();cx.strokeStyle='rgba(255,255,255,.4)';cx.lineWidth=2;cx.stroke();
-  var ax=R?px+ph/2:px+pw-ph/2;czArrow(ax,py+ph/2,25,R,lum(p.accent)>.5?p.deep:'#fff',p.accent);
-  czPut(label,R?px+ph+(pw-ph)/2:px+(pw-ph)/2,py+ph/2+11,pf,'#FFFFFF','center');
+  var ax=px+pw-ph/2;czArrow(ax,py+ph/2,25,false,lum(p.accent)>.5?p.deep:'#fff',p.accent);
+  czPut(label,px+(pw-ph)/2,py+ph/2+11,pf,'#FFFFFF','center');
   // thin accent rule
   cx.fillStyle=p.accent;cx.fillRect(R?W-M-84:M,py+ph/2-3,84,6);
 }
