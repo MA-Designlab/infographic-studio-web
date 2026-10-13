@@ -405,6 +405,10 @@ input[type=color].wide{width:100%;height:38px}
 /* hidden radios sit inside their label, so focusing one never scrolls the page */
 .seg label{position:relative}
 .seg input{inset:0;width:100%;height:100%;margin:0}
+
+.colrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.colrow label{margin:0}
+.colrow input[type=color]{width:44px;height:32px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -591,7 +595,9 @@ input[type=color].wide{width:100%;height:38px}
           <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span>
             <div class="seg" id="segLabelPos"><label><input type="radio" name="labelPos" value="above"><span>فوقه</span></label><label><input type="radio" name="labelPos" value="below"><span>تحته</span></label></div></div>
         </div>
-        <div class="field"><span class="lab">اللون الرئيسي (العنوان والأرقام)</span>
+        <div class="field"><span class="lab">لون العنوان الكبير</span>
+          <div class="sws" id="swTitle"></div></div>
+        <div class="field"><span class="lab">لون الأرقام والعناصر (يمكن تغيير كل رقم على حدة من الخطوة 3)</span>
           <div class="sws" id="swMain"></div></div>
         <div class="field"><span class="lab">لون السترابة</span>
           <div class="sws" id="swStrap"></div></div>
@@ -780,7 +786,7 @@ var PRESETS={
 };
 
 var S={
-  lang:'ar',layout:'stats',sec:'eco',theme:'light',main:'#1B1F78',strap:'#D8560B',strapPos:'top',labelPos:'above',numGray:false,
+  lang:'ar',layout:'stats',sec:'eco',theme:'light',main:'#1B1F78',titleC:'#1B1F78',strap:'#D8560B',strapPos:'top',labelPos:'above',numGray:false,
   kicker:'',title:'',subtitle:'',footer:'',
   hero:{value:'',label:'',text:''},stats:[],items:[],bars:[],legend:[],
   bgPreset:0,bgImg:null,anchor:'bottom',veil:.35,band:true
@@ -872,7 +878,7 @@ function titleBlock(y0){
   if(S.title){
     for(size=116;size>=60;size-=4){lines=wrapBal(S.title,f.title(size),W-2*M-30);if(lines.length<=2||(size<=76&&lines.length<=3))break}
     var step=size*(S.lang==='en'?1.06:1.14);
-    lines.forEach(function(l,i){put(l,W/2,y+size*.9+i*step,f.title(size),S.main,'center')});
+    lines.forEach(function(l,i){put(l,W/2,y+size*.9+i*step,f.title(size),S.titleC,'center')});
     y+=lines.length*step+14;
   }
   if(!top&&S.kicker){y+=6;y+=drawStrap(y,true)+22}
@@ -886,7 +892,7 @@ function titleBlock(y0){
 
 /* ---------- stat cell / grid ---------- */
 function statCell(st,cx,y,cw,sz,draw){
-  var f=F(),th=TH[S.theme],nc=numColor(),numTxt=fmtVal(st.value);
+  var f=F(),th=TH[S.theme],nc=st.color||numColor(),numTxt=fmtVal(st.value);
   var ns=sz.num;ctx.font=f.num(ns);ctx.direction='ltr';
   while(ns>40&&ctx.measureText(numTxt).width>cw-20){ns-=4;ctx.font=f.num(ns)}
   var dh=digitH(f.num(ns));
@@ -1046,7 +1052,7 @@ function buildSwatches(id,key){
   var c=document.createElement('input');c.type='color';c.title='لون مخصص';c.setAttribute('aria-label','لون مخصص');c.id=id.slice(1)+'Custom';c.addEventListener('input',function(){S[key]=c.value.toUpperCase();syncSw();schedule()});box.appendChild(c);
 }
 function syncSw(){
-  [['#swMain','main'],['#swStrap','strap']].forEach(function(p){
+  [['#swTitle','titleC'],['#swMain','main'],['#swStrap','strap']].forEach(function(p){
     $$(p[0]+' .sw').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.c.toLowerCase()===S[p[1]].toLowerCase()))});
     var c=$(p[0]+' input[type=color]');if(c)c.value=S[p[1]].toLowerCase();
   });
@@ -1070,6 +1076,8 @@ function bindControls(){
     S.theme=r.value;S.bgPreset=0;
     if(S.theme==='dark'&&lum(S.main)<.2)S.main='#FFFFFF';
     if(S.theme==='light'&&lum(S.main)>.8)S.main='#1B1F78';
+    if(S.theme==='dark'&&lum(S.titleC)<.2)S.titleC='#FFFFFF';
+    if(S.theme==='light'&&lum(S.titleC)>.8)S.titleC='#1B1F78';
     syncSw();syncBg();schedule()})});
   $$('input[name="labelPos"]').forEach(function(r){r.addEventListener('change',function(){S.labelPos=r.value;schedule()})});
   $$('input[name="strapPos"]').forEach(function(r){r.addEventListener('change',function(){S.strapPos=r.value;schedule()})});
@@ -1100,6 +1108,10 @@ function bindControls(){
 /* ---------- editor ---------- */
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function inp(path,val,ph,cls){return '<input type="text" dir="auto" data-p="'+path+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'"'+(cls?' class="'+cls+'"':'')+'>'}
+function colRow(path,o){
+  var set=!!o.color;
+  return '<div class="colrow"><label>لون هذا الرقم</label><input type="color" data-c="'+path+'.color" value="'+(o.color||numColor()).toLowerCase()+'" aria-label="لون الرقم">'+(set?'<button type="button" class="mini" data-cr="'+path+'.color">الافتراضي</button>':'<span class="hint">يتبع اللون العام</span>')+'</div>';
+}
 function buildEditor(){
   var h='';
   h+='<div class="grp"><div class="two">'
@@ -1108,7 +1120,7 @@ function buildEditor(){
     +'<div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>'
     +'<div class="field"><label>سطر الإعداد أو المصدر (اختياري)</label>'+inp('footer',S.footer,'إعداد: الاسم، تصميم: الاسم')+'</div></div>';
   if(S.layout==='stats'){
-    h+='<div class="grp"><div class="head"><b>الرقم الرئيسي</b></div><div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+'</div>';
+    h+='<div class="grp"><div class="head"><b>الرقم الرئيسي</b></div><div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero)+'</div>';
   }
   if(S.layout==='list'||S.layout==='cards'){
     h+='<div class="grp"><div class="head"><b>'+(S.layout==='list'?'النقاط':'البطاقات')+'</b><button type="button" class="mini" data-add="items">إضافة</button></div>';
@@ -1122,7 +1134,7 @@ function buildEditor(){
     h+='</div>';
   }
   h+='<div class="grp"><div class="head"><b>'+(S.layout==='stats'?'الأرقام الداعمة':'شريط الأرقام السفلي')+'</b><button type="button" class="mini" data-add="stats">إضافة</button></div>';
-  S.stats.forEach(function(s,i){h+='<div class="rowf"><div class="field">'+inp('stats.'+i+'.value',s.value,'الرقم')+'</div>'+inp('stats.'+i+'.label',s.label,'الكلمة المميزة')+'<button type="button" class="x" data-rm="stats.'+i+'" aria-label="حذف">حذف</button><div class="full">'+inp('stats.'+i+'.text',s.text,'النص تحت الرقم')+'</div></div>'});
+  S.stats.forEach(function(s,i){h+='<div class="rowf"><div class="field">'+inp('stats.'+i+'.value',s.value,'الرقم')+'</div>'+inp('stats.'+i+'.label',s.label,'الكلمة المميزة')+'<button type="button" class="x" data-rm="stats.'+i+'" aria-label="حذف">حذف</button><div class="full">'+inp('stats.'+i+'.text',s.text,'النص تحت الرقم')+'</div><div class="full">'+colRow('stats.'+i,s)+'</div></div>'});
   h+='</div>';
   $('#editor').innerHTML=h;
 }
@@ -1133,9 +1145,11 @@ function setPath(path,val){
 }
 function bindEditor(){
   var ed=$('#editor');
-  ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.p){setPath(t.dataset.p,t.value);$('#exampleNote').hidden=true;schedule()}});
+  ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.p){setPath(t.dataset.p,t.value);$('#exampleNote').hidden=true;schedule()}
+    else if(t.dataset&&t.dataset.c){setPath(t.dataset.c,t.value.toUpperCase());schedule();var b=t.parentNode.querySelector('.hint,button');if(b&&b.classList.contains('hint')){b.outerHTML='<button type="button" class="mini" data-cr="'+t.dataset.c+'">الافتراضي</button>'}}});
   ed.addEventListener('click',function(e){
     var t=e.target.closest('button');if(!t)return;
+    if(t.dataset.cr){setPath(t.dataset.cr,'');buildEditor();schedule();return}
     if(t.dataset.add){
       var k=t.dataset.add;
       if(k==='stats'&&S.stats.length<6)S.stats.push({value:'',label:'',text:''});
@@ -1440,7 +1454,7 @@ function showLogin(open){
 }
 function showPending(email){$('#auth').hidden=false;$('#lpModal').hidden=false;$('#loginForm').hidden=true;$('#pending').hidden=false;$('#pendingEmail').textContent=email}
 function initUI(){
-  buildSwatches('#swMain','main');buildSwatches('#swStrap','strap');
+  buildSwatches('#swTitle','titleC');buildSwatches('#swMain','main');buildSwatches('#swStrap','strap');
   Object.assign(S,JSON.parse(JSON.stringify({kicker:DEMO.kicker,title:DEMO.title,subtitle:DEMO.subtitle,hero:DEMO.hero,stats:DEMO.stats,items:DEMO.items,bars:DEMO.bars,legend:DEMO.legend,layout:DEMO.layout})));
   syncControls();buildEditor();bindControls();bindEditor();
   $('#gen').addEventListener('click',generate);
