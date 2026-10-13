@@ -401,6 +401,10 @@ input[type=color].wide{width:100%;height:38px}
 #czGrid .stage{flex:none}
 .czwrap{flex:none}
 }
+
+/* hidden radios sit inside their label, so focusing one never scrolls the page */
+.seg label{position:relative}
+.seg input{inset:0;width:100%;height:100%;margin:0}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2043,6 +2047,7 @@ function czShow(on){
   if(on){czInit();czFit();czFonts().then(function(){czRenderAll()})}else{fit();render()}
 }
 function czBoot(){
+  var vs=$('#viewStudio');vs.addEventListener('scroll',function(){if(!vs.classList.contains('cz-on')&&vs.scrollTop)vs.scrollTop=0});
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)czShow(r.value==='cz')})});
 }
 czBoot();
