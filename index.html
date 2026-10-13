@@ -409,6 +409,35 @@ input[type=color].wide{width:100%;height:38px}
 .colrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .colrow label{margin:0}
 .colrow input[type=color]{width:44px;height:32px}
+
+/* ---- verbatim placement + proofreading dialogs ---- */
+.dlg.wide{width:min(100%,720px)}
+.plwhy{margin:-4px 0 0;font-size:13.5px;color:var(--navy);font-weight:500}
+.plhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.plhead b{font-size:14px}.plhead b.bad{color:#C0225F}
+.plrow{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:14px;margin-top:8px;background:#fff}
+.plrow.off{opacity:.5;background:var(--soft)}
+.plrow.warn{border-color:#E8A33D;background:#FFF9EC}
+.plchk{display:grid;place-items:center;padding-top:6px}
+.plchk input{width:20px;height:20px;accent-color:var(--navy)}
+.plf{flex:1;display:grid;grid-template-columns:minmax(0,.55fr) minmax(0,1fr);gap:6px;min-width:0}
+.plf input{padding:7px 9px;font-size:13.5px}
+.plf .plt,.plnote{grid-column:1/-1}
+.plnote{font-size:12px;color:#9A5B00;line-height:1.5}
+.plnote:empty{display:none}
+.plimp{font:700 12px/1 DINCond,var(--fb);background:var(--soft);color:var(--navy);border-radius:999px;padding:5px 8px;margin-top:6px}
+.pfrow{padding:12px 14px;border:1px solid var(--line);border-radius:14px;margin-top:8px;display:grid;gap:6px}
+.pfrow.accepted{background:#F0FAF4;border-color:#BFE6CD}.pfrow.ignored{opacity:.55}.pfrow.failed{background:#FFF4F4}
+.pfctx{font-size:15px;line-height:1.8}
+mark.bad{background:#FFD9E4;color:#8E0F3F;border-radius:4px;padding:0 3px}
+mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
+.pffix{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+.pfarrow{color:var(--muted)}.pfty{font-size:11.5px;background:var(--soft);color:var(--navy);padding:3px 8px;border-radius:999px}
+.pfwhy{font-size:12.5px;color:var(--muted)}
+.pfbtns{display:flex;gap:8px}.pfst{font-size:12.5px;color:var(--muted)}
+.pfok{font-size:16px;font-weight:600;color:#14633A;margin:0}
+.dlg.wide .dlg-act{position:sticky;bottom:-26px;z-index:2;background:#fff;padding:14px 0 2px;margin-top:2px;border-top:1px solid rgba(60,30,100,.1);flex-wrap:wrap}
+@media (max-width:520px){.dlg.wide{padding:20px 16px}.dlg.wide .dlg-act{bottom:-20px}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -571,6 +600,8 @@ input[type=color].wide{width:100%;height:38px}
           <button class="primary" id="gen" type="button">حوّل النص إلى تصميم</button>
           <button id="stopGen" type="button" hidden>إيقاف</button>
           <button id="demo" type="button" class="mini">نص تجريبي</button>
+          <button id="plBtn" type="button">وزّع النص كما هو على القالب</button>
+          <button id="pfBtn" type="button" class="mini">مراجعة لغوية</button>
         </div>
         <div id="status" role="status" aria-live="polite"></div>
       </div>
@@ -648,6 +679,7 @@ input[type=color].wide{width:100%;height:38px}
           <select id="czLang"><option value="auto">تلقائي حسب النص</option><option value="ar">العربية</option><option value="en">English</option></select></div>
         <div class="row">
           <button class="primary" id="czGen" type="button">حوّل النص إلى شرائح</button>
+          <button type="button" id="czPfBtn" class="mini">مراجعة لغوية</button>
           <button id="czStop" type="button" hidden>إيقاف</button>
           <button id="czDemo" type="button" class="mini">مثال جاهز</button>
         </div>
@@ -759,6 +791,22 @@ input[type=color].wide{width:100%;height:38px}
       <div class="dlg-msg" id="pwMsg" role="alert"></div>
       <div class="dlg-act"><button type="submit" class="btn pink">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></div>
     </form>
+  </div>
+
+  <div class="dlg-wrap" id="dlgPlace" hidden>
+    <div class="dlg wide" role="dialog" aria-modal="true" aria-labelledby="plTitle">
+      <h3 id="plTitle">توزيع النص على القالب</h3>
+      <div id="plBody"></div>
+      <div class="dlg-act" id="plAct"></div>
+    </div>
+  </div>
+
+  <div class="dlg-wrap" id="dlgProof" hidden>
+    <div class="dlg wide" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+      <h3 id="pfTitle">المراجعة اللغوية</h3>
+      <div id="pfBody"></div>
+      <div class="dlg-act" id="pfAct"></div>
+    </div>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -1307,7 +1355,7 @@ function openDlg(id,focusSel){
   setTimeout(function(){var f=w.querySelector(focusSel||'input:not([type=radio])');if(f)f.focus()},30);
 }
 function closeDlg(id){var w=$(id);w.hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus()}
-function openedDlg(){return ['#dlgUser','#dlgPw'].filter(function(i){return !$(i).hidden})[0]}
+function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof'].filter(function(i){return !$(i).hidden})[0]}
 
 /* user dialog (add / new password) */
 var udMode='add';
@@ -1448,7 +1496,7 @@ async function loadStats(){
 
 /* ---------- sign-in flow ---------- */
 function showLogin(open){
-  setDrawer(false);['#dlgUser','#dlgPw'].forEach(function(i){$(i).hidden=true});
+  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof'].forEach(function(i){$(i).hidden=true});
   $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
   if(open)setTimeout(function(){$('#email').focus()},30);
 }
@@ -2066,6 +2114,265 @@ function czBoot(){
 }
 czBoot();
 window.__cz={CZ:CZ,render:function(){czRenderAll()},select:czSelect,show:czShow,load:czLoad,DEMO:CZ_DEMO,zip:czZip};
+
+/* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
+/* Capacity of each fixed template. When the real templates arrive, only this list changes. */
+var TEMPLATES=[
+  {id:'hero6',name:'رقم رئيسي + 5 أرقام',layout:'stats',hero:1,cap:6},
+  {id:'hero4',name:'رقم رئيسي + 3 أرقام',layout:'stats',hero:1,cap:4},
+  {id:'grid6',name:'ستة أرقام متساوية',layout:'stats',hero:0,cap:6},
+  {id:'grid3',name:'ثلاثة أرقام كبيرة',layout:'stats',hero:0,cap:3},
+  {id:'list5',name:'نقاط مرقمة (5)',layout:'list',cap:5},
+  {id:'list3',name:'نقاط مرقمة (3)',layout:'list',cap:3},
+  {id:'bars10',name:'ترتيب بالأعمدة (حتى 10)',layout:'bars',cap:10},
+  {id:'bars6',name:'ترتيب بالأعمدة (حتى 6)',layout:'bars',cap:6},
+  {id:'cards6',name:'بطاقات نصية (حتى 6)',layout:'cards',cap:6},
+  {id:'cards4',name:'بطاقات نصية (4)',layout:'cards',cap:4}
+];
+var LIM={label:40,text:110,title:60,itemText:150,bar:40};
+var PL={data:null,src:'',rows:[],tpl:null,groups:null};
+
+function plNorm(s){return String(s==null?'':s).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/٪/g,'%').replace(/[ً-ٰٟـ]/g,'').replace(/\s+/g,' ').trim().toLowerCase()}
+function plTxt(s){return String(s==null?'':s).replace(/\s+/g,' ').trim()}
+function plShapeLayout(shape){return shape==='numbers'?'stats':shape==='list'?'list':shape==='ranking'?'bars':'cards'}
+function plCompat(shape){return shape==='numbers'?['stats','list','cards']:shape==='ranking'?['bars']:['list','cards']}
+function plRows(d){
+  var shape=d.shape;
+  if(shape==='ranking')return(d.bars||[]).map(function(b,i){return{kind:'bar',i:i,label:plTxt(b.label),value:plTxt(b.value),note:plTxt(b.note),imp:0}});
+  if(shape==='list'||shape==='text')return(d.items||[]).map(function(b,i){return{kind:'item',i:i,title:plTxt(b.title),text:plTxt(b.text),imp:+b.importance||5}});
+  return(d.numbers||[]).map(function(b,i){return{kind:'num',i:i,value:plTxt(b.value),label:plTxt(b.label),text:plTxt(b.text),imp:+b.importance||5}});
+}
+function plRecommend(shape,count){
+  var fam=plShapeLayout(shape),c=TEMPLATES.filter(function(t){return t.layout===fam}).sort(function(a,b){return a.cap-b.cap});
+  var fit=c.filter(function(t){return t.cap>=count})[0],pick=fit||c[c.length-1];
+  return pick;
+}
+function plNoun(shape){return shape==='numbers'?'أرقام':shape==='ranking'?'بنود':'نقاط'}
+function plWhy(tpl,count,shape){
+  var n=plNoun(shape);
+  if(count<=tpl.cap&&count===tpl.cap)return 'القالب «'+tpl.name+'» هو الأنسب: عندك '+count+' '+n+' وهو بيستوعب '+tpl.cap+' بالظبط.';
+  if(count<tpl.cap)return 'القالب «'+tpl.name+'» هو الأنسب: عندك '+count+' '+n+' وهو بيستوعب '+tpl.cap+'، وأصغر قالب أقل من كده مش هيكفي.';
+  return 'عندك '+count+' '+n+' وأكبر قالب مناسب بيستوعب '+tpl.cap+'. اختار اللي تحتفظ بيه، أو حوّل المادة لكاروسيل.';
+}
+function plDefaultChecked(rows,cap){
+  var ids=rows.map(function(r,i){return i});
+  if(rows.length<=cap)return ids;
+  var ranked=ids.slice().sort(function(a,b){return rows[b].imp-rows[a].imp||a-b}).slice(0,cap);
+  return ids.filter(function(i){return ranked.indexOf(i)>-1});
+}
+function plRowLimits(r,tpl){
+  var out=[];
+  if(r.kind==='num'){
+    if(r.label.length>LIM.label)out.push('الكلمة المميزة أطول من '+LIM.label+' حرف');
+    if(r.text.length>LIM.text)out.push('النص أطول من '+LIM.text+' حرف');
+  }else if(r.kind==='item'){
+    if(r.title.length>LIM.title)out.push('العنوان أطول من '+LIM.title+' حرف');
+    if(r.text.length>LIM.itemText)out.push('النص أطول من '+LIM.itemText+' حرف');
+  }else if(r.kind==='bar'&&r.label.length>LIM.bar)out.push('الاسم أطول من '+LIM.bar+' حرف');
+  return out;
+}
+function plVerbatim(r){
+  var s=PL.srcN,bad=[];
+  function chk(v,name){if(v&&s.indexOf(plNorm(v))<0)bad.push(name)}
+  if(r.kind==='num'){chk(r.label,'الكلمة المميزة');chk(r.text,'النص')}
+  else if(r.kind==='item'){chk(r.title,'العنوان');chk(r.text,'النص')}
+  else chk(r.label,'الاسم');
+  return bad;
+}
+
+/* ----- dialog ----- */
+function plOpen(){
+  var src=$('#src').value.trim();
+  if(!src){status('الصق النص أولاً.',true);return}
+  PL.src=src;PL.srcN=plNorm(src);
+  $('#plTitle').textContent='توزيع النص على القالب';
+  $('#plBody').innerHTML='<p class="hint"><span class="spin"></span>جارٍ قراءة النص وتقسيمه على الخانات…</p>';
+  $('#plAct').innerHTML='<button type="button" class="btn ghost" data-pclose>إلغاء</button>';
+  openDlg('#dlgPlace','[data-pclose]');
+  plRun();
+}
+async function plRun(){
+  var ctl2=new AbortController();PL.ctl=ctl2;
+  $('#plAct').querySelector('[data-pclose]').addEventListener('click',function(){ctl2.abort();closeDlg('#dlgPlace')});
+  try{
+    var j=await callFn('generate',{text:PL.src,lang:$('#lang').value,mode:'place'},ctl2.signal);
+    if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
+    PL.data=j.data;plBuild();
+  }catch(e){
+    var c=e&&e.code;if(c==='cancelled')return;
+    $('#plBody').innerHTML='<p class="dlg-msg">'+esc(errText(c))+'</p>';
+    $('#plAct').innerHTML='<button type="button" class="btn ghost" data-pclose>إغلاق</button>';
+    $('#plAct').querySelector('[data-pclose]').addEventListener('click',function(){closeDlg('#dlgPlace')});
+    if(c==='not_signed_in'){closeDlg('#dlgPlace');showLogin(true)}
+  }
+}
+function plBuild(){
+  var d=PL.data;d.shape=['numbers','list','ranking','text'].indexOf(d.shape)>-1?d.shape:'numbers';
+  PL.rows=plRows(d);
+  var rec=plRecommend(d.shape,PL.rows.length);PL.tpl=rec;PL.rec=rec;
+  var compat=plCompat(d.shape),opts=TEMPLATES.filter(function(t){return compat.indexOf(t.layout)>-1});
+  PL.checked=plDefaultChecked(PL.rows,rec.cap);
+  var h='';
+  h+='<div class="field"><label for="plTpl">القالب المناسب</label><select id="plTpl">'+opts.map(function(t){return '<option value="'+t.id+'"'+(t.id===rec.id?' selected':'')+'>'+(t.id===rec.id?'★ ':'')+esc(t.name)+' ('+t.cap+')</option>'}).join('')+'</select></div>';
+  h+='<p class="plwhy" id="plWhy"></p>';
+  h+='<div class="grp"><div class="head"><b>العنوان</b><span class="hint">مقترح، ويمكن تعديله</span></div><div class="two"><div class="field"><label>السترابة</label><input type="text" id="plKick" dir="auto" value="'+esc(d.kicker||'')+'"></div><div class="field"><label>العنوان الكبير</label><input type="text" id="plTitleIn" dir="auto" value="'+esc(d.title||'')+'"></div></div><div class="field"><label>العنوان الثانوي</label><input type="text" id="plSub" dir="auto" value="'+esc(d.subtitle||'')+'"></div></div>';
+  h+='<div class="plhead"><b id="plCount"></b><span class="hint">النصوص منقولة من مادتك كما هي. الكلام المعدّل منك فقط هو اللي يتغير.</span></div>';
+  h+='<div id="plRows"></div><div class="dlg-msg" id="plMsg" role="alert"></div>';
+  $('#plBody').innerHTML=h;
+  plRenderRows();plRefresh();
+  $('#plTpl').addEventListener('change',function(){
+    PL.tpl=TEMPLATES.filter(function(t){return t.id===this.value},this)[0];PL.checked=plDefaultChecked(PL.rows,PL.tpl.cap);plRenderRows();plRefresh();
+  });
+  $('#plAct').innerHTML='<button type="button" class="btn pink" id="plApply">طبّق على التصميم</button><button type="button" class="btn ghost" id="plCar" hidden>حوّلها كاروسيل</button><button type="button" class="btn ghost" id="plCancel">إلغاء</button>';
+  $('#plApply').addEventListener('click',plApply);
+  $('#plCancel').addEventListener('click',function(){closeDlg('#dlgPlace')});
+  $('#plCar').addEventListener('click',plToCarousel);
+  plRefresh();
+}
+function plField(i,k,val,ph,cls){return '<input type="text" dir="auto" data-pl="'+i+'.'+k+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'" aria-label="'+esc(ph)+'"'+(cls?' class="'+cls+'"':'')+'>'}
+function plRenderRows(){
+  var h='';
+  PL.rows.forEach(function(r,i){
+    var on=PL.checked.indexOf(i)>-1,f='';
+    if(r.kind==='num')f=plField(i,'value',r.value,'الرقم','plv')+plField(i,'label',r.label,'الكلمة المميزة','pll')+plField(i,'text',r.text,'النص','plt');
+    else if(r.kind==='item')f=plField(i,'title',r.title,'العنوان','pll')+plField(i,'text',r.text,'النص','plt');
+    else f=plField(i,'label',r.label,'الاسم','pll')+plField(i,'value',r.value,'القيمة','plv')+plField(i,'note',r.note,'النسبة','plv');
+    h+='<div class="plrow'+(on?'':' off')+'" data-r="'+i+'"><label class="plchk"><input type="checkbox" data-pc="'+i+'"'+(on?' checked':'')+' aria-label="اختيار"></label><div class="plf">'+f+'<div class="plnote" data-n="'+i+'"></div></div>'+(r.kind==='bar'?'':'<span class="plimp" title="الأهمية من 10">'+r.imp+'</span>')+'</div>';
+  });
+  $('#plRows').innerHTML=h;
+  $$('#plRows [data-pc]').forEach(function(c){c.addEventListener('change',function(){
+    var i=+c.dataset.pc,k=PL.checked.indexOf(i);
+    if(c.checked&&k<0)PL.checked.push(i);if(!c.checked&&k>-1)PL.checked.splice(k,1);
+    PL.checked.sort(function(a,b){return a-b});c.closest('.plrow').classList.toggle('off',!c.checked);plRefresh();
+  })});
+  $$('#plRows [data-pl]').forEach(function(inp){inp.addEventListener('input',function(){
+    var p=inp.dataset.pl.split('.');PL.rows[+p[0]][p[1]]=inp.value;plRefresh(+p[0]);
+  })});
+}
+function plRefresh(only){
+  var tpl=PL.tpl,cap=tpl.cap,n=PL.checked.length,total=PL.rows.length,over=n>cap;
+  $('#plWhy').textContent=tpl.id===PL.rec.id?plWhy(tpl,total,PL.data.shape):'اخترت «'+tpl.name+'» بدل المقترح «'+PL.rec.name+'». يستوعب '+cap+'.';
+  $('#plCount').textContent='اخترت '+n+' من '+total+' (القالب بياخد '+cap+')';
+  $('#plCount').className=over?'bad':'';
+  $$('#plRows .plrow').forEach(function(row){
+    var i=+row.dataset.r;if(only!=null&&only!==i)return;
+    var r=PL.rows[i],notes=plRowLimits(r,tpl).map(function(m){return '⚠ '+m+'، وقد يُقص بنقاط في التصميم. اختصره بنفسك أو اختر قالباً أوسع.'}),vb=plVerbatim(r);
+    if(vb.length)notes.push('ℹ '+vb.join(' و')+': مش منقول حرفياً (اتعدّل). راجعه.');
+    row.querySelector('.plnote').textContent=notes.join(' ');row.classList.toggle('warn',notes.length>0&&PL.checked.indexOf(i)>-1);
+  });
+  var msg=$('#plMsg');msg.textContent=over?'اخترت أكتر من سعة القالب. شيل '+(n-cap)+' '+plNoun(PL.data.shape)+' عشان تكمل.':'';
+  var ap=$('#plApply');if(ap)ap.disabled=over||n===0;
+  var car=$('#plCar');if(car)car.hidden=!(total>cap);
+}
+function plApply(){
+  var tpl=PL.tpl,d=PL.data,chosen=PL.checked.map(function(i){return PL.rows[i]});
+  S.lang=d.lang==='en'?'en':'ar';
+  var sel=$('#lang').value;if(sel!=='auto')S.lang=sel;
+  S.layout=tpl.layout;S.kicker=plTxt($('#plKick').value);S.title=plTxt($('#plTitleIn').value);S.subtitle=plTxt($('#plSub').value);S.footer='';
+  S.hero={value:'',label:'',text:''};S.stats=[];S.items=[];S.bars=[];S.legend=[];
+  function num(r){return{value:plTxt(r.value),label:plTxt(r.label),text:plTxt(r.text)}}
+  function asItem(r){return r.kind==='num'?{title:(plTxt(r.value)+' '+plTxt(r.label)).trim(),text:plTxt(r.text)}:{title:plTxt(r.title),text:plTxt(r.text)}}
+  if(tpl.layout==='stats'){
+    var list=chosen.slice();
+    if(tpl.hero&&list.length){
+      var top=list.reduce(function(a,b){return b.imp>a.imp?b:a},list[0]);S.hero=num(top);list=list.filter(function(r){return r!==top});
+    }
+    S.stats=list.map(num);
+  }else if(tpl.layout==='list'||tpl.layout==='cards'){
+    S.items=chosen.map(asItem);
+    if(d.shape==='list')S.stats=(d.numbers||[]).slice(0,3).map(function(r){return num(r)});
+  }else if(tpl.layout==='bars'){
+    S.bars=chosen.map(function(r){return{label:plTxt(r.label),value:plTxt(r.value),note:plTxt(r.note)}});
+    S.legend=(d.legend||[]).slice(0,2).map(plTxt);
+    S.stats=(d.numbers||[]).slice(0,4).map(function(r){return num(r)});
+  }
+  $('#layoutSel').value=S.layout;$('#exampleNote').hidden=true;
+  buildEditor();syncControls();render();closeDlg('#dlgPlace');
+  status('تم توزيع النص على قالب «'+tpl.name+'». راجع الحقول في الخطوة 3.');
+  toast('تم توزيع النص على القالب.');
+}
+function plToCarousel(){
+  closeDlg('#dlgPlace');
+  $('#czSrc').value=PL.src;
+  var r=document.querySelector('input[name="mode"][value="cz"]');r.checked=true;czShow(true);
+  czGenerate();
+}
+
+/* ----- proofreading (Arabic and English) ----- */
+var PF={ta:null,issues:[],round:0,accepted:0,busy:false};
+var PF_TYPE={spelling:'إملاء',grammar:'نحو',punctuation:'ترقيم'};
+function pfOpen(taId){
+  var ta=$(taId),text=ta.value.trim();
+  if(!text){toast('الصق النص أولاً.',true);return}
+  PF={ta:ta,issues:[],round:0,accepted:0,busy:false};
+  $('#pfBody').innerHTML='';$('#pfAct').innerHTML='';
+  openDlg('#dlgProof','[data-pfclose]');pfRun();
+}
+async function pfRun(){
+  PF.busy=true;PF.round++;
+  $('#pfBody').innerHTML='<p class="hint"><span class="spin"></span>'+(PF.round>1?'جارٍ المراجعة مرة ثانية للتأكد…':'جارٍ مراجعة النص لغوياً…')+'</p>';
+  $('#pfAct').innerHTML='<button type="button" class="btn ghost" data-pfclose>إغلاق</button>';
+  pfBindClose();
+  try{
+    var j=await callFn('generate',{text:PF.ta.value,lang:'auto',mode:'proofread'});
+    PF.issues=((j&&j.data&&j.data.issues)||[]).map(function(x){return Object.assign({state:'open'},x)});
+    pfRender();
+  }catch(e){
+    var c=e&&e.code;$('#pfBody').innerHTML='<p class="dlg-msg">'+esc(errText(c))+'</p>';
+    if(c==='not_signed_in'){closeDlg('#dlgProof');showLogin(true)}
+  }finally{PF.busy=false}
+}
+function pfBindClose(){$$('#dlgProof [data-pfclose]').forEach(function(b){b.onclick=function(){closeDlg('#dlgProof')}})}
+function pfMark(ctx,orig,cls,rep){
+  var k=ctx.indexOf(orig);if(k<0)return esc(ctx);
+  return esc(ctx.slice(0,k))+'<mark class="'+cls+'">'+esc(rep==null?orig:rep)+'</mark>'+esc(ctx.slice(k+orig.length));
+}
+function pfRender(){
+  var open=PF.issues.filter(function(x){return x.state==='open'}),h='';
+  if(!PF.issues.length){
+    h='<p class="pfok">✓ ما لقيتش أخطاء لغوية في النص'+(PF.round>1?' بعد المراجعة الثانية.':'.')+'</p><p class="hint">المراجعة آلية وممكن تفوّت شيء، فالمراجعة النهائية عليك.</p>';
+    $('#pfBody').innerHTML=h;$('#pfAct').innerHTML='<button type="button" class="btn pink" data-pfclose>تمام</button>';pfBindClose();return;
+  }
+  h+='<p class="hint">'+(open.length?'لقيت '+open.length+' ملاحظة. اقبل التصحيح أو تجاهله، أو صحّح الكل مرة واحدة.':'خلصت كل الملاحظات.')+'</p>';
+  PF.issues.forEach(function(x,i){
+    var st=x.state;
+    h+='<div class="pfrow '+st+'" data-i="'+i+'"><div class="pfctx" dir="auto">'+(st==='accepted'?pfMark(x.context,x.original,'good',x.suggestion):pfMark(x.context,x.original,'bad'))+'</div>'
+      +'<div class="pffix"><span class="pfarrow">←</span><b dir="auto">'+esc(x.suggestion)+'</b><span class="pfty">'+esc(PF_TYPE[x.type]||'')+'</span><span class="pfwhy">'+esc(x.reason)+'</span></div>';
+    if(st==='open')h+='<div class="pfbtns"><button type="button" class="btn sm pink" data-pa="'+i+'">اقبل</button><button type="button" class="btn sm ghost" data-pi="'+i+'">تجاهل</button></div>';
+    else h+='<div class="pfst">'+(st==='accepted'?'اتصحح':st==='ignored'?'اتجاهل':'تعذر التطبيق: النص اتغيّر')+'</div>';
+    h+='</div>';
+  });
+  $('#pfBody').innerHTML=h;
+  var act='';
+  if(open.length)act+='<button type="button" class="btn pink" id="pfAll">صحّح الكل</button><button type="button" class="btn ghost" id="pfManual" data-pfclose>هصحح بنفسي</button>';
+  else act+='<button type="button" class="btn pink" id="pfAgain">راجع مرة ثانية</button><button type="button" class="btn ghost" data-pfclose>إغلاق</button>';
+  $('#pfAct').innerHTML=act;pfBindClose();
+  $$('#pfBody [data-pa]').forEach(function(b){b.addEventListener('click',function(){pfAccept(+b.dataset.pa)})});
+  $$('#pfBody [data-pi]').forEach(function(b){b.addEventListener('click',function(){PF.issues[+b.dataset.pi].state='ignored';pfAfter()})});
+  var all=$('#pfAll');if(all)all.addEventListener('click',function(){PF.issues.forEach(function(x,i){if(x.state==='open')pfApplyOne(i)});pfAfter()});
+  var ag=$('#pfAgain');if(ag)ag.addEventListener('click',pfRun);
+}
+function pfApplyOne(i){
+  var x=PF.issues[i],t=PF.ta.value,k=t.indexOf(x.context);
+  if(k<0){x.state='failed';return false}
+  var inner=x.context.replace(x.original,x.suggestion);
+  PF.ta.value=t.slice(0,k)+inner+t.slice(k+x.context.length);PF.ta.dispatchEvent(new Event('input',{bubbles:true}));
+  x.state='accepted';PF.accepted++;return true;
+}
+function pfAccept(i){pfApplyOne(i);pfAfter()}
+function pfAfter(){
+  pfRender();
+  var open=PF.issues.filter(function(x){return x.state==='open'}).length;
+  // after the last correction, check again automatically (at most twice)
+  if(!open&&PF.accepted&&PF.round<3&&PF.issues.some(function(x){return x.state==='accepted'})){setTimeout(pfRun,350)}
+}
+
+function plBoot(){
+  $('#plBtn').addEventListener('click',plOpen);
+  $('#pfBtn').addEventListener('click',function(){pfOpen('#src')});
+  $('#czPfBtn').addEventListener('click',function(){pfOpen('#czSrc')});
+}
+plBoot();
 
 boot();
 })();
