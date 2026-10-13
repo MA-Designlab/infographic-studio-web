@@ -680,7 +680,7 @@ input[type=color].wide{width:100%;height:38px}
       <div class="bar2">
         <button class="primary" id="czDlAll" type="button">تنزيل الكل (ZIP)</button>
         <button id="czDl1" type="button">تنزيل هذه الشريحة</button>
-        <span class="note">المقاس 1080 × 1350 بكسل (4:5) مضاعف الدقة</span>
+        <span class="note">المقاس 1080 × 1350 بكسل (4:5) مضاعف الدقة. اسحب الشريحة الكبيرة يميناً أو يساراً للتنقل.</span>
       </div>
     </section>
   </div>
@@ -1994,6 +1994,33 @@ function czInit(){
   $('#czFile').addEventListener('change',function(){
     var f=this.files&&this.files[0],idx=czPhotoFor;if(!f||idx<0)return;var self=this;
     var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){CZ.slides[idx].photo=im;if(idx===CZ.cur)czBuildEditor();czDrawSlide(idx);czThumb(idx);czDrawSlide(CZ.cur)};im.src=fr.result};fr.readAsDataURL(f);self.value='';
+  });
+
+  /* swipe / drag the big slide to move between slides, arrow keys too */
+  var sh=$('#czSheet'),drag=null,busy=false;sh.style.touchAction='pan-y';sh.style.cursor='grab';sh.style.userSelect='none';
+  function snap(){sh.style.transition='transform .18s ease-out,opacity .18s';sh.style.transform='';sh.style.opacity='';sh.style.cursor='grab'}
+  function stepFor(dx){return czR()?(dx>0?1:-1):(dx<0?1:-1)}
+  function swipeTo(step,dx){
+    if(busy)return;var to=CZ.cur+step;if(to<0||to>=CZ.slides.length){snap();return}
+    busy=true;
+    var d=dx>0?1:-1;sh.style.transition='transform .14s ease-in,opacity .14s';sh.style.transform='translateX('+d*70+'px)';sh.style.opacity='0';
+    setTimeout(function(){czSelect(to);sh.style.transition='none';sh.style.transform='translateX('+(-d*70)+'px)';requestAnimationFrame(function(){requestAnimationFrame(function(){snap();busy=false})})},140);
+  }
+  sh.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse'&&e.button!==0)return;drag={x:e.clientX,y:e.clientY,lock:null};try{sh.setPointerCapture(e.pointerId)}catch(x){}sh.style.transition='none'});
+  sh.addEventListener('pointermove',function(e){
+    if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+    if(drag.lock===null&&(Math.abs(dx)>8||Math.abs(dy)>8))drag.lock=Math.abs(dx)>Math.abs(dy)?'x':'y';
+    if(drag.lock!=='x')return;sh.style.cursor='grabbing';sh.style.transform='translateX('+dx*.55+'px)';sh.style.opacity=String(Math.max(.45,1-Math.abs(dx)/600));
+  });
+  function endDrag(e){
+    if(!drag)return;var dx=e.clientX-drag.x,lock=drag.lock;drag=null;
+    if(lock==='x'&&Math.abs(dx)>=60)swipeTo(stepFor(dx),dx);else snap();
+  }
+  sh.addEventListener('pointerup',endDrag);sh.addEventListener('pointercancel',function(){drag=null;snap()});
+  document.addEventListener('keydown',function(e){
+    if($('#czGrid').hidden)return;var tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;
+    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+    var dx=e.key==='ArrowRight'?1:-1;swipeTo(stepFor(dx),dx);
   });
   try{if(window.ResizeObserver)new ResizeObserver(czFit).observe($('#czWrap'))}catch(e){}
   window.addEventListener('resize',czFit);
