@@ -15,12 +15,6 @@ body{margin:0}
   --brand:#C41E2A; --brand-ink:#FFFFFF; --navy:#1B1F78; --focus:#2F5BE8; --stage:#E4E7F0; --soft:#EEF0F6;
   --fb:BahijPlain,"Segoe UI",Tahoma,Arial,sans-serif; --fh:BahijBold,BahijPlain,"Segoe UI",Tahoma,sans-serif;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0D111F; --surface:#151A2D; --ink:#ECEEF8; --muted:#9AA1BA; --line:#262D47;
-  --brand:#E5434E; --brand-ink:#FFFFFF; --navy:#8E96FF; --focus:#7C9BFF; --stage:#0A0D19; --soft:#1B2138; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0D111F; --surface:#151A2D; --ink:#ECEEF8; --muted:#9AA1BA; --line:#262D47;
-  --brand:#E5434E; --brand-ink:#FFFFFF; --navy:#8E96FF; --focus:#7C9BFF; --stage:#0A0D19; --soft:#1B2138; color-scheme:dark}
 
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -65,8 +59,6 @@ button.x{padding:6px 9px;color:var(--muted)}
 .seg input{position:absolute;opacity:0;pointer-events:none}
 .seg span{display:block;padding:9px 13px;white-space:nowrap}
 .seg input:checked+span{background:var(--navy);color:#fff}
-:root[data-theme="dark"] .seg input:checked+span{color:#0D111F}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg input:checked+span{color:#0D111F}}
 .sws{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sw{width:28px;height:28px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
 .sw[aria-pressed=true]{box-shadow:0 0 0 2px var(--ink)}
@@ -74,8 +66,6 @@ input[type=color]{width:34px;height:30px;padding:0;border:1px solid var(--line);
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font:400 13px/1 var(--fh);cursor:pointer}
 .chip[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
-:root[data-theme="dark"] .chip[aria-pressed=true]{color:#0D111F}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip[aria-pressed=true]{color:#0D111F}}
 input[type=range]{width:100%;accent-color:var(--navy)}
 .check{display:flex;gap:8px;align-items:center;font:400 13.5px/1.4 var(--fh);color:var(--ink);margin:0}
 
@@ -125,7 +115,7 @@ input[type=password],input[type=email]{width:100%;font:inherit;color:var(--ink);
 .lp-links{display:flex;align-items:center;gap:34px}
 .lp-links a{color:#fff;text-decoration:none;font-size:16px;font-weight:600;opacity:.92}
 .lp-links a:hover{opacity:1;color:var(--lp-lav)}
-.lp-btn{font:700 16px/1 inherit;font-family:inherit;color:#fff;background:var(--lp-pink);border:2px solid var(--lp-pink);border-radius:999px;padding:14px 34px;cursor:pointer;transition:transform .15s,background .15s,box-shadow .15s;box-shadow:0 8px 24px rgba(243,45,126,.35)}
+.lp-btn{font:700 16px/1 sans-serif;font-family:inherit;color:#fff;background:var(--lp-pink);border:2px solid var(--lp-pink);border-radius:999px;padding:14px 34px;cursor:pointer;transition:transform .15s,background .15s,box-shadow .15s;box-shadow:0 8px 24px rgba(243,45,126,.35)}
 .lp-btn:hover{transform:translateY(-1px);background:#ff3f8c}
 .lp-btn.ghost{background:transparent;border-color:#fff;box-shadow:none;padding:11px 30px}
 .lp-btn.ghost:hover{background:rgba(255,255,255,.12)}
@@ -200,6 +190,180 @@ body{font-size:14.5px;font-weight:400}
 .step h2{font-size:16px}
 label,.lab,button,.seg label,.chip,.check,.grp>.head b,.urow .badge{font-weight:500}
 button.primary{font-weight:600}
+/* ===== Dashboard identity: aubergine, signal pink, lavender mist (from the landing page).
+   The infographic itself keeps the newsroom colours; this chrome never touches it. ===== */
+:root{
+  --bg:#F6F3FC; --surface:#FFFFFF; --ink:#24103F; --muted:#6E6190; --line:#E7E0F4; --soft:#F1ECFA; --stage:#ECE6F8;
+  --brand:#F32D7E; --brand-ink:#FFFFFF; --navy:#6D2FBF; --focus:#7B35C6;
+  --deep:#2B0F4D; --deep2:#3A1763; --violet:#7B35C6; --pink:#F32D7E; --mag:#B3135F; --lav:#C9BBFF;
+  --r:14px; --ease:cubic-bezier(.2,.7,.2,1);
+}
+html,body{height:100%}
+body{padding:0;overflow:hidden;background:var(--bg);color:var(--ink);font-size:14.5px}
+.app{max-width:none;min-height:0;height:100%;margin:0;display:flex;flex-direction:column}
+
+/* ---- top bar ---- */
+.bar{flex:none;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-inline:clamp(14px,2.4vw,32px);background:var(--deep);color:#fff;position:relative;z-index:5}
+.bar-brand{display:flex;align-items:center;gap:11px;color:#fff;text-decoration:none;border-radius:10px}
+.bar-brand .mark{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(140deg,var(--pink),var(--violet));color:#fff}
+.bar-brand .mark svg{width:19px;height:19px}
+.bar-name{font-size:16px;font-weight:700;letter-spacing:.005em}
+.chip-user{display:flex;align-items:center;gap:10px;padding:5px 10px 5px 14px;border-radius:999px;border:1px solid rgba(201,187,255,.28);background:rgba(255,255,255,.07);color:#fff;font:inherit;cursor:pointer;transition:background .15s,border-color .15s}
+.chip-user:hover{background:rgba(255,255,255,.13);border-color:rgba(201,187,255,.5)}
+.chip-user .who-t{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;text-align:start}
+.chip-user b{font-size:13.5px;font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr}
+.chip-user small{font-size:11.5px;color:var(--lav);font-weight:400}
+.chip-user .chev{width:16px;height:16px;fill:none;stroke:var(--lav);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s var(--ease)}
+.chip-user[aria-expanded=true] .chev{transform:rotate(180deg)}
+.av{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(140deg,var(--pink),var(--mag));text-transform:uppercase}
+.av.lg{width:48px;height:48px;font-size:19px}
+.bar button:focus-visible,.bar a:focus-visible,.drawer button:focus-visible{outline:2px solid var(--lav);outline-offset:2px}
+
+/* ---- side drawer ---- */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(36,16,63,.5);opacity:0;transition:opacity .22s}
+.scrim.open{opacity:1}
+.drawer{position:fixed;z-index:41;top:0;bottom:0;left:0;width:min(86vw,330px);display:flex;flex-direction:column;overflow:hidden;color:#fff;
+  background:linear-gradient(180deg,var(--deep2) 0%,var(--deep) 62%);box-shadow:24px 0 60px rgba(20,6,40,.35);transform:translateX(-104%);transition:transform .26s var(--ease)}
+.drawer.open{transform:none}
+.dr-head{display:flex;align-items:center;gap:13px;padding:22px 20px 18px;border-bottom:1px solid rgba(201,187,255,.16)}
+.dr-id{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.35}
+.dr-id b{font-size:15.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-id span{font-size:12.5px;color:var(--lav);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:end}
+.dr-x{align-self:flex-start;width:32px;height:32px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:20px;line-height:1;padding:0;cursor:pointer}
+.dr-x:hover{background:rgba(255,255,255,.2)}
+.dr-nav{display:flex;flex-direction:column;gap:3px;padding:14px 12px;position:relative;z-index:1}
+.dr-nav button{position:relative;display:flex;align-items:center;gap:13px;width:100%;text-align:start;padding:13px 14px;border:0;border-radius:12px;background:none;color:#E9E1FF;font:500 14.5px/1.2 sans-serif;font-family:inherit;cursor:pointer;transition:background .15s,color .15s}
+.dr-nav button:hover{background:rgba(255,255,255,.09);color:#fff}
+.dr-nav button svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.dr-nav button.on{background:rgba(255,255,255,.12);color:#fff}
+.dr-nav button.on::before{content:"";position:absolute;inset-inline-start:0;top:11px;bottom:11px;width:3px;border-radius:3px;background:var(--pink)}
+.dr-nav button.danger{color:#FFB6D2}
+.dr-nav button.danger:hover{background:rgba(243,45,126,.16);color:#fff}
+.dr-nav hr{border:0;border-top:1px solid rgba(201,187,255,.16);margin:8px 6px}
+.dr-clouds{position:absolute;inset-inline:0;bottom:0;width:100%;height:130px;pointer-events:none}
+
+/* ---- views ---- */
+.views{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0;overflow:auto}
+#viewStudio{padding:clamp(12px,1.8vw,22px);display:flex;overflow:hidden}
+#viewStudio .grid{width:100%;max-width:1560px;margin-inline:auto;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:clamp(12px,1.6vw,22px)}
+@media (max-width:920px){#viewStudio .grid{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,42%) minmax(0,1fr)}#viewStudio .stage{order:-1}}
+
+/* ---- studio controls (quiet, one surface, no card-per-section) ---- */
+.panel{border-radius:20px;padding:24px 22px;gap:30px;border-color:var(--line);box-shadow:0 1px 0 rgba(43,15,77,.03)}
+.step{gap:14px}
+.step+.step{border-top:1px solid var(--line);padding-top:26px}
+.step h2{font:700 15.5px/1.3 sans-serif;font-family:inherit;color:var(--ink);gap:11px}
+.step h2 i{font:700 12.5px/1 sans-serif;font-family:inherit;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--violet)}
+label,.lab{font:500 12.5px/1.4 sans-serif;font-family:inherit;color:var(--muted)}
+textarea,input[type=text],input[type=password],select{background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px 13px;transition:border-color .15s,box-shadow .15s,background .15s}
+textarea:focus,input:focus,select:focus{border-color:var(--violet);background:#fff;box-shadow:0 0 0 3px rgba(123,53,198,.14);outline:none}
+textarea::placeholder,input::placeholder{color:#A79BC2}
+textarea:focus-visible,input:focus-visible,select:focus-visible,.seg input:focus-visible+span,.chip:focus-visible,.sw:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+textarea:focus-visible,input:focus-visible,select:focus-visible{outline:none}
+button{border-radius:11px;border-color:var(--line);font-weight:500}
+button:hover{background:var(--soft)}
+button.primary{background:var(--pink);border-color:var(--pink);color:#fff;border-radius:999px;padding:13px 24px;font-weight:600;box-shadow:0 8px 20px rgba(243,45,126,.26);transition:transform .15s,background .15s,box-shadow .15s}
+button.primary:hover{background:#ff3f8c;filter:none;transform:translateY(-1px)}
+button.mini{border-radius:999px;padding:7px 13px;background:#fff}
+#status.err{color:#C0225F}
+.seg{padding:3px;gap:2px;border:0;background:var(--soft);border-radius:12px}
+.seg span{border-radius:9px;padding:8px 14px;transition:background .15s,color .15s}
+.seg input:checked+span{background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(109,47,191,.28)}
+.chip{background:#fff;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.sw{box-shadow:0 0 0 1px var(--line)}
+.sw[aria-pressed=true]{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--violet)}
+.grp{background:var(--bg);border-color:var(--line);border-radius:14px}
+.rowf{border-top-color:var(--line)}
+.sheetwrap{border:0;border-radius:22px;background:radial-gradient(120% 100% at 50% 0%,#F3EEFC 0%,var(--stage) 70%)}
+.sheet{box-shadow:0 18px 50px rgba(43,15,77,.22),0 2px 6px rgba(43,15,77,.12);border-radius:3px}
+.bar2{padding-inline:4px}
+
+/* ---- shared page chrome ---- */
+.page-in{max-width:1000px;margin:0 auto;padding:clamp(24px,4vw,44px) clamp(16px,3vw,32px) 72px}
+.pg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.pg-title{font-size:clamp(24px,3vw,30px);font-weight:700;line-height:1.3;margin:0}
+.pg-sub{margin:4px 0 26px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:9px;font:600 14px/1 sans-serif;font-family:inherit;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:12px 20px;cursor:pointer;transition:transform .15s,background .15s,box-shadow .15s}
+.btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.btn:hover{background:var(--soft)}
+.btn.pink{background:var(--pink);border-color:var(--pink);color:#fff;box-shadow:0 8px 20px rgba(243,45,126,.26)}
+.btn.pink:hover{background:#ff3f8c;transform:translateY(-1px)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:9px 14px;font-size:13px;font-weight:500}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---- dashboard ---- */
+.ledger{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-block:1px solid var(--line);margin-bottom:30px}
+.ledger>div{padding:22px 4px 20px 18px;border-inline-start:1px solid var(--line)}
+.ledger>div:first-child{border-inline-start:0;padding-inline-start:0}
+.ledger b{display:block;font-size:clamp(28px,3.4vw,38px);font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.ledger span{display:block;margin-top:6px;color:var(--muted);font-size:13px}
+.dash-cols{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);background:#fff;border:1px solid var(--line);border-radius:20px}
+.dc{padding:26px 26px 22px;min-width:0}
+.dc+.dc{border-inline-start:1px solid var(--line)}
+.dc h3{margin:0 0 20px;font-size:14.5px;font-weight:700}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:inherit}
+.topu{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.topu li{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:baseline}
+.topu .em{direction:ltr;text-align:end;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topu .n{font-variant-numeric:tabular-nums;font-weight:600}
+.topu i{grid-column:1/-1;display:block;height:4px;border-radius:4px;background:var(--soft);overflow:hidden}
+.topu i::after{content:"";display:block;height:100%;width:var(--w);border-radius:4px;background:linear-gradient(90deg,var(--violet),var(--pink))}
+.empty{color:var(--muted);font-size:13.5px;margin:0}
+@media (max-width:760px){.ledger{grid-template-columns:repeat(2,minmax(0,1fr))}.ledger>div:nth-child(3){border-inline-start:0;padding-inline-start:0}.ledger>div:nth-child(n+3){border-top:1px solid var(--line)}
+  .dash-cols{grid-template-columns:1fr}.dc+.dc{border-inline-start:0;border-top:1px solid var(--line)}}
+
+/* ---- users ---- */
+.utable{background:#fff;border:1px solid var(--line);border-radius:20px}
+.urow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:16px;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:nowrap;position:relative}
+.urow:first-child{border-top:0}
+.urow.off .uid{opacity:.55}
+.uid{display:flex;align-items:center;gap:14px;min-width:0}
+.uid .av{background:linear-gradient(140deg,var(--violet),#5a2a9a)}
+.uid .av.s{background:linear-gradient(140deg,var(--pink),var(--mag))}
+.uid .t{display:flex;flex-direction:column;min-width:0;line-height:1.4}
+.uid .em{direction:ltr;text-align:end;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uid .seen{font-size:12.5px;color:var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:6px 11px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.pill.admin{background:#EFE6FC;color:#5a2a9a}
+.pill.super{background:var(--deep);color:#fff}
+.pill.offb{background:#FDE6EF;color:#B3135F}
+.pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.kebab{width:36px;height:36px;border-radius:50%;border:0;background:none;display:grid;place-items:center;padding:0;cursor:pointer;color:var(--muted)}
+.kebab:hover,.kebab[aria-expanded=true]{background:var(--soft);color:var(--ink)}
+.kebab svg{width:20px;height:20px;fill:currentColor}
+.menu{position:absolute;z-index:6;inset-inline-end:54px;top:calc(50% + 14px);min-width:200px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 18px 40px rgba(43,15,77,.18)}
+.menu button{display:block;width:100%;text-align:start;border:0;background:none;border-radius:9px;padding:10px 12px;font:500 13.5px/1.2 sans-serif;font-family:inherit;color:var(--ink);cursor:pointer}
+.menu button:hover{background:var(--soft)}
+.menu button.warn{color:#B3135F}
+.menu button.confirm{background:#FDE6EF;color:#B3135F;font-weight:700}
+.menu hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
+.lock{font-size:12.5px;color:var(--muted);padding-inline:10px}
+@media (max-width:640px){.urow{grid-template-columns:minmax(0,1fr) auto;padding:14px 14px}.urow .pills{grid-column:1/-1;justify-content:flex-start;order:3}.uid .em{text-align:start}}
+
+/* ---- dialogs and toast ---- */
+.dlg-wrap{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(36,16,63,.5);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);animation:fadein .18s}
+.dlg{width:min(100%,440px);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:16px;box-shadow:0 30px 80px rgba(20,6,40,.4);animation:popin .2s var(--ease)}
+.dlg h3{margin:0;font-size:19px;font-weight:700}
+.dlg .hint{margin:-6px 0 0}
+.pwrow{display:flex;gap:8px;align-items:center}
+.pwrow input{flex:1}
+.dlg-msg{min-height:20px;font-size:13.5px;color:#C0225F}
+.dlg-msg.ok{color:#1d7a46}
+.dlg-act{display:flex;justify-content:flex-start;gap:10px}
+.toast{position:fixed;z-index:80;bottom:24px;left:50%;transform:translateX(-50%);max-width:min(92vw,520px);background:var(--deep);color:#fff;padding:13px 20px;border-radius:14px;font-size:14px;box-shadow:0 14px 40px rgba(20,6,40,.35);animation:popin .2s var(--ease)}
+.toast.err{background:#8a1247}
+@keyframes fadein{from{opacity:0}}
+@keyframes popin{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.toast{animation-name:toastin}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,8px)}}
+@media (prefers-reduced-motion:reduce){.scrim,.drawer,.dlg,.dlg-wrap,.toast,.chip-user .chev{transition:none;animation:none}}
+
+@media (max-width:560px){.chip-user .who-t{display:none}.chip-user{padding:4px 8px 4px 10px}.bar-name{font-size:15px}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -310,13 +474,41 @@ button.primary{font-weight:600}
 </div>
 
 <div class="app" dir="rtl" lang="ar" id="appRoot">
-  <header class="top">
-    <h1>مصمم الإنفوجراف</h1>
-    <p>الصق النص، يرتّبه الذكاء الاصطناعي بخطوطكم وقوالبكم، ثم نزّل الصورة جاهزة للنشر.</p>
-    <div class="me" id="meBar" hidden><span class="who" id="who"></span><button type="button" class="mini" id="pwBtn">تغيير كلمة السر</button><button type="button" class="mini" id="outBtn">خروج</button></div>
+  <header class="bar">
+    <a class="bar-brand" href="#" data-nav="studio" aria-label="مصمم الإنفوجراف">
+      <span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6c3.2 2.3 4.9 5.6 4.9 9.4v3.2l2.1 2.8H5l2.1-2.8V12c0-3.8 1.7-7.1 4.9-9.4z" fill="currentColor"/><circle cx="12" cy="10.2" r="1.8" fill="#2B0F4D"/><path d="M9.6 19.2c.6 1.4 1.4 2.2 2.4 2.2s1.8-.8 2.4-2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      <span class="bar-name">مصمم الإنفوجراف</span>
+    </a>
+    <button class="chip-user" id="userChip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="drawer" hidden>
+      <span class="av" id="avatar"></span>
+      <span class="who-t"><b id="whoName"></b><small id="whoRole"></small></span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
   </header>
-  <div id="pwBox" hidden><input type="password" id="newPw" dir="ltr" autocomplete="new-password" placeholder="كلمة السر الجديدة (8 أحرف على الأقل)" aria-label="كلمة السر الجديدة"><button type="button" class="primary" id="pwSave" style="padding:10px 14px">حفظ</button><span class="hint" id="pwMsg"></span></div>
 
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="القائمة" hidden>
+    <div class="dr-head">
+      <span class="av lg" id="avatar2"></span>
+      <div class="dr-id"><b id="drName"></b><span id="drEmail" dir="ltr"></span></div>
+      <button class="dr-x" id="drClose" type="button" aria-label="إغلاق القائمة">×</button>
+    </div>
+    <nav class="dr-nav" aria-label="التنقل">
+      <button type="button" data-nav="users" data-admin><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 13.7c2.6.2 4.5 2 4.5 5"/></svg>المستخدمون</button>
+      <button type="button" data-nav="dash" data-admin><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="9" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.8"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.8"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.8"/></svg>لوحة التحكم</button>
+      <button type="button" data-nav="studio"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 16l3.2-3.6 2.6 2.6 2-2 2.7 3"/><circle cx="8.6" cy="9.1" r="1.3"/></svg>إنتاج المحتوى</button>
+      <hr>
+      <button type="button" id="navPw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21M18 12v3M15 12v2.2"/></svg>تغيير كلمة السر</button>
+      <button type="button" id="navOut" class="danger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6.5A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20H10"/><path d="M15 8l4 4-4 4M19 12H9"/></svg>تسجيل الخروج</button>
+    </nav>
+    <svg class="dr-clouds" viewBox="0 0 330 130" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="drg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a50d6"/><stop offset="1" stop-color="#b3135f"/></linearGradient></defs>
+      <g fill="url(#drg)"><circle cx="30" cy="124" r="46" opacity=".55"/><circle cx="105" cy="132" r="62" opacity=".8"/><circle cx="190" cy="126" r="48" opacity=".6"/><circle cx="270" cy="134" r="64" opacity=".85"/><circle cx="335" cy="120" r="40" opacity=".5"/></g>
+    </svg>
+  </aside>
+
+  <main class="views">
+  <section class="view" id="viewStudio" aria-label="إنتاج المحتوى">
   <div class="grid">
     <section class="panel" aria-label="الإعدادات">
 
@@ -384,22 +576,6 @@ button.primary{font-weight:600}
         <div id="editor"></div>
       </div>
 
-      <div class="step" id="adminStep" hidden>
-        <h2><i>4</i> المستخدمون</h2>
-        <p class="hint">أضف شخصاً بإيميله وكلمة سر مبدئية (8 أحرف على الأقل) وسلّمها له، وهو يغيّرها بعد الدخول. لتغيير كلمة سر شخص موجود اضغط «كلمة سر جديدة» بجانبه.</p>
-        <div id="userList"></div>
-        <div class="grp">
-          <div class="two">
-            <div class="field"><label for="nuEmail">الإيميل</label><input type="text" id="nuEmail" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-            <div class="field"><label for="nuPass">كلمة السر</label><input type="text" id="nuPass" dir="ltr" autocomplete="off" spellcheck="false"></div>
-          </div>
-          <div class="row">
-            <div class="seg"><label><input type="radio" name="nuRole" value="member" checked><span>عضو</span></label><label><input type="radio" name="nuRole" value="admin"><span>مسؤول</span></label></div>
-            <button class="primary" id="nuAdd" type="button">إضافة</button>
-          </div>
-          <div id="adminMsg" class="hint" role="status"></div>
-        </div>
-      </div>
     </section>
 
     <section class="stage" aria-label="المعاينة">
@@ -410,6 +586,63 @@ button.primary{font-weight:600}
       </div>
     </section>
   </div>
+  </section>
+
+  <section class="view" id="viewDash" aria-label="لوحة التحكم" hidden>
+    <div class="page-in">
+      <h2 class="pg-title">لوحة التحكم</h2>
+      <p class="pg-sub" id="dashSub">نظرة على استخدام الأداة وفريق العمل.</p>
+      <div class="ledger" id="ledger" aria-live="polite"></div>
+      <div class="dash-cols">
+        <div class="dc">
+          <h3>التحويلات خلال 7 أيام</h3>
+          <div id="chart" class="chart" role="img" aria-label="رسم أعمدة للتحويلات اليومية"></div>
+        </div>
+        <div class="dc">
+          <h3>الأكثر استخداماً</h3>
+          <ol class="topu" id="topUsers"></ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="viewUsers" aria-label="المستخدمون" hidden>
+    <div class="page-in">
+      <div class="pg-head">
+        <div><h2 class="pg-title">المستخدمون</h2><p class="pg-sub" id="usersSub"></p></div>
+        <button type="button" class="btn pink" id="addUserBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>إضافة مستخدم</button>
+      </div>
+      <div class="utable" id="userList"></div>
+    </div>
+  </section>
+  </main>
+
+  <div class="dlg-wrap" id="dlgUser" hidden>
+    <form class="dlg" id="userForm" role="dialog" aria-modal="true" aria-labelledby="udTitle" autocomplete="off">
+      <h3 id="udTitle">إضافة مستخدم</h3>
+      <p class="hint" id="udHint">اكتب الإيميل وكلمة سر مبدئية، وسلّمهما للشخص. يغيّر كلمة السر بنفسه بعد أول دخول.</p>
+      <div class="field"><label for="udEmail">الإيميل</label><input type="text" id="udEmail" dir="ltr" autocapitalize="off" spellcheck="false" inputmode="email"></div>
+      <div class="field"><label for="udPass">كلمة السر</label>
+        <div class="pwrow"><input type="text" id="udPass" dir="ltr" autocomplete="off" spellcheck="false"><button type="button" class="btn ghost sm" id="udGen">توليد</button><button type="button" class="btn ghost sm" id="udCopy">نسخ</button></div>
+      </div>
+      <div class="field" id="udRoleWrap"><span class="lab">الصلاحية</span>
+        <div class="seg"><label><input type="radio" name="nuRole" value="member" checked><span>عضو</span></label><label><input type="radio" name="nuRole" value="admin"><span>مسؤول</span></label></div>
+      </div>
+      <div class="dlg-msg" id="udMsg" role="alert"></div>
+      <div class="dlg-act"><button type="submit" class="btn pink" id="udSave">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></div>
+    </form>
+  </div>
+
+  <div class="dlg-wrap" id="dlgPw" hidden>
+    <form class="dlg" id="pwForm" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+      <h3 id="pwTitle">تغيير كلمة السر</h3>
+      <div class="field"><label for="newPw">كلمة السر الجديدة</label><input type="password" id="newPw" dir="ltr" autocomplete="new-password" placeholder="8 أحرف على الأقل"></div>
+      <div class="dlg-msg" id="pwMsg" role="alert"></div>
+      <div class="dlg-act"><button type="submit" class="btn pink">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.46.1/dist/umd/supabase.js"></script>
@@ -827,7 +1060,8 @@ var ERR={
   ai_timeout:'تأخر الرد. أعد المحاولة أو قصّر النص.',ai_failed:'تعذر الوصول للذكاء الاصطناعي الآن. أعد المحاولة بعد قليل.',invalid_json:'لم أستطع قراءة الرد. أعد المحاولة أو قصّر النص.',
   empty_text:'الصق النص أولاً.',weak_password:'كلمة السر لازم تكون 8 أحرف على الأقل.',bad_email:'الإيميل غير صحيح.',cannot_remove_self:'لا يمكنك حذف حسابك بنفسك.',
   user_not_found:'المستخدم غير موجود.',not_admin:'هذه الميزة للمسؤول فقط.',cancelled:'تم الإيقاف.',
-  account_disabled:'هذا الحساب موقوف. تواصل مع المسؤول.',protected_super_admin:'هذا حساب المالك وهو محمي، لا يمكن تعديله أو إيقافه أو حذفه.',forbidden:'لا تملك صلاحية على هذا الحساب.',super_admin_only:'هذه الميزة للمالك فقط.',cannot_modify_self:'لا يمكن تطبيق هذا على حسابك.'
+  account_disabled:'هذا الحساب موقوف. تواصل مع المسؤول.',protected_super_admin:'هذا حساب المالك وهو محمي، لا يمكن تعديله أو إيقافه أو حذفه.',forbidden:'لا تملك صلاحية على هذا الحساب.',super_admin_only:'هذه الميزة للمالك فقط.',cannot_modify_self:'لا يمكن تطبيق هذا على حسابك.',
+  ai_no_credit:'رصيد حساب Anthropic لم يُشحن أو انتهى. أضف رصيداً من صفحة الفوترة في Console ثم أعد المحاولة.',ai_bad_key:'مفتاح Anthropic غير صحيح أو انتهت صلاحيته.',ai_bad_model:'اسم النموذج غير مقبول من Anthropic.',ai_rate_limited:'ضغط كبير على الخدمة الآن. أعد المحاولة بعد قليل.'
 };
 function errText(c){return ERR[c]||'حصل خطأ غير متوقع. أعد المحاولة.'}
 async function callFn(name,payload,signal){
@@ -887,63 +1121,189 @@ async function loadAssets(){
   return missing;
 }
 
-/* ---------- users panel (admins) ---------- */
-function adminMsg(m,err){var e=$('#adminMsg');e.textContent=m||'';e.style.color=err?'var(--brand)':''}
-var userCache={};
-function mkBtn(txt,fn,sure){
-  var b=document.createElement('button');b.type='button';b.className='mini';b.textContent=txt;
-  b.addEventListener('click',async function(){
-    if(sure&&b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='تأكيد: '+txt;setTimeout(function(){b.dataset.sure='';b.textContent=txt},4000);return}
-    b.disabled=true;try{await fn()}finally{b.disabled=false}
+/* ---------- app shell: side menu, views, users, dashboard, dialogs ---------- */
+var curView='studio',drawerOpen=false,lastFocus=null,toastT=0,userCache={};
+var NF=new Intl.NumberFormat('en-US');
+function initial(email){return (email||'?').trim().charAt(0).toUpperCase()}
+function nameOf(email){return (email||'').split('@')[0]}
+function roleLabel(u){u=u||me;return u.is_super?'المالك':u.role==='admin'?'مسؤول':'عضو'}
+function toast(msg,err){
+  var t=$('#toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.hidden=false;
+  clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true},3600);
+}
+function ago(iso){
+  if(!iso)return 'لم يدخل بعد';
+  var s=(new Date(iso).getTime()-Date.now())/1000,a=Math.abs(s),rtf=new Intl.RelativeTimeFormat('ar-u-nu-latn',{numeric:'auto'});
+  if(a<60)return 'الآن';
+  if(a<3600)return rtf.format(Math.round(s/60),'minute');
+  if(a<86400)return rtf.format(Math.round(s/3600),'hour');
+  return rtf.format(Math.round(s/86400),'day');
+}
+
+/* side menu */
+function setDrawer(open){
+  var d=$('#drawer'),sc=$('#scrim'),chip=$('#userChip');
+  if(open===drawerOpen)return;
+  drawerOpen=open;chip.setAttribute('aria-expanded',String(open));
+  if(open){
+    lastFocus=document.activeElement;d.hidden=false;sc.hidden=false;
+    requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add('open');sc.classList.add('open');var b=d.querySelector('.dr-nav button:not([hidden])');if(b)b.focus()})});
+  }else{
+    d.classList.remove('open');sc.classList.remove('open');
+    setTimeout(function(){if(!drawerOpen){d.hidden=true;sc.hidden=true}},260);
+    if(lastFocus&&lastFocus.focus)lastFocus.focus();
+  }
+}
+function go(v){
+  if((v==='users'||v==='dash')&&me.role!=='admin')v='studio';
+  curView=v;
+  $('#viewStudio').hidden=v!=='studio';$('#viewDash').hidden=v!=='dash';$('#viewUsers').hidden=v!=='users';
+  document.querySelectorAll('.dr-nav [data-nav]').forEach(function(b){b.classList.toggle('on',b.dataset.nav===v)});
+  if(drawerOpen){lastFocus=$('#userChip');setDrawer(false)}
+  if(v==='studio'){fit();render()}
+  if(v==='dash')loadStats();
+  if(v==='users')loadUsers();
+}
+
+/* dialogs */
+function openDlg(id,focusSel){
+  var w=$(id);lastFocus=document.activeElement;w.hidden=false;
+  setTimeout(function(){var f=w.querySelector(focusSel||'input:not([type=radio])');if(f)f.focus()},30);
+}
+function closeDlg(id){var w=$(id);w.hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus()}
+function openedDlg(){return ['#dlgUser','#dlgPw'].filter(function(i){return !$(i).hidden})[0]}
+
+/* user dialog (add / new password) */
+var udMode='add';
+function randPass(){
+  var al='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',b=new Uint32Array(12),out='';
+  crypto.getRandomValues(b);for(var i=0;i<b.length;i++)out+=al[b[i]%al.length];return out;
+}
+function udMsg(m,ok){var e=$('#udMsg');e.textContent=m||'';e.className='dlg-msg'+(ok?' ok':'')}
+function openUserDlg(mode,email){
+  udMode=mode;udMsg('');
+  $('#udTitle').textContent=mode==='add'?'إضافة مستخدم':'كلمة سر جديدة';
+  $('#udHint').textContent=mode==='add'?'اكتب الإيميل وكلمة سر مبدئية، وسلّمهما للشخص. يغيّر كلمة السر بنفسه بعد أول دخول.':'اكتب كلمة سر جديدة لهذا الحساب وسلّمها للشخص.';
+  var em=$('#udEmail');em.value=email||'';em.readOnly=mode==='reset';
+  $('#udPass').value='';
+  $('#udRoleWrap').hidden=!(mode==='add'&&me.is_super);
+  var r=document.querySelector('input[name="nuRole"][value="member"]');if(r)r.checked=true;
+  $('#udSave').textContent=mode==='add'?'إضافة':'حفظ';
+  openDlg('#dlgUser',mode==='add'?'#udEmail':'#udPass');
+}
+async function saveUser(e){
+  e.preventDefault();
+  var email=$('#udEmail').value.trim(),pass=$('#udPass').value,role=($('input[name="nuRole"]:checked')||{}).value||'member';
+  if(!email){udMsg('اكتب الإيميل.');return}
+  if(pass.length<8){udMsg(errText('weak_password'));return}
+  var exists=!!userCache[email.toLowerCase()],btn=$('#udSave');
+  if(udMode==='add'&&exists){udMsg('هذا الإيميل مضاف من قبل. استخدم «كلمة سر جديدة» من قائمته.');return}
+  btn.disabled=true;udMsg('');
+  try{
+    if(udMode==='reset')await callFn('manage-users',{action:'reset',email:email,password:pass});
+    else await callFn('manage-users',{action:'add',email:email,password:pass,role:role});
+    closeDlg('#dlgUser');toast(udMode==='reset'?'تم تغيير كلمة السر. سلّمها للشخص.':'تمت الإضافة. سلّم الشخص إيميله وكلمة السر.');
+    loadUsers();
+  }catch(x){udMsg(errText(x.code))}
+  finally{btn.disabled=false}
+}
+
+/* users view */
+var openMenu=null;
+function closeMenu(){if(openMenu){openMenu.menu.remove();openMenu.btn.setAttribute('aria-expanded','false');openMenu=null}}
+function actionBtn(txt,cls,fn,sure){
+  var b=document.createElement('button');b.type='button';b.textContent=txt;if(cls)b.className=cls;
+  b.addEventListener('click',async function(ev){
+    ev.stopPropagation();
+    if(sure&&b.dataset.sure!=='1'){b.dataset.sure='1';b.classList.add('confirm');b.textContent='تأكيد: '+txt;return}
+    closeMenu();await fn();
   });
   return b;
 }
 async function userAct(action,u,extra,okMsg){
-  try{await callFn('manage-users',Object.assign({action:action,email:u.email},extra||{}));adminMsg(okMsg+' ('+u.email+')');loadUsers()}
-  catch(e){adminMsg(errText(e.code),true)}
+  try{await callFn('manage-users',Object.assign({action:action,email:u.email},extra||{}));toast(okMsg);loadUsers()}
+  catch(e){toast(errText(e.code),true)}
+}
+function userRow(u){
+  var row=document.createElement('div');row.className='urow'+(u.active?'':' off');
+  var id=document.createElement('div');id.className='uid';
+  var av=document.createElement('span');av.className='av'+(u.is_super?' s':'');av.textContent=initial(u.email);
+  var t=document.createElement('div');t.className='t';
+  var em=document.createElement('span');em.className='em';em.textContent=u.email;
+  var seen=document.createElement('span');seen.className='seen';seen.textContent='آخر دخول: '+ago(u.last_sign_in_at);
+  t.appendChild(em);t.appendChild(seen);id.appendChild(av);id.appendChild(t);
+  var pills=document.createElement('div');pills.className='pills';
+  function pill(txt,c){var p=document.createElement('span');p.className='pill '+(c||'');p.textContent=txt;pills.appendChild(p)}
+  if(u.is_super)pill('المالك','super');else pill(u.role==='admin'?'مسؤول':'عضو',u.role==='admin'?'admin':'');
+  if(!u.active)pill('موقوف','offb');
+  row.appendChild(id);row.appendChild(pills);
+  var canPw=!u.is_super&&(me.is_super||u.role!=='admin');
+  var canMore=me.is_super&&!u.is_super&&u.email!==me.email;
+  if(canPw||canMore){
+    var k=document.createElement('button');k.type='button';k.className='kebab';k.setAttribute('aria-haspopup','menu');k.setAttribute('aria-expanded','false');k.setAttribute('aria-label','إجراءات '+u.email);
+    k.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>';
+    k.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var was=openMenu&&openMenu.btn===k;closeMenu();if(was)return;
+      var m=document.createElement('div');m.className='menu';m.setAttribute('role','menu');
+      if(canPw)m.appendChild(actionBtn('كلمة سر جديدة','',async function(){openUserDlg('reset',u.email)}));
+      if(canMore){
+        m.appendChild(actionBtn(u.role==='admin'?'تحويله إلى عضو':'ترقيته إلى مسؤول','',function(){return userAct('set_role',u,{role:u.role==='admin'?'member':'admin'},'تم تغيير الصلاحية')},true));
+        m.appendChild(document.createElement('hr'));
+        m.appendChild(actionBtn(u.active?'إيقاف الحساب':'تفعيل الحساب',u.active?'warn':'',function(){return userAct(u.active?'disable':'enable',u,{},u.active?'تم إيقاف الحساب':'تم تفعيل الحساب')},u.active));
+        m.appendChild(actionBtn('حذف نهائي','warn',function(){return userAct('remove',u,{},'تم حذف الحساب')},true));
+      }
+      row.appendChild(m);k.setAttribute('aria-expanded','true');openMenu={menu:m,btn:k};
+    });
+    row.appendChild(k);
+  }else{
+    var l=document.createElement('span');l.className='lock';l.textContent=u.is_super?'محمي':'';row.appendChild(l);
+  }
+  return row;
 }
 async function loadUsers(){
+  var box=$('#userList');
   try{
-    var j=await callFn('manage-users',{action:'list'}),box=$('#userList');box.innerHTML='';
-    me.is_super=!!(j.me&&j.me.is_super);userCache={};
-    $('input[name="nuRole"]').closest('.seg').hidden=!me.is_super;
-    (j.users||[]).forEach(function(u){
-      userCache[u.email]=u;
-      var row=document.createElement('div');row.className='urow'+(u.active?'':' off');
-      var left=document.createElement('div');left.className='em';left.textContent=u.email;
-      function badge(t,c){var b=document.createElement('span');b.className='badge '+(c||'');b.textContent=t;left.appendChild(b)}
-      if(u.is_super)badge('المالك (محمي)','super');else badge(u.role==='admin'?'مسؤول':'عضو');
-      if(!u.active)badge('موقوف','offb');
-      var acts=document.createElement('div');acts.className='acts';
-      var isSelf=u.email===me.email;
-      if(!u.is_super&&(me.is_super||u.role!=='admin')){
-        acts.appendChild(mkBtn('كلمة سر جديدة',async function(){$('#nuEmail').value=u.email;$('#nuPass').value='';$('#nuPass').focus();adminMsg('اكتب كلمة السر الجديدة لـ '+u.email+' واضغط حفظ.')}));
-      }
-      if(me.is_super&&!u.is_super&&!isSelf){
-        acts.appendChild(mkBtn(u.role==='admin'?'اجعله عضواً':'اجعله مسؤولاً',function(){return userAct('set_role',u,{role:u.role==='admin'?'member':'admin'},'تم تغيير الصلاحية')},true));
-        acts.appendChild(mkBtn(u.active?'إيقاف':'تفعيل',function(){return userAct(u.active?'disable':'enable',u,{},u.active?'تم إيقاف الحساب':'تم تفعيل الحساب')},u.active));
-        acts.appendChild(mkBtn('حذف',function(){return userAct('remove',u,{},'تم حذف الحساب')},true));
-      }
-      row.appendChild(left);row.appendChild(acts);box.appendChild(row);
-    });
-  }catch(e){adminMsg(errText(e.code),true)}
+    var j=await callFn('manage-users',{action:'list'});
+    me.is_super=!!(j.me&&j.me.is_super);userCache={};box.innerHTML='';closeMenu();
+    var list=j.users||[];
+    list.forEach(function(u){userCache[u.email]=u;box.appendChild(userRow(u))});
+    var act=list.filter(function(u){return u.active}).length;
+    $('#usersSub').textContent=list.length+' حساب، '+act+' منها نشط.';
+  }catch(e){box.innerHTML='';$('#usersSub').textContent='';toast(errText(e.code),true)}
 }
-async function addUser(){
-  var email=$('#nuEmail').value.trim(),pass=$('#nuPass').value,role=($('input[name="nuRole"]:checked')||{}).value||'member';
-  if(!email){adminMsg('اكتب الإيميل.',true);return}
-  var exists=!!userCache[email.toLowerCase()];
-  if(exists&&!pass){adminMsg('اكتب كلمة السر الجديدة.',true);return}
-  $('#nuAdd').disabled=true;adminMsg('جارٍ الحفظ…');
+
+/* dashboard view */
+function chartSvg(days){
+  var W=560,H=210,pad=26,bw=44,max=Math.max(1,Math.max.apply(null,days.map(function(d){return d.count}))),n=days.length,gap=(W-n*bw)/(n+1),base=H-34,top=26;
+  var s='<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><line x1="0" x2="'+W+'" y1="'+base+'" y2="'+base+'" stroke="#E7E0F4" stroke-width="1.5"/>';
+  days.forEach(function(d,i){
+    var h=d.count?Math.max(6,(base-top)*d.count/max):3,last=i===n-1,x=gap+(n-1-i)*(bw+gap); /* RTL: oldest on the right */
+    s+='<rect x="'+x+'" y="'+(base-h)+'" width="'+bw+'" height="'+h+'" rx="9" fill="'+(last?'#F32D7E':'#BBA3EA')+'"/>';
+    s+='<text x="'+(x+bw/2)+'" y="'+(base-h-8)+'" text-anchor="middle" font-size="13" font-weight="600" fill="#24103F">'+d.count+'</text>';
+    var lab=new Date(d.date+'T12:00:00Z').toLocaleDateString('ar',{weekday:'short',timeZone:'UTC'});
+    s+='<text x="'+(x+bw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="12" fill="#6E6190">'+lab+'</text>';
+  });
+  return s+'</svg>';
+}
+async function loadStats(){
   try{
-    if(exists)await callFn('manage-users',{action:'reset',email:email,password:pass});
-    else await callFn('manage-users',{action:'add',email:email,password:pass,role:role});
-    adminMsg(exists?'تم تغيير كلمة السر. سلّمها للشخص.':'تمت الإضافة. سلّم الشخص إيميله وكلمة السر.');$('#nuEmail').value='';$('#nuPass').value='';loadUsers()}
-  catch(e){adminMsg(errText(e.code),true)}
-  finally{$('#nuAdd').disabled=false}
+    var j=await callFn('manage-users',{action:'stats'});
+    var items=[[j.today,'تحويلات اليوم'],[j.week,'تحويلات آخر 7 أيام'],[j.users.active,'مستخدم نشط'],[j.users.total,'إجمالي الحسابات']];
+    $('#ledger').innerHTML=items.map(function(x){return '<div><b>'+NF.format(x[0])+'</b><span>'+esc(x[1])+'</span></div>'}).join('');
+    $('#chart').innerHTML=chartSvg(j.days||[]);
+    var top=j.top||[],mx=Math.max(1,top.length?top[0].count:1);
+    $('#topUsers').innerHTML=top.length?top.map(function(u){return '<li><span class="em">'+esc(u.email)+'</span><span class="n">'+NF.format(u.count)+'</span><i style="--w:'+Math.round(u.count/mx*100)+'%"></i></li>'}).join(''):'<p class="empty">لا توجد تحويلات بعد. تظهر هنا بمجرد أن يبدأ الفريق الاستخدام.</p>';
+    $('#dashSub').textContent='الحد اليومي لكل مستخدم '+NF.format(j.limit)+' تحويلة.';
+  }catch(e){toast(errText(e.code),true)}
 }
 
 /* ---------- sign-in flow ---------- */
-function showLogin(open){$('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#meBar').hidden=true;$('#password').value='';if(open)setTimeout(function(){$('#email').focus()},30)}
+function showLogin(open){
+  setDrawer(false);['#dlgUser','#dlgPw'].forEach(function(i){$(i).hidden=true});
+  $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
+  if(open)setTimeout(function(){$('#email').focus()},30);
+}
 function showPending(email){$('#auth').hidden=false;$('#lpModal').hidden=false;$('#loginForm').hidden=true;$('#pending').hidden=false;$('#pendingEmail').textContent=email}
 function initUI(){
   buildSwatches('#swMain','main');buildSwatches('#swStrap','strap');
@@ -951,9 +1311,16 @@ function initUI(){
   syncControls();buildEditor();bindControls();bindEditor();
   $('#gen').addEventListener('click',generate);
   $('#stopGen').addEventListener('click',function(){if(ctl)ctl.abort()});
-  $('#nuAdd').addEventListener('click',addUser);
   try{if(window.ResizeObserver){new ResizeObserver(fit).observe($('.sheetwrap'))}}catch(e){}
   window.addEventListener('resize',fit);
+}
+function paintMe(){
+  var n=nameOf(me.email);
+  $('#avatar').textContent=initial(me.email);$('#avatar2').textContent=initial(me.email);
+  $('#whoName').textContent=n;$('#whoRole').textContent=roleLabel();$('#drName').textContent=n;$('#drEmail').textContent=me.email;
+  var adm=me.role==='admin';
+  document.querySelectorAll('.dr-nav [data-admin]').forEach(function(b){b.hidden=!adm});
+  $('#userChip').hidden=false;
 }
 async function enter(session){
   var email=(session.user.email||'').toLowerCase();
@@ -961,13 +1328,13 @@ async function enter(session){
   if(r.error||!r.data){showPending(email);return}
   if(r.data.active===false){await sb.auth.signOut();showLogin(true);$('#authErr').textContent=errText('account_disabled');return}
   me={email:email,role:r.data.role,is_super:!!r.data.is_super};
-  $('#auth').hidden=true;$('#who').textContent=email;$('#meBar').hidden=false;
+  $('#auth').hidden=true;paintMe();
   if(!inited){initUI();inited=true}
-  fit();status('جارٍ تحميل الخطوط والشعارات…',false,true);
+  go('studio');
+  status('جارٍ تحميل الخطوط والشعارات…',false,true);
   var missing=await loadAssets();
   render();fit();
   status(missing?'بعض الخطوط أو الشعارات غير مرفوعة في التخزين الخاص، فيظهر التصميم بخطوط بديلة حتى ترفعها.':'',!!missing);
-  if(me.role==='admin'){$('#adminStep').hidden=false;loadUsers()}
 }
 async function boot(){
   if(!sb){$('#authErr').textContent='تعذر تحميل مكتبة تسجيل الدخول. تأكد من الاتصال بالإنترنت وأعد تحميل الصفحة.';$('#loginBtn').disabled=true;return}
@@ -982,20 +1349,43 @@ async function boot(){
   ['#navLogin','#heroStart','#menuLogin'].forEach(function(id){$(id).addEventListener('click',function(){$('#lpMenu').hidden=true;showLogin(true)})});
   $('#modalClose').addEventListener('click',function(){$('#lpModal').hidden=true});
   $('#lpModal').addEventListener('click',function(e){if(e.target===this)this.hidden=true});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'){$('#lpModal').hidden=true;$('#lpMenu').hidden=true}});
   $('#menuBtn').addEventListener('click',function(){$('#lpMenu').hidden=false});
   $('#menuClose').addEventListener('click',function(){$('#lpMenu').hidden=true});
   document.querySelectorAll('[data-go]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();$('#lpMenu').hidden=true;var el=document.getElementById(a.dataset.go);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})})});
-  $('#outBtn').addEventListener('click',function(){sb.auth.signOut()});
   $('#pendingOut').addEventListener('click',function(){sb.auth.signOut()});
-  $('#pwBtn').addEventListener('click',function(){var b=$('#pwBox');b.hidden=!b.hidden;if(!b.hidden)$('#newPw').focus()});
-  $('#pwSave').addEventListener('click',async function(){
-    var p=$('#newPw').value,m=$('#pwMsg');
+
+  /* shell */
+  $('#userChip').addEventListener('click',function(){setDrawer(!drawerOpen)});
+  $('#drClose').addEventListener('click',function(){setDrawer(false)});
+  $('#scrim').addEventListener('click',function(){setDrawer(false)});
+  document.querySelectorAll('[data-nav]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();go(b.dataset.nav)})});
+  $('#navOut').addEventListener('click',function(){setDrawer(false);sb.auth.signOut()});
+  $('#navPw').addEventListener('click',function(){setDrawer(false);$('#newPw').value='';$('#pwMsg').textContent='';setTimeout(function(){openDlg('#dlgPw','#newPw')},120)});
+  $('#pwForm').addEventListener('submit',async function(e){
+    e.preventDefault();var p=$('#newPw').value,m=$('#pwMsg');m.className='dlg-msg';
     if(p.length<8){m.textContent=errText('weak_password');return}
     var r=await sb.auth.updateUser({password:p});
-    m.textContent=r.error?'تعذر الحفظ. أعد المحاولة.':'تم تغيير كلمة السر.';if(!r.error)$('#newPw').value='';
+    if(r.error){m.textContent='تعذر الحفظ. أعد المحاولة.';return}
+    closeDlg('#dlgPw');toast('تم تغيير كلمة السر.');
   });
-  sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT'){me={email:'',role:'member'};$('#adminStep').hidden=true;showLogin(false)}});
+  $('#addUserBtn').addEventListener('click',function(){openUserDlg('add')});
+  $('#userForm').addEventListener('submit',saveUser);
+  $('#udGen').addEventListener('click',function(){$('#udPass').value=randPass()});
+  $('#udCopy').addEventListener('click',async function(){
+    var v=$('#udPass').value;if(!v){udMsg('اكتب كلمة السر أو اضغط توليد أولاً.');return}
+    try{await navigator.clipboard.writeText(v);udMsg('تم نسخ كلمة السر.',true)}catch(e){$('#udPass').select();udMsg('انسخها يدوياً.')}
+  });
+  document.querySelectorAll('.dlg-wrap [data-close]').forEach(function(b){b.addEventListener('click',function(){closeDlg('#'+b.closest('.dlg-wrap').id)})});
+  document.querySelectorAll('.dlg-wrap').forEach(function(w){w.addEventListener('mousedown',function(e){if(e.target===w)closeDlg('#'+w.id)})});
+  document.addEventListener('click',function(e){if(openMenu&&!e.target.closest('.menu'))closeMenu()});
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape')return;
+    $('#lpModal').hidden=true;$('#lpMenu').hidden=true;
+    var d=openedDlg();if(d){closeDlg(d);return}
+    if(openMenu){closeMenu();return}
+    if(drawerOpen)setDrawer(false);
+  });
+  sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT'){me={email:'',role:'member'};showLogin(false)}});
   $('#dl').addEventListener('click',download);
   var s=(await sb.auth.getSession()).data.session;
   if(s)await enter(s);else showLogin(false);
