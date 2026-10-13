@@ -145,8 +145,8 @@ input[type=password],input[type=email]{width:100%;font:inherit;color:var(--ink);
 .lp-card h2{margin:0;font-size:24px;font-weight:800}
 .lp-card p{margin:0;color:#d9ccf7;font-size:14.5px;line-height:1.7}
 .lp-card label{font-size:13.5px;font-weight:600;color:#e6dcff}
-.lp-card input{width:100%;font:inherit;font-size:16px;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(201,187,255,.3);border-radius:12px;padding:12px 14px;margin-top:6px;outline:0}
-.lp-card input:focus{border-color:var(--lp-pink);box-shadow:0 0 0 3px rgba(243,45,126,.25)}
+.lp-card input[type]{width:100%;font:inherit;font-size:16px;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(201,187,255,.3);border-radius:12px;padding:12px 14px;margin-top:6px;outline:0}
+.lp-card input[type]:focus{border-color:var(--lp-pink);box-shadow:0 0 0 3px rgba(243,45,126,.25)}
 .lp-card .lp-btn{width:100%;padding:14px}
 .lp-card .lp-btn[disabled]{opacity:.6;cursor:default}
 .lp-card .lp-btn.ghost{padding:12px}
@@ -181,6 +181,15 @@ input[type=password],input[type=email]{width:100%;font:inherit;color:var(--ink);
   @keyframes lpfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 }
 .lp-burger:hover,.lp-x:hover{background:rgba(255,255,255,.24);color:#fff}
+
+/* browser autofill paints a pale background; keep the field dark with white text */
+.lp-card input{-webkit-text-fill-color:#fff;caret-color:#fff;color-scheme:dark}
+.lp-card input::placeholder{color:rgba(255,255,255,.45);-webkit-text-fill-color:rgba(255,255,255,.45)}
+.lp-card input:-webkit-autofill,.lp-card input:-webkit-autofill:hover,.lp-card input:-webkit-autofill:focus,.lp-card input:-webkit-autofill:active{
+  -webkit-text-fill-color:#fff!important;caret-color:#fff;border-color:rgba(201,187,255,.3);
+  -webkit-box-shadow:0 0 0 1000px #34177A inset!important;box-shadow:0 0 0 1000px #34177A inset!important;transition:background-color 99999s ease-out 0s}
+.lp-card input:autofill{-webkit-text-fill-color:#fff!important;box-shadow:0 0 0 1000px #34177A inset!important}
+.lp-card input::selection{background:rgba(243,45,126,.55);color:#fff;-webkit-text-fill-color:#fff}
 
 /* interface font: Alexandria (Google Fonts). The infographic canvas keeps the house fonts. */
 :root{--fb:Alexandria,"Segoe UI",Tahoma,Arial,sans-serif;--fh:Alexandria,"Segoe UI",Tahoma,sans-serif}
