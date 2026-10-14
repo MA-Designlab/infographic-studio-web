@@ -869,6 +869,9 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .inrow.ta{align-items:flex-start}
 .inrow.ta textarea{flex:1;min-height:104px;line-height:1.7;resize:vertical}
 .inrow.ta .tool{height:44px}
+.flagctl{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.flagctl select{width:100%}
+.flagctl .row{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1233,6 +1236,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           </section>
         </div>
         <input type="file" id="czFile" accept="image/*" hidden>
+        <input type="file" id="czFlagFile" accept="image/*" hidden>
       </div>
     </section>
     <section class="stage" aria-label="معاينة الكاروسيل">
@@ -3262,7 +3266,7 @@ var CPAL=[
 ];
 var CZ={lang:'ar',main:CPAL[0].main,accent:CPAL[0].accent,sec:'news',labelPos:'above',titleFont:'',titleScale:100,bgMode:'auto',bgC1:'#0F5C4D',bgC2:'#0A3F37',bgAngle:135,bgPlain:false,look:'classic',cur:0,slides:[]};
 var CZ0=JSON.parse(JSON.stringify(CZ));
-var czcv=null,cx=null,CZ_S=2,czInited=false,czCtl=null,czPhotoFor=-1,HC=mkHit(),czCurS=null;
+var czcv=null,cx=null,CZ_S=2,czInited=false,czCtl=null,czPhotoFor=-1,czFlagFor=-1,HC=mkHit(),czCurS=null;
 var CZ_DEMO={
   lang:'ar',
   cover:{kicker:'اليوم العالمي للعمال',title:'تمكين القوى **العاملة** الوطنية',text:'أرقام تعكس تقدّم التوطين في القطاع الخاص حتى نهاية مارس 2026',cta:'اسحب للمزيد'},
@@ -3648,6 +3652,13 @@ function czLoad(d,keepPhotos){
 function czIn(path,val,ph,color){return '<div class="inrow"><input type="text" dir="auto" data-cz="'+path+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+(color?'<button type="button" class="tool hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
 function czTa(path,val,ph,color){return '<div class="inrow ta"><textarea dir="auto" rows="5" data-cz="'+path+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+esc(val)+'</textarea>'+(color?'<button type="button" class="tool hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
 function czSel(path,val,opts){return '<select data-czsel="'+path+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+((val||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select>'}
+/* flag of one number: pick another from the library, upload your own, or remove it */
+function czFlagCtl(t,j){
+  var st=t.pimg?'علم مرفوع من جهازك':t.flag?(libFind('flag',t.flag)?'العلم من المكتبة':countryCode(t.flag)?'سيُجلب العلم تلقائياً عند الرسم':'اسم غير معروف: اكتب اسم دولة أو ارفع علماً'):'';
+  var opts=LIB.list.filter(function(a){return a.kind==='flag'}).map(function(a){return '<option value="'+esc(a.name)+'">'+esc(a.name)+'</option>'}).join('');
+  return '<div class="flagctl"><select data-cflagsel="'+j+'" aria-label="اختر علماً من المكتبة"><option value="">اختر علماً آخر من المكتبة…</option>'+opts+'</select>'+
+    '<div class="row"><button type="button" class="tool" data-cflagup="'+j+'">رفع علم من جهازك</button>'+((t.flag||t.pimg)?'<button type="button" class="tool ghost" data-cflagrm="'+j+'">إزالة العلم</button>':'')+'</div>'+(st?'<p class="hint">'+st+'</p>':'')+'</div>';
+}
 var CHV='<svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 function czAc(key,title,sum,body,open){return '<section class="ac'+(open?' open':'')+'" data-ac="'+key+'"><button type="button" class="ac-h" aria-expanded="'+(open?'true':'false')+'"><span class="ac-t">'+title+'</span><span class="ac-s">'+esc(sum||'')+'</span>'+CHV+'</button><div class="ac-w"><div class="ac-b">'+body+'</div></div></section>'}
 function czBuildEditor(){
@@ -3666,7 +3677,7 @@ function czBuildEditor(){
     var h='';
     var sk=skyOn();
     if(sk&&s.stats.length>1)h+='<div class="field"><label>تخطيط الأرقام</label>'+czSel('lay',s.lay,[['','تلقائي'],['single','رقم واحد كبير'],['duo','رقمان جنباً إلى جنب'],['trio','ثلاثة أرقام'],['hero3','رقم كبير وثلاثة تحته'],['flags','شبكة بالأعلام']])+'</div>';
-    s.stats.forEach(function(t,j){if(sk){h+='<div class="rowf item"><div class="field">'+czIn(pre+'stats.'+j+'.label',t.label,'قبل الرقم (مثل: نحو)')+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+czIn(pre+'stats.'+j+'.text',t.text,'بعد الرقم (مثل: مليار دولار)')+czIn(pre+'stats.'+j+'.flag',t.flag||'','علم دولة (اختياري): اكتب اسمها')+'</div><button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button></div>';return}
+    s.stats.forEach(function(t,j){if(sk){h+='<div class="rowf item"><div class="field">'+czIn(pre+'stats.'+j+'.label',t.label,'قبل الرقم (مثل: نحو)')+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+czIn(pre+'stats.'+j+'.text',t.text,'بعد الرقم (مثل: مليار دولار)')+czIn(pre+'stats.'+j+'.flag',t.flag||'','علم دولة (اختياري): اكتب اسمها')+czFlagCtl(t,j)+'</div><button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button></div>';return}
       h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div></div>'});
     h+='<button type="button" class="tool add" data-cadd="stats">+ إضافة رقم</button>';
     secs.push(['num','الأرقام',s.stats.length?s.stats.length+' أرقام':'',h]);
@@ -3760,7 +3771,7 @@ async function czGenerate(imgs,opt){
   if(!text){czStatus('الصق النص أولاً.',true);return}
   czCtl=new AbortController();$('#czGen').disabled=true;$('#czStop').hidden=false;czStatus('جارٍ قراءة النص وتقسيمه إلى شرائح…',false,true);
   try{
-    var j=await callFn('generate',{text:text,lang:$('#czLang').value,mode:'carousel'},czCtl.signal);
+    var j=await callFn('generate',{text:text,lang:$('#czLang').value,mode:'carousel',look:CZ.look==='sky'?'sky':'classic'},czCtl.signal);
     if(!j||!j.data||typeof j.data!=='object'||!j.data.cover)throw{code:'invalid_json'};
     var rdata=await rvCz(j.data);
     czLoad(rdata,true);czDistribute(imgs);czShowPhotoNotes(null);
@@ -3802,14 +3813,16 @@ function czInit(){
     var at=CZ.cur;if(CZ.slides[at].type==='closing')at--;if(at<0)at=0;
     CZ.slides.splice(at+1,0,czBlank('content'));czBuildThumbs();czRenderAll();czSelect(at+1);
   });
-  $('#czDup').addEventListener('click',function(){var c=JSON.parse(JSON.stringify(Object.assign({},CZ.slides[CZ.cur],{photo:null})));c.photo=CZ.slides[CZ.cur].photo;(CZ.slides[CZ.cur].fx||[]).forEach(function(e,k){if(c.fx&&c.fx[k]&&e.pimg)c.fx[k].pimg=e.pimg});CZ.slides.splice(CZ.cur+1,0,c);czBuildThumbs();czRenderAll();czSelect(CZ.cur+1)});
+  $('#czDup').addEventListener('click',function(){var c=JSON.parse(JSON.stringify(Object.assign({},CZ.slides[CZ.cur],{photo:null})));c.photo=CZ.slides[CZ.cur].photo;(CZ.slides[CZ.cur].fx||[]).forEach(function(e,k){if(c.fx&&c.fx[k]&&e.pimg)c.fx[k].pimg=e.pimg});(CZ.slides[CZ.cur].stats||[]).forEach(function(e,k){if(c.stats&&c.stats[k]&&e.pimg)c.stats[k].pimg=e.pimg});CZ.slides.splice(CZ.cur+1,0,c);czBuildThumbs();czRenderAll();czSelect(CZ.cur+1)});
   $('#czDel').addEventListener('click',function(){var ty=CZ.slides[CZ.cur].type;if(ty!=='content'&&!(ty==='closing'&&skyOn()))return;CZ.slides.splice(CZ.cur,1);var k=Math.min(CZ.cur,CZ.slides.length-1);czBuildThumbs();czRenderAll();czSelect(k)});
   $('#czL').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k-1];a[k-1]=t;czBuildThumbs();czRenderAll();czSelect(k-1)});
   $('#czRt').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k+1];a[k+1]=t;czBuildThumbs();czRenderAll();czSelect(k+1)});
   $('#czDl1').addEventListener('click',czDownloadOne);$('#czDlAll').addEventListener('click',czDownloadAll);
   var ed=$('#czAccordion');accBind(ed,function(k){CZ.openKey=k});
   ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.cz){czSet(t.dataset.cz,t.value);$('#czNote').hidden=true;czSchedule();if(/\.title$/.test(t.dataset.cz)){var sm=$('#czEditor [data-ac="txt"] .ac-s');if(sm)sm.textContent=t.value.replace(/\*\*/g,'')}}});
-  ed.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.czsel){CZ.slides[CZ.cur][t.dataset.czsel]=t.value;if(t.dataset.czsel==='pa')delete CZ.slides[CZ.cur].pf;czSchedule()}});
+  ed.addEventListener('change',function(e){var t=e.target;
+    if(t.dataset&&t.dataset.cflagsel!==undefined){var st=CZ.slides[CZ.cur].stats[+t.dataset.cflagsel];if(st&&t.value){st.flag=t.value;delete st.pimg;czBuildEditor();czSchedule()}return}
+    if(t.dataset&&t.dataset.czsel){CZ.slides[CZ.cur][t.dataset.czsel]=t.value;if(t.dataset.czsel==='pa')delete CZ.slides[CZ.cur].pf;czSchedule()}});
   ed.addEventListener('click',function(e){
     var t=e.target.closest('button');if(!t)return;var s=CZ.slides[CZ.cur];
     if(t.dataset.hl){
@@ -3819,10 +3832,16 @@ function czInit(){
       var nv=/^\*\*.*\*\*$/.test(sw)?v.slice(0,a)+sw.slice(2,-2)+v.slice(b):v.slice(0,a)+'**'+sw+'**'+v.slice(b);
       inp.value=nv;czSet(inp.dataset.cz,nv);czSchedule();czStatus('');return;
     }
+    if(t.dataset.cflagup!==undefined){czFlagFor=+t.dataset.cflagup;$('#czFlagFile').click();return}
+    if(t.dataset.cflagrm!==undefined){var fs=s.stats[+t.dataset.cflagrm];if(fs){fs.flag='';delete fs.pimg;czBuildEditor();czSchedule()}return}
     if(t.dataset.cadd){var k=t.dataset.cadd;if(k==='stats'&&s.stats.length<4){s.stats.push({value:'',label:'',text:'',flag:''});s.points=[]}if(k==='points'&&s.points.length<4){s.points.push({title:'',text:''});s.stats=[]}czBuildEditor();czSchedule()}
     else if(t.dataset.crm){var p=t.dataset.crm.split('.');s[p[0]].splice(+p[1],1);czBuildEditor();czSchedule()}
     else if(t.dataset.cphoto==='1'){czPhotoFor=CZ.cur;$('#czFile').click()}
     else if(t.dataset.cphoto==='0'){s.photo=null;czBuildEditor();czSchedule()}
+  });
+  $('#czFlagFile').addEventListener('change',function(){
+    var f=this.files&&this.files[0],idx=czFlagFor,sl=CZ.slides[CZ.cur],self=this;if(!f||idx<0||!sl||!sl.stats[idx])return;
+    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){if(CZ.slides[CZ.cur]===sl&&sl.stats[idx]){sl.stats[idx].pimg=im;czBuildEditor();czSchedule()}};im.src=fr.result};fr.readAsDataURL(f);self.value='';
   });
   $('#czFile').addEventListener('change',function(){
     var f=this.files&&this.files[0],idx=czPhotoFor;if(!f||idx<0)return;var self=this;
@@ -4033,9 +4052,9 @@ function skHero3(list,k,fw){
   return{h:a.h+gp+b.h,draw:function(y){a.draw(y);b.draw(y+a.h+gp)}};
 }
 function skFlags(list,k,fw){
-  var R=czR(),fwF=Math.min(fw,900),cw=fwF/2,pad=26,any=list.some(function(t){return t.flag}),fW=any?Math.round(100*k):0,fH=Math.round(fW*.68),fg=any?24:0;
+  var R=czR(),fwF=Math.min(fw,900),cw=fwF/2,pad=26,any=list.some(function(t){return t.flag||t.pimg instanceof HTMLImageElement}),fW=any?Math.round(100*k):0,fH=Math.round(fW*.68),fg=any?24:0;
   var o={num:Math.round(100*k),lab:Math.round(37*k),txt:Math.round(38*k),w:cw-2*pad-(fW?fW+fg:0),inline:false};
-  var cells=list.map(function(st){var c=skCell(st,o);c.fl=st.flag&&fW?skFlag(st.flag):null;c.hasF=!!(st.flag&&fW);return c});
+  var cells=list.map(function(st){var c=skCell(st,o);var up=st.pimg instanceof HTMLImageElement?st.pimg:null;c.fl=fW?(up||skFlag(st.flag)):null;c.hasF=!!((st.flag||up)&&fW);return c});
   var rows=[];for(var i=0;i<cells.length;i+=2)rows.push(cells.slice(i,i+2));
   var rg=Math.round(36*k),rhs=rows.map(function(r){
     var top=0,m=0;r.forEach(function(c){top=Math.max(top,c.hasF?Math.max(fH,c.labH):c.labH)});
@@ -4089,7 +4108,7 @@ function skFoot(text,k,fw){
   return{h:lines.length*lh,draw:function(y){HC.tag('foot','','السطر الختامي');czDraw(lines,W/2,y+size*.98,lh,skFont('sub',size),function(b){return b?skDeep():CZ.main},'center');HC.tag()}};
 }
 function skStatLay(s,list){
-  var lay=s.lay&&s.lay!=='auto'?s.lay:'',n=list.length,fl=list.some(function(t){return t.flag});
+  var lay=s.lay&&s.lay!=='auto'?s.lay:'',n=list.length,fl=list.some(function(t){return t.flag||t.pimg instanceof HTMLImageElement});
   if(lay==='hero3'&&n<4)lay='';if(lay==='trio'&&(n<2||n>4))lay='';if(lay==='duo'&&n!==2)lay='';
   if(lay)return lay;
   if(n===1)return 'single';
@@ -5836,6 +5855,7 @@ var RV={kind:'',d:null,tb:null,m:null,done:null};
 var RV_LAY=[['stats','أرقام وإحصائيات'],['list','نقاط مرقمة'],['bars','ترتيب بالأعمدة'],['cards','بطاقات نصية']];
 var RV_F={
   stats:[['value','الرقم','plv'],['label','الكلمة المميزة','pll'],['text','الجملة تحت الرقم','plt']],
+  statsSky:[['label','قبل الرقم (مثل: نحو)','pll'],['value','الرقم','plv'],['text','بعد الرقم (مثل: مليار دولار)','plt'],['flag','علم دولة (اختياري)','pll']],
   items:[['title','العنوان','pll'],['text','النص','plt']],
   bars:[['label','الاسم','pll'],['value','القيمة','plv'],['note','النسبة','plv']]
 };
@@ -5845,6 +5865,7 @@ var RV_ICO={
   del:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/>'
 };
 function rvBtn(act,k,i,title){return '<button type="button" class="rvb'+(act==='del'?' del':'')+'" data-rvact="'+act+'" data-k="'+k+'" data-i="'+i+'" aria-label="'+title+'" title="'+title+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+RV_ICO[act]+'</svg></button>'}
+function rvTa(path,val,ph){return '<textarea rows="5" dir="auto" data-rv="'+path+'" placeholder="'+esc(ph)+'" aria-label="'+esc(ph)+'">'+esc(val==null?'':val)+'</textarea>'}
 function rvIn(path,val,ph,cls){return '<input type="text" dir="auto" data-rv="'+path+'" value="'+esc(val==null?'':val)+'" placeholder="'+esc(ph)+'" aria-label="'+esc(ph)+'"'+(cls?' class="'+cls+'"':'')+'>'}
 function rvScroll(fn){var b=$('#plBody'),sc=b?b.scrollTop:0;fn();if(b)b.scrollTop=sc}
 
@@ -5945,10 +5966,10 @@ function rvCz(data){
   return new Promise(function(res,rej){
     var d=JSON.parse(JSON.stringify(data||{}));
     d.cover=Object.assign({kicker:'',title:'',text:'',cta:''},d.cover||{});
-    d.closing=Object.assign({title:'',text:'',cta:''},d.closing||{});
+    d.closing=d.closing===false?false:Object.assign({title:'',text:'',cta:''},d.closing||{});
     d.slides=(Array.isArray(d.slides)?d.slides:[]).map(function(sl){
-      return {title:sl.title||'',subtitle:sl.subtitle||'',text:sl.text||'',pills:Array.isArray(sl.pills)?sl.pills.join('، '):(sl.pills||''),
-        stats:(sl.stats||[]).map(function(t){return{value:t.value||'',label:t.label||'',text:t.text||''}}),points:(sl.points||[]).map(function(t){return{title:t.title||'',text:t.text||''}})};
+      return {title:sl.title||'',subtitle:sl.subtitle||'',text:sl.text||'',pills:Array.isArray(sl.pills)?sl.pills.join('، '):(sl.pills||''),tz:sl.tz||'',lay:sl.lay||'',foot:sl.foot||'',
+        stats:(sl.stats||[]).map(function(t){return{value:t.value||'',label:t.label||'',text:t.text||'',flag:t.flag||''}}),points:(sl.points||[]).map(function(t){return{title:t.title||'',text:t.text||''}})};
     });
     RV={kind:'cz',d:d};
     $('#plTitle').textContent='راجع الغلاف والشرائح قبل التصميم';
@@ -5973,7 +5994,7 @@ function rvCzRows(path,arr,fields,max,addLabel){
   return h;
 }
 function rvPaintCz(){
-  var d=RV.d,h='<p class="hint">النظام قسّم نصك إلى غلاف وشرائح وختام. عدّل أي خانة أو احذف شريحة أو أضف، وبعدين اضغط «ارسم الكاروسيل».</p>';
+  var d=RV.d,sky=skyOn(),h='<p class="hint">النظام قسّم نصك إلى غلاف وشرائح وختام. عدّل أي خانة أو احذف شريحة أو أضف، وبعدين اضغط «ارسم الكاروسيل».</p>';
   h+='<div class="grp"><div class="head"><b>الغلاف</b></div><div class="field"><label>السترابة</label>'+rvIn('cover.kicker',d.cover.kicker,'السترابة')+'</div>'
     +'<div class="field"><label>العنوان الرئيسي</label><input type="text" id="rvTitle" dir="auto" data-rv="cover.title" value="'+esc(d.cover.title)+'" aria-label="العنوان الرئيسي"></div>'
     +'<div class="field"><label>العنوان الثانوي (تحت الرئيسي)</label>'+rvIn('cover.text',d.cover.text,'العنوان الثانوي')+'</div>'
@@ -5982,14 +6003,15 @@ function rvPaintCz(){
     h+='<div class="grp"><div class="head"><b>الشريحة '+(i+1)+'</b><span class="rvbtns" style="flex-direction:row">'+rvBtn('up','slides',i,'تحريك لأعلى')+rvBtn('down','slides',i,'تحريك لأسفل')+rvBtn('del','slides',i,'حذف الشريحة')+'</span></div>'
       +'<div class="field"><label>العنوان</label>'+rvIn('slides.'+i+'.title',sl.title,'العنوان')+'</div>'
       +'<div class="field"><label>عنوان ثانوي</label>'+rvIn('slides.'+i+'.subtitle',sl.subtitle,'عنوان ثانوي')+'</div>'
-      +'<div class="field"><label>النص</label>'+rvIn('slides.'+i+'.text',sl.text,'النص')+'</div>'
-      +'<div class="field"><label>الوسوم (افصل بينها بفاصلة)</label>'+rvIn('slides.'+i+'.pills',sl.pills,'مثال: اقتصاد، سياحة')+'</div>';
-    h+='<b class="rvsub">الأرقام والجمل</b>'+rvCzRows('slides.'+i+'.stats',sl.stats,RV_F.stats,4,'+ إضافة رقم');
+      +'<div class="field"><label>'+(sky?'النص (كل سطر فقرة)':'النص')+'</label>'+(sky?rvTa('slides.'+i+'.text',sl.text,'النص'):rvIn('slides.'+i+'.text',sl.text,'النص'))+'</div>'
+      +(sky?'':'<div class="field"><label>الوسوم (افصل بينها بفاصلة)</label>'+rvIn('slides.'+i+'.pills',sl.pills,'مثال: اقتصاد، سياحة')+'</div>');
+    h+='<b class="rvsub">الأرقام والجمل</b>'+rvCzRows('slides.'+i+'.stats',sl.stats,sky?RV_F.statsSky:RV_F.stats,4,'+ إضافة رقم');
+    if(sky)h+='<div class="field"><label>سطر ختامي أسفل الأرقام (اختياري)</label>'+rvIn('slides.'+i+'.foot',sl.foot,'مثال: والأرقام تشرح…')+'</div>';
     h+='<b class="rvsub">النقاط</b>'+rvCzRows('slides.'+i+'.points',sl.points,RV_F.items,4,'+ إضافة نقطة');
     h+='</div>';
   });
   if(d.slides.length<10)h+='<button type="button" class="mini" data-rvact="add" data-k="slides">+ إضافة شريحة</button>';
-  h+='<div class="grp"><div class="head"><b>الختام</b></div><div class="field"><label>العنوان</label>'+rvIn('closing.title',d.closing.title,'العنوان')+'</div>'
+  if(d.closing)h+='<div class="grp"><div class="head"><b>الختام</b></div><div class="field"><label>العنوان</label>'+rvIn('closing.title',d.closing.title,'العنوان')+'</div>'
     +'<div class="field"><label>النص</label>'+rvIn('closing.text',d.closing.text,'النص')+'</div><div class="field"><label>نص الزر</label>'+rvIn('closing.cta',d.closing.cta,'تابعنا')+'</div></div>';
   $('#plBody').innerHTML=h;
 }
@@ -6013,7 +6035,7 @@ function rvClick(e){
   var a=b.dataset.rvact,k=b.dataset.k,i=+b.dataset.i,arr;
   if(RV.kind==='cz'){
     arr=rvGet(RV.d,k);if(!arr)return;
-    if(a==='add'){var blank=k==='slides'?{title:'',subtitle:'',text:'',pills:'',stats:[],points:[]}:/stats$/.test(k)?{value:'',label:'',text:''}:{title:'',text:''};arr.push(blank)}
+    if(a==='add'){var blank=k==='slides'?{title:'',subtitle:'',text:'',pills:'',stats:[],points:[]}:/stats$/.test(k)?{value:'',label:'',text:'',flag:''}:{title:'',text:''};arr.push(blank)}
     else if(a==='del')arr.splice(i,1);
     else if(a==='up'&&i>0)arr.splice(i-1,0,arr.splice(i,1)[0]);
     else if(a==='down'&&i<arr.length-1)arr.splice(i+1,0,arr.splice(i,1)[0]);
