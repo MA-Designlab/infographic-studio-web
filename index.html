@@ -1043,7 +1043,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 <div class="field"><span class="lab">موضعها</span><div class="seg full" id="segStrap"><label><input type="radio" name="strapPos" value="top"><span>فوق العنوان</span></label><label><input type="radio" name="strapPos" value="bottom"><span>تحته</span></label></div></div>
           </div></div>
         </section>
-        <section class="ac" data-ac="hero" data-lay="stats">
+        <section class="ac" data-ac="hero" data-lay="stats cards">
           <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">الرقم الرئيسي</span><span class="ac-s" data-sum="hero"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
           <div class="ac-w"><div class="ac-b">
 <div id="edHero"></div>
@@ -1864,10 +1864,10 @@ function buildEditor(){
   $('#edTitle').innerHTML='<div class="field"><label>العنوان الكبير</label>'+inp('title',S.title,'العنوان الكبير')+'</div><div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>'+(window.__ttHtml?window.__ttHtml('ig'):'');
   $('#edKick').innerHTML='<div class="field"><label>نص السترابة</label>'+inp('kicker',S.kicker,'السترابة')+'</div>';
   $('#edFoot').innerHTML='<div class="field"><label>نص السطر (إعداد أو مصدر)</label>'+inp('footer',S.footer,'إعداد: الاسم، تصميم: الاسم')+'</div>';
-  $('#edHero').innerHTML='<div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero);
+  $('#edHero').innerHTML=tplHeroHtml()||('<div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero));
   h='';
   if(L==='list'||L==='cards'){
-    S.items.forEach(function(it,i){h+='<div class="rowf item" data-arr="items" data-i="'+i+'">'+GRIP+'<div class="field">'+inp('items.'+i+'.title',it.title,'العنوان الفرعي')+inp('items.'+i+'.text',it.text,'النص')+'</div><button type="button" class="x" data-rm="items.'+i+'" aria-label="حذف" title="حذف"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg></button></div>'});
+    S.items.forEach(function(it,i){h+='<div class="rowf item" data-arr="items" data-i="'+i+'">'+GRIP+'<div class="field">'+inp('items.'+i+'.title',it.title,'العنوان الفرعي')+inp('items.'+i+'.text',it.text,'النص')+tplItemExtra(i,it)+'</div><button type="button" class="x" data-rm="items.'+i+'" aria-label="حذف" title="حذف"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg></button></div>'});
     h+=addRow('items',L==='list'?'إضافة نقطة':'إضافة بطاقة');
   }else if(L==='bars'){
     h+='<div class="two">'+inp('legend.0',S.legend[0]||'','مفتاح الأعمدة')+inp('legend.1',S.legend[1]||'','مفتاح النسبة')+'</div>';
@@ -1882,7 +1882,7 @@ function buildEditor(){
   $('[data-ac="list"] .ac-t').textContent=L==='list'?'النقاط':L==='cards'?'البطاقات':'الأعمدة';
   $('[data-ac="stats"] .ac-t').textContent=L==='stats'?'الأرقام الداعمة':'شريط الأرقام السفلي';
   $$('.ac[data-lay]').forEach(function(ac){
-    var off=ac.dataset.lay.split(' ').indexOf(L)<0;ac.hidden=off;
+    var off=ac.dataset.lay.split(' ').indexOf(L)<0;if(ac.dataset.ac==='hero'&&L!=='stats')off=!tplHeroOn();ac.hidden=off;
     if(off&&ac.classList.contains('open')){ac.classList.remove('open');var f=$('[data-ac="head"]');f.classList.add('open');$('.ac-h',f).setAttribute('aria-expanded','true')}
   });
   accSum();
@@ -1986,7 +1986,7 @@ function applyData(d){
   S.hero=hv?{value:clean(hv.value,12),label:clean(hv.label,40),text:clean(hv.text,110)}:{value:'',label:'',text:''};
   S.tpl=tplValid(d.template,S.layout)?d.template:'';
   S.stats=(d.stats||[]).slice(0,S.tpl?8:6).map(function(s){return{value:clean(s.value,12),label:clean(s.label,40),text:clean(s.text,110)}});
-  S.items=(d.items||[]).slice(0,6).map(function(s){return{title:clean(s.title,60),text:clean(s.text,150)}});
+  S.items=(d.items||[]).slice(0,6).map(function(s){var o={title:clean(s.title,60),text:clean(s.text,150)};if(s.value)o.value=clean(s.value,12);return o});
   S.bars=(d.bars||[]).slice(0,10).map(function(b){return{label:clean(b.label,40),value:clean(b.value!=null?b.value:b.display,16),note:clean(b.note,12)}});
   S.legend=(d.legend||[]).slice(0,2).map(function(x){return clean(x,40)});
   var sel=$('#lang').value;
@@ -5691,7 +5691,7 @@ function tplInit(){
   $('#tIcons').addEventListener('change',function(){S.ticons=this.checked;schedule()});
   $('#tPanel').addEventListener('change',function(){S.tpanel=this.checked;schedule()});
   $('#tFetch').addEventListener('click',function(){tFetchIcons(this,function(m){$('#tFetchMsg').textContent=m||''})});
-  tplSync();
+  tplPhotoInit();tplSync();
 }
 
 /* ---------- pieces ---------- */
@@ -5968,6 +5968,136 @@ tplReg({id:'donut',name:'دونات توزيع (مع قائمة)',layout:'bars',
       ctx.fillStyle=pal[i%pal.length];rrect(R?xcol-26:xcol,yy+10,26,26,7);ctx.fill();
       HI.tag(bg,'value','القيمة');put(fmtVal(r.value),R?tx:tx,yy+27+digitH(f.num(40))/2,f.num(40),numColor(),R?'right':'left','ltr');HI.tag();
       HI.tag(bg,'label','اسم البند');put(limit(wrapBal(fixPct(r.label),f.head(ls),colW-190),1)[0]||'',R?tx-118:tx+118,yy+27+ls*.34,f.head(ls),th.ink,R?'right':'left');HI.tag();
+    });
+  }});
+
+/* ---------- extra fields and photos for people / portraits ---------- */
+function tplHeroOn(){var T=tplCur();return !!(T&&T.person)}
+function tplHeroHtml(){
+  var T=tplCur();if(!T||!T.person)return '';
+  return '<div class="field"><label>الاسم</label>'+inp('hero.label',S.hero.label,'الاسم')+'</div><div class="field"><label>الصفة</label>'+inp('hero.text',S.hero.text,'المنصب أو الصفة')+'</div>'+
+    '<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(S.hero.pimg?'تغيير الصورة':'رفع صورة الشخص')+'</button>'+(S.hero.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>';
+}
+function tplItemExtra(i,it){
+  var T=tplCur();if(!T||!T.fields)return '';
+  var h='';
+  if(T.fields.indexOf('value')>-1)h+='<div class="full">'+inp('items.'+i+'.value',it.value,'الرقم أو القيمة')+'</div>';
+  if(T.fields.indexOf('photo')>-1)h+='<div class="full"><button type="button" class="tool" data-tphoto="'+i+'">'+(it.pimg?'تغيير الصورة':'رفع صورة')+'</button>'+(it.pimg?' <button type="button" class="tool" data-tphoto-rm="'+i+'">إزالة</button>':'')+'<span class="hint"> أو تُجلب تلقائياً من المكتبة بالاسم</span></div>';
+  return h;
+}
+var TP_PH=null;
+function tplPhotoInit(){
+  var ed=$('#acc');if(!ed||ed.__tp)return;ed.__tp=1;
+  var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.hidden=true;document.body.appendChild(fi);
+  ed.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('[data-tphoto],[data-tphoto-rm]');if(!b)return;
+    if(b.dataset.tphotoRm){var o=b.dataset.tphotoRm==='hero'?S.hero:S.items[+b.dataset.tphotoRm];if(o)delete o.pimg;buildEditor();schedule();return}
+    TP_PH=b.dataset.tphoto;fi.value='';fi.click();
+  });
+  fi.addEventListener('change',function(){
+    var file=fi.files&&fi.files[0];if(!file||TP_PH==null)return;var k=TP_PH;
+    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var o=k==='hero'?S.hero:S.items[+k];if(o)o.pimg=im;buildEditor();schedule()};im.src=fr.result};fr.readAsDataURL(file);
+  });
+}
+/* a person's picture: uploaded one, else from the library by name; circle (or rounded) crop; placeholder when missing */
+function tPersonImg(o,name){
+  if(o&&o.pimg)return o.pimg;
+  var a=name&&libFind('image',name);return a?tLibIm(a,false):null;
+}
+function tPerson(o,name,cx,cy,d,shape,hh){
+  var im=tPersonImg(o,name),dark=S.theme==='dark',h=hh||d;
+  ctx.save();ctx.beginPath();
+  if(shape==='round'){rrect(cx-d/2,cy-h/2,d,h,d*.14)}else ctx.arc(cx,cy,d/2,0,Math.PI*2);
+  ctx.clip();ctx.fillStyle=dark?'rgba(255,255,255,.16)':rgba(S.main,.12);ctx.fillRect(cx-d/2,cy-h/2,d,h);
+  if(im){var iw=im.naturalWidth,ih=im.naturalHeight,s=Math.max(d/iw,h/ih);ctx.drawImage(im,cx-iw*s/2,cy-h/2-(ih*s-h)*.12,iw*s,ih*s)}
+  else{var ic=fxIconImg('user','fill',dark?'rgba(255,255,255,.75)':S.main,'#000',null);if(ic)ctx.drawImage(ic,cx-d*.3,cy-d*.34,d*.6,d*.6)}
+  ctx.restore();
+  ctx.beginPath();if(shape==='round')rrect(cx-d/2,cy-h/2,d,h,d*.14);else ctx.arc(cx,cy,d/2,0,Math.PI*2);ctx.lineWidth=3;ctx.strokeStyle=dark?'rgba(255,255,255,.5)':S.main;ctx.stroke();
+}
+function tItems(max){return S.items.filter(function(i){return i.title||i.text||i.value}).slice(0,max||6)}
+
+/* ---------- 5) a row of people / players, or a ranked list with photos ---------- */
+tplReg({id:'people-row',name:'صف شخصيات بصورة ورقم',layout:'cards',fields:['value','photo'],panel:true,
+  draw:function(top,bottom){
+    var its=tItems(5);if(!its.length)return;
+    var f=F(),th=TH[S.theme],R=rtl(),n=its.length,gap=14,cw=(W-2*M-(n-1)*gap)/n,d=Math.min(cw-4,250),ph=Math.min(d*1.3,330),vS=Math.round(Math.min(96,cw*.52));
+    var nameSz=n>4?26:30,txSz=n>4?21:24;
+    var blocks=its.map(function(it){return{a:limit(wrapBal(fixPct(it.title),f.head(nameSz),cw-8),2),b:limit(wrapBal(fixPct(it.text),f.body(txSz),cw-8),3)}});
+    var h=vS+30+ph+16+2*nameSz*1.25+10+3*txSz*1.4,y0=top+Math.max(0,((bottom-top)-h)/2);
+    if(S.tpanel){rrect(M-16,y0-20,W-2*M+32,h+40,30);ctx.fillStyle=S.theme==='dark'?'rgba(7,12,42,.5)':'rgba(255,255,255,.8)';ctx.fill();ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.stroke()}
+    its.forEach(function(it,i){
+      var ig='items.'+S.items.indexOf(it),x=R?W-M-(i+1)*cw-i*gap:M+i*(cw+gap),cx=x+cw/2,y=y0;
+      HI.tag(ig,'','الشخصية');HI.box(x,y0-10,x+cw,y0+h+10,-1);
+      if(it.value){HI.tag(ig,'value','الرقم');put(fmtVal(it.value),cx,y+digitH(f.num(vS)),f.num(vS),numColor(),'center','ltr');HI.tag()}
+      y+=vS+30;
+      HI.tag(ig,'photo','الصورة');HI.box(cx-d/2,y,cx+d/2,y+ph);tPerson(it,it.title,cx,y+ph/2,d,'round',ph);HI.tag();
+      y+=ph+16;
+      HI.tag(ig,'title','الاسم');blocks[i].a.forEach(function(l,k){put(l,cx,y+nameSz*.95+k*nameSz*1.25,f.head(nameSz),S.main===S.titleC||S.theme==='dark'?th.ink:S.main,'center')});HI.tag();
+      y+=blocks[i].a.length*nameSz*1.25+8;
+      HI.tag(ig,'text','النص');blocks[i].b.forEach(function(l,k){put(l,cx,y+txSz*.95+k*txSz*1.4,f.body(txSz),th.body,'center')});HI.tag();
+    });
+  }});
+tplReg({id:'people-list',name:'قائمة شخصيات مرتّبة (صورة + قيمة)',layout:'cards',fields:['value','photo'],panel:true,
+  draw:function(top,bottom){
+    var its=tItems(8);if(!its.length)return;
+    var f=F(),th=TH[S.theme],R=rtl(),n=its.length,two=n>8,per=two?Math.ceil(n/2):n,gap=24,colW=two?(W-2*M-gap)/2:W-2*M;
+    var rowH=Math.min(150,(bottom-top)/per),d=Math.min(rowH-18,two?112:130),vS=Math.round(Math.min(64,rowH*.46)),y0=top+Math.max(0,((bottom-top)-rowH*per)/2);
+    its.forEach(function(it,i){
+      var col=Math.floor(i/per),ri=i%per,ig='items.'+S.items.indexOf(it);
+      var xs=R?W-M-col*(colW+gap):M+col*(colW+gap),dir=R?-1:1,cy=y0+ri*rowH+rowH/2;
+      HI.tag(ig,'','الشخصية');HI.box(Math.min(xs,xs+dir*colW),cy-rowH/2+2,Math.max(xs,xs+dir*colW),cy+rowH/2-2,-1);
+      if(S.tpanel){rrect(Math.min(xs,xs+dir*colW),cy-rowH/2+6,colW,rowH-12,22);ctx.fillStyle=S.theme==='dark'?'rgba(7,12,42,.5)':'rgba(255,255,255,.82)';ctx.fill();ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.stroke()}
+      /* rank, photo, name+text, value */
+      var rx=xs+dir*30;put(String(i+1),rx,cy+digitH(f.num(40))/2,f.num(40),S.strap,'center','ltr');
+      var px=xs+dir*(62+d/2);HI.tag(ig,'photo','الصورة');HI.box(px-d/2,cy-d/2,px+d/2,cy+d/2);tPerson(it,it.title,px,cy,d,'circle');HI.tag();
+      var tx=xs+dir*(62+d+18),vW=it.value?Math.min(190,colW*.3):0,nameW=colW-(62+d+18)-vW-16,ns=two?27:31,ts=two?21:24;
+      var a=limit(wrapBal(fixPct(it.title),f.head(ns),nameW),2),b=limit(wrapBal(fixPct(it.text),f.body(ts),nameW),2),hh=a.length*ns*1.25+b.length*ts*1.38,ty=cy-hh/2;
+      HI.tag(ig,'title','الاسم');a.forEach(function(l,k){put(l,tx,ty+ns*.95+k*ns*1.25,f.head(ns),th.ink,R?'right':'left')});HI.tag();
+      HI.tag(ig,'text','النص');b.forEach(function(l,k){put(l,tx,ty+a.length*ns*1.25+ts*.95+k*ts*1.38,f.body(ts),th.body,R?'right':'left')});HI.tag();
+      if(it.value){HI.tag(ig,'value','القيمة');put(fmtVal(it.value),xs+dir*(colW-18),cy+digitH(f.num(vS))/2,f.num(vS),numColor(),R?'left':'right','ltr');HI.tag()}
+      if(ri<per-1){ctx.strokeStyle=th.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(xs+dir*20,cy+rowH/2);ctx.lineTo(xs+dir*(colW-20),cy+rowH/2);ctx.stroke()}
+    });
+  }});
+
+/* ---------- 6) an official / expert portrait with the points of a statement ---------- */
+tplReg({id:'portrait',name:'شخصية رسمية + نقاط التصريح',layout:'cards',person:true,panel:true,
+  draw:function(top,bottom){
+    var its=tItems(4),f=F(),th=TH[S.theme],R=rtl(),colW=560,pw=W-2*M-colW-24,avail=bottom-top;
+    var px=R?M:W-M-pw,bx=R?W-M-colW:M;
+    /* portrait */
+    var ph=avail,py=top,im=S.hero.pimg||null;
+    HI.tag('hero','photo','الصورة');HI.box(px,py,px+pw,py+ph);
+    ctx.save();rrect(px,py,pw,ph,28);ctx.clip();ctx.fillStyle=S.theme==='dark'?'rgba(255,255,255,.12)':rgba(S.main,.1);ctx.fillRect(px,py,pw,ph);
+    if(im){var iw=im.naturalWidth,ih=im.naturalHeight,s=Math.max(pw/iw,ph/ih);ctx.drawImage(im,px+(pw-iw*s)/2,py+ph-ih*s+(ih*s>ph?Math.min(0,0):0),iw*s,ih*s)}
+    else{var ic=fxIconImg('user','fill',S.theme==='dark'?'rgba(255,255,255,.6)':S.main,'#000',null);if(ic)ctx.drawImage(ic,px+pw*.2,py+ph*.25,pw*.6,pw*.6)}
+    ctx.restore();HI.tag();
+    /* name badge */
+    if(S.hero.label||S.hero.text){
+      var nl=limit(wrapBal(S.hero.label||'',f.head(32),pw-40),2),rl=limit(wrapBal(S.hero.text||'',f.body(24),pw-40),2),bh=nl.length*40+rl.length*31+34;
+      ctx.fillStyle=S.strap;rrect(px,py+ph-bh,pw,bh,28);ctx.fill();ctx.fillRect(px,py+ph-bh,pw,28);
+      var tc=lum(S.strap)>.62?'#1A1A1A':'#FFFFFF';
+      HI.tag('hero','label','الاسم');nl.forEach(function(l,i){put(l,px+pw/2,py+ph-bh+22+32+i*40-8,f.head(32),tc,'center')});HI.tag();
+      HI.tag('hero','text','الصفة');rl.forEach(function(l,i){put(l,px+pw/2,py+ph-bh+22+nl.length*40+22+i*31,f.body(24),tc,'center')});HI.tag();
+    }
+    /* statement points */
+    if(!its.length)return;
+    var gap=18,tz=42,bz=32,blocks,slot=(avail-(its.length-1)*gap)/its.length;
+    for(;tz>=26;tz-=2,bz-=1.5){
+      blocks=its.map(function(it){var a=it.title?limit(wrapBal(fixPct(it.title),f.head(tz),colW-60),2):[],b=it.text?limit(wrapBal(fixPct(it.text),f.body(bz),colW-60),5):[];return{a:a,b:b,h:a.length*tz*1.3+b.length*bz*1.42+(a.length&&b.length?8:0)+44}});
+      if(blocks.every(function(k){return k.h<=slot}))break;
+    }
+    var total=blocks.reduce(function(a,b){return a+b.h},0)+(its.length-1)*gap,y=top+Math.max(0,(avail-Math.max(total,avail))/2),sc=avail/Math.max(total,avail);
+    its.forEach(function(it,i){
+      var b=blocks[i],ig='items.'+S.items.indexOf(it),bh2=Math.max(b.h,slot);
+      HI.tag(ig,'','النقطة');HI.box(bx,y,bx+colW,y+bh2,-1);
+      if(S.tpanel){rrect(bx,y,colW,bh2,22);ctx.fillStyle=S.theme==='dark'?'rgba(7,12,42,.55)':'rgba(255,255,255,.86)';ctx.fill();ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.stroke()}
+      /* coloured edge on the side facing the portrait */
+      ctx.fillStyle=S.strap;ctx.fillRect(R?bx:bx+colW-8,y+16,8,bh2-32);
+      var ax=R?bx+colW-30:bx+30,al=R?'right':'left',ty=y+(bh2-b.h)/2+22;
+      HI.tag(ig,'title','عنوان النقطة');b.a.forEach(function(l,k){put(l,ax,ty+tz*.95+k*tz*1.3,f.head(tz),S.theme==='dark'?th.ink:S.main,al)});
+      var by=ty+b.a.length*tz*1.3+(b.a.length&&b.b.length?8:0);
+      HI.tag(ig,'text','نص النقطة');b.b.forEach(function(l,k){put(l,ax,by+bz*.95+k*bz*1.42,f.body(bz),th.body,al)});HI.tag();
+      y+=bh2+gap;
     });
   }});
 
