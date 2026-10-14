@@ -5972,9 +5972,11 @@ tplReg({id:'donut',name:'دونات توزيع (مع قائمة)',layout:'bars',
   }});
 
 /* ---------- extra fields and photos for people / portraits ---------- */
-function tplHeroOn(){var T=tplCur();return !!(T&&T.person)}
+function tplHeroOn(){var T=tplCur();return !!(T&&(T.person||T.heroPhoto))}
 function tplHeroHtml(){
-  var T=tplCur();if(!T||!T.person)return '';
+  var T=tplCur();if(!T||!(T.person||T.heroPhoto))return '';
+  var pb='<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(S.hero.pimg?'تغيير الصورة':'رفع الصورة المركزية')+'</button>'+(S.hero.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>';
+  if(T.heroPhoto)return pb+'<div class="field"><label>تعليق أسفل الصورة (اختياري)</label>'+inp('hero.label',S.hero.label,'')+'</div>';
   return '<div class="field"><label>الاسم</label>'+inp('hero.label',S.hero.label,'الاسم')+'</div><div class="field"><label>الصفة</label>'+inp('hero.text',S.hero.text,'المنصب أو الصفة')+'</div>'+
     '<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(S.hero.pimg?'تغيير الصورة':'رفع صورة الشخص')+'</button>'+(S.hero.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>';
 }
@@ -6139,6 +6141,47 @@ tplReg({id:'blocks-stack',name:'كتل نصية متتالية (عنوان مل�
   draw:function(top,bottom){tBlocks(1,top,bottom)}});
 tplReg({id:'blocks-grid',name:'كتل نصية في عمودين',layout:'cards',icons:true,
   draw:function(top,bottom){tBlocks(2,top,bottom)}});
+
+/* ---------- 8) a central picture with numbered call-outs on both sides ---------- */
+tplReg({id:'callouts',name:'صورة مركزية + نقاط مرقّمة',layout:'cards',heroPhoto:true,icons:true,
+  draw:function(top,bottom){
+    var its=tItems(6);if(!its.length)return;
+    var f=F(),th=TH[S.theme],R=rtl(),dark=S.theme==='dark',n=its.length,avail=bottom-top,
+        pw=300,gx=22,sideW=(W-2*M-pw-2*gx)/2,cx=W/2,ph=Math.min(avail,Math.max(480,Math.min(660,avail*.78))),py=top+(avail-ph)/2,px=cx-pw/2;
+    var nR=Math.ceil(n/2),sides=[R?its.slice(0,nR):its.slice(0,nR),its.slice(nR)];
+    /* picture */
+    HI.tag('hero','photo','الصورة المركزية');HI.box(px,py,px+pw,py+ph);
+    ctx.save();rrect(px,py,pw,ph,40);ctx.clip();ctx.fillStyle=dark?'rgba(255,255,255,.12)':rgba(S.main,.1);ctx.fillRect(px,py,pw,ph);
+    var im=S.hero.pimg;
+    if(im){var iw=im.naturalWidth,ih=im.naturalHeight,sc=Math.max(pw/iw,ph/ih);ctx.drawImage(im,px+(pw-iw*sc)/2,py+(ph-ih*sc)/2,iw*sc,ih*sc)}
+    else{var ic=fxIconImg(fxAutoIcon({t:'num',text:(S.title||'')+' '+(S.subtitle||''),sub:''}),'line',dark?'rgba(255,255,255,.7)':S.main,'#000',null);if(ic)ctx.drawImage(ic,px+pw*.2,py+ph/2-pw*.3,pw*.6,pw*.6)}
+    ctx.restore();HI.tag();
+    ctx.beginPath();rrect(px,py,pw,ph,40);ctx.lineWidth=3;ctx.strokeStyle=dark?'rgba(255,255,255,.5)':S.main;ctx.stroke();
+    if(S.hero.label){var cl=limit(wrapBal(S.hero.label,f.head(28),pw-40),2),chh=cl.length*36+22;ctx.fillStyle=S.strap;rrect(px+14,py+ph-chh-14,pw-28,chh,18);ctx.fill();
+      var tc=lum(S.strap)>.62?'#1A1A1A':'#FFFFFF';HI.tag('hero','label','التعليق');cl.forEach(function(l,k){put(l,cx,py+ph-chh-14+11+28*.95+k*36,f.head(28),tc,'center')});HI.tag()}
+    /* call-outs: sides[0] on the right (rtl) / left (ltr) */
+    var tz=28,bz=22,tw=sideW-70;
+    var all=sides.map(function(list){return list.map(function(it){return{a:it.title?limit(wrapBal(fixPct(it.title),f.head(tz),tw),2):[],b:it.text?limit(wrapBal(fixPct(it.text),f.body(bz),tw),4):[]}})});
+    sides.forEach(function(list,si){
+      var m=all[si],k=list.length;if(!k)return;
+      var rightSide=(si===0)===R,x0=rightSide?cx+pw/2+gx:M,x1=x0+sideW,slot=Math.min(avail/k,230);
+      var ys=py+ph/2-slot*k/2;
+      list.forEach(function(it,j){
+        var idx=si===0?j:nR+j,ig='items.'+S.items.indexOf(it),cy=ys+j*slot+slot/2,hh=m[j].a.length*tz*1.28+m[j].b.length*bz*1.42+(m[j].a.length&&m[j].b.length?6:0);
+        HI.tag(ig,'','النقطة');HI.box(x0,cy-slot/2,x1,cy+slot/2,-1);
+        /* number disc on the inner edge, connector to the picture */
+        var nx=rightSide?x0+28:x1-28;
+        ctx.strokeStyle=S.strap;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(nx,cy);ctx.lineTo(rightSide?px+pw:px,cy);ctx.stroke();
+        ctx.beginPath();ctx.arc(rightSide?px+pw:px,cy,7,0,Math.PI*2);ctx.fillStyle=S.strap;ctx.fill();
+        ctx.beginPath();ctx.arc(nx,cy,28,0,Math.PI*2);ctx.fillStyle=S.strap;ctx.fill();
+        var nc=lum(S.strap)>.62?'#1A1A1A':'#FFFFFF';put(String(idx+1),nx,cy+digitH(f.num(36))/2,f.num(36),nc,'center','ltr');
+        var b0=rightSide?x0+70:x0,b1=rightSide?x1:x1-70,tx=R?b1:b0,al=R?'right':'left',ty=cy-hh/2;
+        HI.tag(ig,'title','العنوان');m[j].a.forEach(function(l,q){put(l,tx,ty+tz*.98+q*tz*1.28,f.head(tz),dark?th.ink:S.main,al)});HI.tag();
+        var by=ty+m[j].a.length*tz*1.28+(m[j].a.length&&m[j].b.length?6:0);
+        HI.tag(ig,'text','النص');m[j].b.forEach(function(l,q){put(l,tx,by+bz*.98+q*bz*1.42,f.body(bz),th.body,al)});HI.tag();
+      });
+    });
+  }});
 
 window.__tpl={LIB:LIB,TLI:TLI,libRebuild:libRebuild,S:S,render:function(){render()},buildEditor:function(){buildEditor()},syncControls:function(){syncControls()}};
 
