@@ -761,6 +761,16 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .chimg{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
 .chimg-h{display:flex;justify-content:space-between;align-items:center}
 .chimg small{color:var(--muted);font-weight:400}
+
+/* saved designs */
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:12px}
+.dcard{padding:10px}
+.dthumb{display:grid;place-items:center;aspect-ratio:4/5;width:100%;border:0;border-radius:12px;background:var(--soft);overflow:hidden;padding:0;cursor:pointer}
+.dthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.dph{color:var(--muted);font-size:13px}
+.dcard .lact button.warn{background:#fde8e8;color:#9b1c1c;border-color:#f3b9b9}
+.desSave{background:#fff;color:var(--navy);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
+#svChoice .seg{display:flex;flex-wrap:wrap}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -895,6 +905,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
       <button type="button" data-nav="clients" data-admin><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="12" rx="2.5"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5M3.5 13h17"/></svg>العملاء</button>
       <button type="button" data-nav="dash" data-admin><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="9" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.8"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.8"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.8"/></svg>لوحة التحكم</button>
       <button type="button" data-nav="studio"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 16l3.2-3.6 2.6 2.6 2-2 2.7 3"/><circle cx="8.6" cy="9.1" r="1.3"/></svg>إنتاج المحتوى</button>
+      <button type="button" data-nav="designs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9.5L19 7v13.5H6z"/><path d="M9 3.5v5h6v-5M9 20.5v-6h7v6"/></svg>تصاميمي</button>
       <button type="button" data-nav="lib"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="4.5" width="7" height="7" rx="3.5"/><path d="M4 15.5h6.5M4 19h4M13.5 15.5h7M13.5 19h4.5"/></svg>المكتبة</button>
       <hr>
       <button type="button" id="navTour"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.6a2.3 2.3 0 1 1 3.2 2.1c-.7.4-1 .9-1 1.6M12 16.6v.1"/></svg>الجولة التعريفية</button>
@@ -1171,6 +1182,15 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
   </div>
   </section>
 
+  <section class="view" id="viewDesigns" aria-label="تصاميمي" hidden>
+    <div class="page-in">
+      <div class="pg-head">
+        <div><h2 class="pg-title">تصاميمي</h2><p class="pg-sub" id="desSub"></p></div>
+      </div>
+      <div class="dgrid" id="desGrid"></div>
+    </div>
+  </section>
+
   <section class="view" id="viewLib" aria-label="المكتبة" hidden>
     <div class="page-in">
       <div class="pg-head">
@@ -1289,6 +1309,18 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
       <div class="field"><label for="leKeys">أسماء بديلة (افصل بينها بفاصلة)</label><input type="text" id="leKeys" maxlength="200" placeholder="مثال: ADNOC، أدنوك للغاز"></div>
       <div class="dlg-msg" id="leMsg" role="alert"></div>
       <div class="dlg-act"><button type="submit" class="btn pink">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></div>
+    </form>
+  </div>
+  <div class="dlg-wrap" id="dlgSave" hidden>
+    <form class="dlg" id="saveForm" role="dialog" aria-modal="true" aria-labelledby="svTitle" autocomplete="off">
+      <h3 id="svTitle">حفظ التصميم</h3>
+      <p class="hint" id="svHint"></p>
+      <div class="field"><label for="svName">اسم التصميم</label><input type="text" id="svName" maxlength="80"></div>
+      <div class="field" id="svChoice" hidden><label>طريقة الحفظ</label>
+        <div class="seg" role="radiogroup" aria-label="طريقة الحفظ"><label><input type="radio" name="svmode" value="update" checked><span>تحديث التصميم المفتوح</span></label><label><input type="radio" name="svmode" value="new"><span>حفظ كتصميم جديد</span></label></div>
+      </div>
+      <div class="dlg-msg" id="svMsg" role="alert"></div>
+      <div class="dlg-act"><button type="submit" class="btn pink" id="svOk">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></div>
     </form>
   </div>
   <div class="dlg-wrap" id="dlgPhotos" hidden>
@@ -1943,7 +1975,7 @@ function setDrawer(open){
 function go(v){
   if((v==='users'||v==='dash'||v==='clients')&&me.role!=='admin')v='studio';
   curView=v;epClose();pvClose();
-  $('#viewStudio').hidden=v!=='studio';$('#viewDash').hidden=v!=='dash';$('#viewUsers').hidden=v!=='users';$('#viewClients').hidden=v!=='clients';$('#viewLib').hidden=v!=='lib';
+  $('#viewStudio').hidden=v!=='studio';$('#viewDash').hidden=v!=='dash';$('#viewUsers').hidden=v!=='users';$('#viewClients').hidden=v!=='clients';$('#viewLib').hidden=v!=='lib';$('#viewDesigns').hidden=v!=='designs';
   document.querySelectorAll('.dr-nav [data-nav]').forEach(function(b){b.classList.toggle('on',b.dataset.nav===v)});
   if(drawerOpen){lastFocus=$('#userChip');setDrawer(false)}
   if(v==='studio'){fit();render();ttRefresh()}
@@ -1951,6 +1983,7 @@ function go(v){
   if(v==='users')loadUsers();
   if(v==='clients'){ED=null;edShow(false);clPaintList()}
   if(v==='lib')libPaint();
+  if(v==='designs')desLoad(false);
 }
 
 /* dialogs */
@@ -1959,7 +1992,7 @@ function openDlg(id,focusSel){
   setTimeout(function(){var f=w.querySelector(focusSel||'input:not([type=radio])');if(f)f.focus()},30);
 }
 function closeDlg(id){var w=$(id);w.hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus()}
-function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit'].filter(function(i){return !$(i).hidden})[0]}
+function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave'].filter(function(i){return !$(i).hidden})[0]}
 
 /* user dialog (add / new password) */
 var udMode='add';
@@ -2100,7 +2133,7 @@ async function loadStats(){
 
 /* ---------- sign-in flow ---------- */
 function showLogin(open){
-  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit'].forEach(function(i){$(i).hidden=true});
+  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave'].forEach(function(i){$(i).hidden=true});
   $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
   if(open)setTimeout(function(){$('#email').focus()},30);
 }
@@ -2111,7 +2144,7 @@ function initUI(){
   syncControls();buildEditor();bindControls();bindEditor();
   $('#gen').addEventListener('click',function(){pgGate('ig',function(){generate()})});
   $('#stopGen').addEventListener('click',function(){if(ctl)ctl.abort()});
-  cliPickInit();clInit();mpInit();libInit();epInit();pvInit();ttInit();
+  cliPickInit();clInit();mpInit();libInit();epInit();pvInit();ttInit();desInit();
   try{if(window.ResizeObserver){new ResizeObserver(fit).observe($('.sheetwrap'))}}catch(e){}
   window.addEventListener('resize',fit);
 }
@@ -2137,7 +2170,7 @@ async function enter(session){
   render();fit();
   status(missing?'بعض الخطوط أو الشعارات غير مرفوعة في التخزين الخاص، فيظهر التصميم بخطوط بديلة حتى ترفعها.':'',!!missing);
   /* per-account extras: preferences, clients, saved colour sets, first-time tour */
-  CLI.cur=null;
+  CLI.cur=null;desReset();
   await Promise.all([prefsLoad(),cliLoad(),mpLoad(),libLoad()]);
   var last=PREFS.last&&cliFind(PREFS.last);
   if(last&&(last.active||me.role==='admin'))await cliSet(last);else cliSet(null);
@@ -5436,6 +5469,301 @@ function pvInit(){
   var b=$('#czDl1');if(b&&!$('#pvCz'))b.insertAdjacentHTML('beforebegin','<button type="button" class="tool pvbtn" id="pvCz">معاينة كبيرة</button>');
   $('#pvIg').addEventListener('click',function(){pvOpen('ig')});
   $('#pvCz').addEventListener('click',function(){pvOpen('cz')});
+}
+
+/* ===== saved designs ("تصاميمي"): save, reopen, rename, delete ===== */
+var DES={list:[],cur:{ig:null,cz:null,ch:null},busy:false,uid:null,thumbs:{},mode:'save',kind:'ig',rid:null,loaded:false};
+var DES_KIND={ig:'إنفوجراف',cz:'كاروسيل',ch:'تشارت'};
+var DES_MAXPX=2400;
+function desReset(){DES.list=[];DES.cur={ig:null,cz:null,ch:null};DES.uid=null;DES.loaded=false;DES.thumbs={}}
+async function desUidGet(){
+  if(DES.uid)return DES.uid;
+  var s=(await sb.auth.getSession()).data.session;DES.uid=s&&s.user?s.user.id:null;return DES.uid;
+}
+function desUuid(){
+  if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();
+  var b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+  var h=Array.prototype.map.call(b,function(x){return ('0'+x.toString(16)).slice(-2)}).join('');
+  return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
+
+/* ----- state <-> JSON (images become {__img:key}) ----- */
+function desPack(o,reg,fmt){
+  if(o instanceof HTMLImageElement){
+    var k=reg.map.get(o);
+    if(!k){k='i'+(reg.n++);reg.map.set(o,k);reg.list.push({key:k,im:o,fmt:fmt})}
+    return{__img:k};
+  }
+  if(Array.isArray(o))return o.map(function(v){return desPack(v,reg,fmt)});
+  if(o&&typeof o==='object'){
+    var r={};
+    Object.keys(o).forEach(function(k){if(k==='geo'||typeof o[k]==='function')return;r[k]=desPack(o[k],reg,fmt)});
+    return r;
+  }
+  return o;
+}
+function desRevive(o,imgs){
+  if(Array.isArray(o))return o.map(function(v){return desRevive(v,imgs)});
+  if(o&&typeof o==='object'){
+    if(typeof o.__img==='string'&&Object.keys(o).length===1)return imgs[o.__img]||null;
+    var r={};Object.keys(o).forEach(function(k){r[k]=desRevive(o[k],imgs)});return r;
+  }
+  return o;
+}
+function desSnapshot(kind){
+  var reg={map:new Map(),list:[],n:0},st;
+  if(kind==='ig'){st=desPack(S,reg,'jpeg');st.__src=$('#src').value}
+  else if(kind==='cz'){st=desPack(CZ,reg,'jpeg');st.__src=$('#czSrc').value}
+  else{
+    st=desPack(CH,reg,'jpeg');
+    st.__chi={pic:desPack(CHI.pic,reg,'png'),bg:desPack(CHI.bg,reg,'jpeg'),ov:{}};
+    Object.keys(CHI.ov).forEach(function(id){st.__chi.ov[id]=desPack(CHI.ov[id],reg,'png')});
+  }
+  /* a plain JSON copy also guards against anything that cannot be stored */
+  return{state:JSON.parse(JSON.stringify(st)),imgs:reg.list};
+}
+function desImgBlob(im,fmt){
+  return new Promise(function(res,rej){
+    var w=im.naturalWidth||im.width,h=im.naturalHeight||im.height,k=Math.min(1,DES_MAXPX/Math.max(w,h));
+    var c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));
+    var g=c.getContext('2d');
+    if(fmt==='jpeg'){g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height)}
+    g.drawImage(im,0,0,c.width,c.height);
+    c.toBlob(function(b){b?res(b):rej(new Error('blob'))},fmt==='png'?'image/png':'image/jpeg',.9);
+  });
+}
+function desThumbBlob(kind){
+  return new Promise(function(res){
+    try{
+      var src;
+      if(kind==='ig'){render();src=cv}
+      else if(kind==='cz'){czDrawSlide(0);src=czcv}
+      else{chRender();src=chcv}
+      var w=360,h=Math.round(src.height/src.width*w),c=document.createElement('canvas');c.width=w;c.height=h;
+      var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,w,h);g.imageSmoothingQuality='high';g.drawImage(src,0,0,w,h);
+      if(kind==='cz')czDrawSlide(CZ.cur);
+      c.toBlob(function(b){res(b)},'image/jpeg',.82);
+    }catch(e){res(null)}
+  });
+}
+
+/* ----- list ----- */
+async function desLoad(force){
+  if(DES.loaded&&!force){desPaint();return}
+  $('#desSub').textContent='جارٍ التحميل…';
+  var r=await sb.from('designs').select('id,kind,name,thumb_path,client_id,created_at,updated_at').order('updated_at',{ascending:false});
+  if(r.error){$('#desSub').textContent='';$('#desGrid').innerHTML='<p class="empty">تعذّر تحميل التصاميم. أعد المحاولة.</p>';return}
+  DES.list=r.data||[];DES.loaded=true;desPaint();
+}
+function desThumbUrl(path){
+  if(!path)return Promise.resolve(null);
+  if(!DES.thumbs[path]){
+    DES.thumbs[path]=sb.storage.from('designs').download(path).then(function(r){if(r.error||!r.data)return null;return URL.createObjectURL(r.data)},function(){return null});
+  }
+  return DES.thumbs[path];
+}
+function desPaint(){
+  var L=DES.list,g=$('#desGrid');
+  $('#desSub').textContent=L.length?'عندك '+NF.format(L.length)+' تصميم محفوظ. افتح أي واحد لتكمل التعديل عليه.':'';
+  if(!L.length){g.innerHTML='<p class="empty">لسه ما حفظتش أي تصميم. اعمل تصميمك واضغط «حفظ التصميم» جنب زر التنزيل، وهيظهر هنا.</p>';return}
+  g.innerHTML=L.map(function(d){
+    var c=d.client_id&&cliFind(d.client_id);
+    return '<div class="lcard dcard" data-did="'+esc(d.id)+'">'
+      +'<button type="button" class="dthumb" data-dact="open" aria-label="فتح '+esc(d.name)+'"><span class="dph">'+esc(DES_KIND[d.kind]||'')+'</span></button>'
+      +'<b title="'+esc(d.name)+'">'+esc(d.name)+'</b>'
+      +'<small>'+esc(DES_KIND[d.kind]||'')+(c?' · '+esc(c.name):'')+' · '+esc(ago(d.updated_at))+'</small>'
+      +'<div class="lact"><button type="button" data-dact="open">فتح</button><button type="button" data-dact="rename">الاسم</button><button type="button" data-dact="del">حذف</button></div></div>';
+  }).join('');
+  L.forEach(function(d){
+    desThumbUrl(d.thumb_path).then(function(u){
+      if(!u)return;var card=g.querySelector('[data-did="'+d.id+'"] .dthumb');
+      if(card)card.innerHTML='<img alt="" src="'+u+'">';
+    });
+  });
+}
+
+/* ----- save ----- */
+function desTitleOf(kind){
+  var t=kind==='ig'?S.title:kind==='cz'?((CZ.slides[0]||{}).title||''):CH.title;
+  return String(t||'').replace(/\*\*/g,'').replace(/\s+/g,' ').trim().slice(0,60);
+}
+function desMsg(m,ok){var e=$('#svMsg');e.textContent=m||'';e.className='dlg-msg'+(ok?' ok':'')}
+function desOpenSave(kind){
+  DES.mode='save';DES.kind=kind;DES.rid=null;desMsg('');
+  var curId=DES.cur[kind],cur=curId&&DES.list.filter(function(d){return d.id===curId})[0];
+  $('#svTitle').textContent='حفظ التصميم';
+  $('#svHint').textContent='يُحفظ '+DES_KIND[kind]+' بكل إعداداته وصوره، وتقدر تفتحه من «تصاميمي» وتكمل التعديل.';
+  $('#svName').value=cur?cur.name:(desTitleF(kind));
+  $('#svChoice').hidden=!cur;
+  var r=document.querySelector('input[name="svmode"][value="update"]');if(r)r.checked=true;
+  $('#svOk').textContent='حفظ';$('#svOk').disabled=false;
+  openDlg('#dlgSave','#svName');
+}
+function desTitleF(kind){return desTitleOf(kind)||('تصميم '+DES_KIND[kind])}
+function desOpenRename(id){
+  var d=DES.list.filter(function(x){return x.id===id})[0];if(!d)return;
+  DES.mode='rename';DES.rid=id;desMsg('');
+  $('#svTitle').textContent='تعديل اسم التصميم';$('#svHint').textContent='';
+  $('#svName').value=d.name;$('#svChoice').hidden=true;$('#svOk').textContent='حفظ';$('#svOk').disabled=false;
+  openDlg('#dlgSave','#svName');
+}
+async function desSubmit(e){
+  e.preventDefault();if(DES.busy)return;
+  var name=clean($('#svName').value,80);
+  if(!name){desMsg('اكتب اسماً للتصميم.');return}
+  DES.busy=true;$('#svOk').disabled=true;
+  try{
+    if(DES.mode==='rename'){
+      var rr=await sb.from('designs').update({name:name}).eq('id',DES.rid).select('id');
+      if(rr.error||!rr.data||!rr.data.length)throw 1;
+      var d=DES.list.filter(function(x){return x.id===DES.rid})[0];if(d)d.name=name;
+      closeDlg('#dlgSave');desPaint();toast('تم تعديل الاسم.');
+    }else{
+      $('#svOk').textContent='جارٍ الحفظ…';
+      await desSave(DES.kind,name);
+      closeDlg('#dlgSave');toast('تم حفظ «'+name+'» في تصاميمي.');
+    }
+  }catch(x){desMsg('تعذّر الحفظ. تأكد من الاتصال وأعد المحاولة.')}
+  finally{DES.busy=false;$('#svOk').disabled=false;$('#svOk').textContent='حفظ'}
+}
+async function desSave(kind,name){
+  var uid=await desUidGet();if(!uid)throw 1;
+  var curId=DES.cur[kind],upd=!!curId&&!$('#svChoice').hidden&&(document.querySelector('input[name="svmode"]:checked')||{}).value==='update';
+  var id=upd?curId:desUuid(),snap=desSnapshot(kind),old=[];
+  if(upd){var o=DES.list.filter(function(d){return d.id===id})[0];if(o&&o.images)old=o.images}
+  var paths=[],base=uid+'/'+id+'/';
+  for(var i=0;i<snap.imgs.length;i++){
+    var it=snap.imgs[i],ext=it.fmt==='png'?'png':'jpg',blob=await desImgBlob(it.im,it.fmt),p=base+it.key+'.'+ext;
+    var up=await sb.storage.from('designs').upload(p,blob,{contentType:blob.type,upsert:true});
+    if(up.error)throw up.error;
+    paths.push(p);snap.state.__map=snap.state.__map||{};snap.state.__map[it.key]=p;
+  }
+  var tp=base+'thumb.jpg',tb=await desThumbBlob(kind),thumb=null;
+  if(tb){var tu=await sb.storage.from('designs').upload(tp,tb,{contentType:'image/jpeg',upsert:true});if(!tu.error)thumb=tp}
+  delete DES.thumbs[tp];
+  var row={name:name,state:snap.state,images:paths,thumb_path:thumb,client_id:CLI.cur||null,updated_at:new Date().toISOString()},res;
+  if(upd){
+    res=await sb.from('designs').update(row).eq('id',id).select('id,kind,name,thumb_path,client_id,created_at,updated_at,images');
+    if(res.error)throw res.error;
+    if(!res.data||!res.data.length)upd=false;
+  }
+  if(!upd){
+    row.id=id;row.owner_email=me.email.toLowerCase();row.kind=kind;
+    res=await sb.from('designs').insert(row).select('id,kind,name,thumb_path,client_id,created_at,updated_at,images').single();
+    if(res.error){try{await sb.storage.from('designs').remove(paths.concat([tp]))}catch(e){}throw res.error}
+    res={data:[res.data]};
+  }
+  var gone=old.filter(function(p){return paths.indexOf(p)<0});
+  if(gone.length){try{await sb.storage.from('designs').remove(gone)}catch(e){}}
+  var saved=res.data[0];
+  DES.list=DES.list.filter(function(d){return d.id!==id});DES.list.unshift(saved);DES.cur[kind]=id;
+}
+
+/* ----- open ----- */
+function desLoadImg(blob){
+  return new Promise(function(res){
+    var im=new Image(),u=URL.createObjectURL(blob);
+    im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=u;
+  });
+}
+function desSetMode(m){
+  var r=document.querySelector('input[name="mode"][value="'+m+'"]');
+  if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}
+}
+async function desOpen(id){
+  if(DES.busy)return;DES.busy=true;toast('جارٍ فتح التصميم…');
+  try{
+    var r=await sb.from('designs').select('*').eq('id',id).maybeSingle();
+    if(r.error||!r.data)throw 1;
+    var d=r.data,st=d.state||{},map=st.__map||{},imgs={};
+    var keys=Object.keys(map);
+    await Promise.all(keys.map(async function(k){
+      var dl=await sb.storage.from('designs').download(map[k]);
+      if(!dl.error&&dl.data)imgs[k]=await desLoadImg(dl.data);
+    }));
+    var state=desRevive(st,imgs);delete state.__map;
+    /* the client first: it sets the colours and logos the design was made with */
+    if((d.client_id||null)!==(CLI.cur||null)){
+      var c=d.client_id&&cliFind(d.client_id);
+      await cliSet(c&&(c.active||me.role==='admin')?c:null);
+    }
+    go('studio');
+    if(d.kind==='ig')desApplyIg(state);
+    else if(d.kind==='cz')desApplyCz(state);
+    else desApplyCh(state);
+    DES.cur[d.kind]=d.id;
+    toast('تم فتح «'+d.name+'». كمّل التعديل وبعدها احفظه.');
+  }catch(x){toast('تعذّر فتح التصميم.',true)}
+  finally{DES.busy=false}
+}
+function desApplyIg(st){
+  desSetMode('ig');
+  var src=st.__src;delete st.__src;
+  Object.assign(S,st);
+  $('#src').value=src||'';
+  if($('#lang'))$('#lang').value=S.lang;
+  var ls=$('#layoutSel');if(ls)ls.value=S.layout;
+  $('#exampleNote').hidden=true;
+  ttEnsure();buildEditor();syncControls();render();fit();
+}
+function desApplyCz(st){
+  desSetMode('cz');
+  var src=st.__src;delete st.__src;
+  Object.assign(CZ,st);
+  $('#czSrc').value=src||'';
+  $('#czNote').hidden=true;
+  ttEnsure();czBuildThumbs();czSyncStyle();czRenderAll();czBuildEditor();czNav();czFit();
+  czFonts().then(function(){czRenderAll()});
+}
+function desApplyCh(st){
+  desSetMode('ch');
+  var chi=st.__chi||{};delete st.__chi;
+  Object.assign(CH,chBlank(),st);
+  CHI.pic=chi.pic||null;CHI.bg=chi.bg||null;CHI.ov=chi.ov||{};
+  chIsDemo=false;
+  $('#chSrc').value=chToTsv(CH.table);
+  $('#chNote').hidden=true;
+  ttEnsure();chBuildEditor();chFit();chSchedule();
+  chFonts().then(function(){chFit();chRender()});
+}
+
+/* ----- delete ----- */
+async function desDelete(id){
+  var uid=await desUidGet(),d=DES.list.filter(function(x){return x.id===id})[0];
+  var r=await sb.from('designs').delete().eq('id',id).select('id');
+  if(r.error){toast('تعذّر الحذف.',true);return}
+  try{
+    var l=await sb.storage.from('designs').list(uid+'/'+id);
+    if(l.data&&l.data.length)await sb.storage.from('designs').remove(l.data.map(function(f){return uid+'/'+id+'/'+f.name}));
+  }catch(e){}
+  DES.list=DES.list.filter(function(x){return x.id!==id});
+  ['ig','cz','ch'].forEach(function(k){if(DES.cur[k]===id)DES.cur[k]=null});
+  desPaint();toast('تم حذف «'+(d?d.name:'التصميم')+'».');
+}
+
+/* ----- wiring ----- */
+function desInit(){
+  [['#dl','ig'],['#czDlAll','cz'],['#chDl','ch']].forEach(function(p){
+    var t=$(p[0]);if(!t||!t.parentNode)return;
+    var b=document.createElement('button');b.type='button';b.className='desSave';b.dataset.dessave=p[1];
+    b.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h9.5L19 7v13.5H6z"/><path d="M9 3.5v5h6v-5M9 20.5v-6h7v6"/></svg> حفظ التصميم';
+    t.parentNode.insertBefore(b,t);
+    b.addEventListener('click',function(){desOpenSave(p[1])});
+  });
+  $('#saveForm').addEventListener('submit',desSubmit);
+  var armed=null;
+  $('#desGrid').addEventListener('click',function(e){
+    var b=e.target.closest('[data-dact]'),card=e.target.closest('[data-did]');if(!b||!card)return;
+    var id=card.dataset.did,a=b.dataset.dact;
+    if(a==='open')desOpen(id);
+    else if(a==='rename')desOpenRename(id);
+    else if(a==='del'){
+      if(armed&&armed.b===b){clearTimeout(armed.t);armed=null;desDelete(id);return}
+      if(armed){clearTimeout(armed.t);armed.b.textContent='حذف';armed.b.classList.remove('warn')}
+      b.textContent='تأكيد الحذف';b.classList.add('warn');
+      armed={b:b,t:setTimeout(function(){b.textContent='حذف';b.classList.remove('warn');armed=null},3500)};
+    }
+  });
 }
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
