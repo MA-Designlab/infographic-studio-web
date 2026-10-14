@@ -5794,7 +5794,7 @@ function tBarIcon(label,cx,cy,d){
   return true;
 }
 async function tFetchIcons(btn,msg){
-  var rows=S.bars.filter(function(b){return b.label}),todo=rows.filter(function(r){return !tBarAsset(r.label)});
+  var T=tplCur(),rows=(T&&T.names?T.names():S.bars.filter(function(b){return b.label})),todo=rows.filter(function(r){return r.label&&!tBarAsset(r.label)});
   if(!todo.length){msg('كل الأسماء لها أعلام أو شعارات.');return}
   btn.disabled=true;var ok=0;
   for(var i=0;i<todo.length;i++){
@@ -6221,6 +6221,39 @@ tplReg({id:'steps',name:'مراحل متتابعة بأسهم',layout:'cards',fi
         var bx=R?x+16:x+w-16-vw-24;ctx.save();ctx.fillStyle='rgba(255,255,255,.95)';rrect(bx-4,y+(fit.ms[i].bar-vs*1.25)/2,vw+28,vs*1.25,14);ctx.fill();ctx.restore();
         put(vt,bx+10+vw/2,y+fit.ms[i].bar/2+digitH(f.num(vs))/2,f.num(vs),col,'center','ltr');HI.tag()}
     });
+  }});
+
+/* ---------- 10) bilateral relations: the UAE and a country, two flags, a headline figure, supporting figures ---------- */
+function tDuoOther(){return String(S.hero.label||'').trim()}
+tplReg({id:'duo',name:'علاقات ثنائية: الإمارات و… (اسم الدولة في «الكلمة المميزة»)',layout:'stats',max:6,lib:true,icons:true,panel:true,
+  names:function(){return [{label:'الإمارات'},{label:tDuoOther()}]},
+  split:function(st){return{main:st,band:[]}},
+  draw:function(top,bottom,list){
+    var f=F(),th=TH[S.theme],R=rtl(),dark=S.theme==='dark',avail=bottom-top,other=tDuoOther(),d=176,cx=W/2,off=190;
+    var hdr=d+86,y=top+6,cy=y+d/2;
+    var names=['الإمارات',other],xs=R?[cx+off,cx-off]:[cx-off,cx+off];
+    ctx.strokeStyle=dark?'rgba(255,255,255,.4)':rgba(S.main,.35);ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(xs[0]+(xs[1]>xs[0]?d/2:-d/2),cy);ctx.lineTo(xs[1]+(xs[1]>xs[0]?-d/2:d/2),cy);ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(Math.PI/4);ctx.fillStyle=S.strap;ctx.fillRect(-17,-17,34,34);ctx.restore();
+    names.forEach(function(nm,i){
+      var cxx=xs[i];HI.tag('hero','label','اسم الدولة');HI.box(cxx-d/2-10,y,cxx+d/2+10,y+hdr);
+      var ok=nm&&tBarIcon(nm,cxx,cy,d);
+      if(!ok){ctx.beginPath();ctx.arc(cxx,cy,d/2,0,Math.PI*2);ctx.fillStyle=dark?'rgba(255,255,255,.14)':rgba(S.main,.1);ctx.fill();ctx.lineWidth=2.4;ctx.strokeStyle=dark?'rgba(255,255,255,.5)':S.main;ctx.stroke();
+        var ic=fxIconImg('flag','line',dark?'rgba(255,255,255,.7)':S.main,'#000',null);if(ic)ctx.drawImage(ic,cxx-d*.22,cy-d*.22,d*.44,d*.44)}
+      var nl=limit(wrapBal(nm||'—',f.head(34),330),1)[0];put(nl,cxx,y+d+50,f.head(34),dark?th.ink:S.main,'center');HI.tag();
+    });
+    var by=y+hdr+14,rest=bottom-by,sp=tSplit(list),cw=(W-2*M-30)/2,im=S.ticons?'side':'',statsH=0,sz=null;
+    if(list.length){
+      sz=tPickSz([sp.right,sp.left],cw,Math.max(160,rest-(S.hero.value?330:0)),im);
+      sp.right.concat([]);statsH=Math.max(tColH(sp.right,sz,cw,im),tColH(sp.left,sz,cw,im));
+    }
+    var heroB=S.hero.value?bottom-statsH-(statsH?18:0):by;
+    if(S.hero.value){var keep=S.hero;S.hero={value:keep.value,label:'',text:keep.text,color:keep.color};try{drawHero(by,heroB,W/2,W-2*M)}finally{S.hero=keep}}
+    if(list.length){
+      var y0=bottom-statsH-((S.hero.value)?0:0);if(!S.hero.value)y0=by+(rest-statsH)/2;
+      var cxR=W-M-cw/2,cxL=M+cw/2;
+      if(sp.right.length)tCol(sp.right,cxR,y0,y0+statsH,cw,sz,im,'right',S.tpanel,y0);
+      if(sp.left.length)tCol(sp.left,cxL,y0,y0+statsH,cw,sz,im,'left',S.tpanel,y0);
+    }
   }});
 
 window.__tpl={LIB:LIB,TLI:TLI,libRebuild:libRebuild,S:S,render:function(){render()},buildEditor:function(){buildEditor()},syncControls:function(){syncControls()}};
