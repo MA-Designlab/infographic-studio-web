@@ -6101,6 +6101,45 @@ tplReg({id:'portrait',name:'شخصية رسمية + نقاط التصريح',lay
     });
   }});
 
+/* ---------- 7) text distribution: blocks with a coloured title bar ---------- */
+function tBlkPal(){return S.theme==='dark'?[S.strap,'#2BA3FF','#2E8B3A','#8A4DCC','#E0A100','#14A39A']:[S.main,S.strap,'#2BA3FF','#2E8B3A','#8A4DCC','#14A39A']}
+function tBlkMeasure(its,w,tz,bz,maxL,ic){
+  var f=F(),iw=ic?tz*1.7:0;
+  return its.map(function(it){var a=it.title?limit(wrapBal(fixPct(it.title),f.head(tz),w-48-iw),2):[],b=it.text?limit(wrapBal(fixPct(it.text),f.body(bz),w-56),maxL):[];
+    return{a:a,b:b,bar:Math.max(a.length*tz*1.28+26,ic?tz*1.7+18:0),th:b.length*bz*1.45+(b.length?34:18)}});
+}
+function tBlock(it,m,x,y,w,h,col,tz,bz,ic){
+  var f=F(),th=TH[S.theme],R=rtl(),dark=S.theme==='dark',ig='items.'+S.items.indexOf(it);
+  HI.tag(ig,'','البلوك');HI.box(x,y,x+w,y+h,-1);
+  ctx.save();rrect(x,y,w,h,26);ctx.fillStyle=dark?'rgba(7,12,42,.62)':'rgba(255,255,255,.9)';ctx.fill();ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.stroke();ctx.clip();
+  ctx.fillStyle=col;ctx.fillRect(x,y,w,m.bar);ctx.restore();
+  var tc=lum(col)>.6?'#1A1A1A':'#FFFFFF',iw=ic?tz*1.7:0,ax=R?x+w-24:x+24,al=R?'right':'left';
+  if(ic){var d=tz*1.45,icx=R?x+w-18-d/2:x+18+d/2,icy=y+m.bar/2;ctx.beginPath();ctx.arc(icx,icy,d/2,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.95)';ctx.fill();
+    var im=fxIconImg(tIconName({icon:it.icon,label:it.title,text:it.text}),'line',lum(col)>.6?col:col,col,null);if(im){var sz=d*.6;ctx.drawImage(im,icx-sz/2,icy-sz/2,sz,sz)}
+    ax=R?x+w-18-d-14:x+18+d+14}
+  var ty=y+(m.bar-m.a.length*tz*1.28)/2;
+  HI.tag(ig,'title','العنوان');m.a.forEach(function(l,k){put(l,ax,ty+tz*.98+k*tz*1.28,f.head(tz),tc,al)});HI.tag();
+  var hasT=m.b.length,by=y+m.bar+(h-m.bar-m.b.length*bz*1.45)/2;
+  HI.tag(ig,'text','النص');m.b.forEach(function(l,k){put(l,R?x+w-28:x+28,by+bz*.98+k*bz*1.45,f.body(bz),th.body,al)});HI.tag();
+}
+function tBlocks(cols,top,bottom){
+  var its=tItems(cols>1?6:5);if(!its.length)return;
+  var R=rtl(),n=its.length,gap=18,per=Math.ceil(n/cols),cw=(W-2*M-(cols-1)*gap)/cols,avail=bottom-top,slot=(avail-(per-1)*gap)/per,pal=tBlkPal(),ic=!!S.ticons;
+  var tz=cols>1?32:38,bz=cols>1?25:30,ms;
+  for(;tz>=22;tz-=2,bz-=1.5){ms=tBlkMeasure(its,cw,tz,bz,cols>1?6:4,ic);if(ms.every(function(k){return k.bar+k.th<=Math.min(slot,cols>1?340:260)}))break}
+  var cap=Math.min(slot,Math.max.apply(null,ms.map(function(k){return k.bar+k.th}))+(cols>1?30:20));
+  var tot=per*cap+(per-1)*gap,y0=top+Math.max(0,(avail-tot)/2);
+  its.forEach(function(it,i){
+    var col=cols>1?i%cols:0,row=cols>1?Math.floor(i/cols):i;
+    var x=R?W-M-(col+1)*cw-col*gap:M+col*(cw+gap);
+    tBlock(it,ms[i],x,y0+row*(cap+gap),cw,cap,pal[i%pal.length],tz,bz,ic);
+  });
+}
+tplReg({id:'blocks-stack',name:'كتل نصية متتالية (عنوان ملوّن)',layout:'cards',icons:true,
+  draw:function(top,bottom){tBlocks(1,top,bottom)}});
+tplReg({id:'blocks-grid',name:'كتل نصية في عمودين',layout:'cards',icons:true,
+  draw:function(top,bottom){tBlocks(2,top,bottom)}});
+
 window.__tpl={LIB:LIB,TLI:TLI,libRebuild:libRebuild,S:S,render:function(){render()},buildEditor:function(){buildEditor()},syncControls:function(){syncControls()}};
 
 /* ===== free elements: click an empty spot on any design to drop a text, a number, an icon or an image there ===== */
