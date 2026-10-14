@@ -771,6 +771,9 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .dcard .lact button.warn{background:#fde8e8;color:#9b1c1c;border-color:#f3b9b9}
 .desSave{background:#fff;color:var(--navy);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
 #svChoice .seg{display:flex;flex-wrap:wrap}
+
+.ccard.house{border-color:#CDBDEB;background:linear-gradient(180deg,#fff,#F7F2FE)}
+.pill.adm{background:#EFE6FC;color:#5a2a9a}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2640,7 +2643,15 @@ function cliMarks(c,dark,sec){
 function drawOverlay(){
   if(S.sec!=='none'&&cliMarks(ctx,S.theme==='dark',S.sec))return;
   drawOverlay0();
+  cliBadgeFallback(ctx,S.theme==='dark',S.sec);
 }
+/* a section badge uploaded in the client profile fills in where the built-in artwork has none */
+function cliBadgeFallback(c,dark,sec){
+  if(!sec||sec==='none'||sec==='news'||CLI.logoMode==='client')return;
+  var b=CLI.badge[sec];if(!b||OV[sec+(dark?'_dark':'_light')])return;
+  cliContain(c,b,W-46-125,34,125,120,'right');
+}
+function cliHouse(){return CLI.list.filter(function(c){return c.profile&&c.profile.house})[0]}
 /* the server loads the client's tone itself from this id */
 function cliPayload(name,p){
   if(name==='generate'&&CLI.cur&&p&&p.mode!=='photos'&&p.mode!=='proofread'&&!p.client_id)p.client_id=CLI.cur;
@@ -2684,6 +2695,7 @@ function cliRefresh(){
   if(czInited){czSyncStyle();czRenderAll()}
 }
 async function cliSet(c){
+  if(!c){var hh=cliHouse();if(hh)c=hh}
   var tok=++CLI.tok;
   if(!CLI.base)cliSnap();
   var b=CLI.base,p=(c&&c.profile)||{},co=p.colors||{};
@@ -2722,6 +2734,10 @@ async function cliLoad(){
   try{
     var r=await sb.from('clients').select('id,name,profile,active,updated_at').order('name');
     CLI.list=r.error?[]:(r.data||[]);
+    if(!r.error&&me.role==='admin'&&!cliHouse()){
+      var h=await sb.from('clients').insert({name:'الاتحاد',profile:{v:1,house:true},created_by:me.email}).select('id,name,profile,active,updated_at').maybeSingle();
+      if(!h.error&&h.data){CLI.list.push(h.data);CLI.list.sort(function(a,b){return a.name.localeCompare(b.name,'ar')})}
+    }
   }catch(e){CLI.list=[]}
   cliPaint();
 }
@@ -2729,16 +2745,17 @@ async function cliLoad(){
 /* ----- picker at the top of the studio ----- */
 function dotsOf(c){
   var co=((c&&c.profile)||{}).colors||{};
-  var a=[co.main,co.accent].filter(Boolean);if(!a.length)a=['#C9BBFF'];
+  var a=[co.main,co.accent].filter(Boolean);if(!a.length)a=c&&c.profile&&c.profile.house?['#2B0F4D','#F32D7E']:['#C9BBFF'];
   return a.map(function(x){return '<i style="background:'+esc(x)+'"></i>'}).join('');
 }
 function cliPaint(){
-  var pick=$('#cliPick'),act=CLI.list.filter(function(c){return c.active||c.id===CLI.cur});
-  pick.hidden=!act.length&&me.role!=='admin';
+  var pick=$('#cliPick'),act=CLI.list.filter(function(c){return c.active||c.id===CLI.cur||(c.profile&&c.profile.house)});
+  act.sort(function(a,b){return (b.profile&&b.profile.house?1:0)-(a.profile&&a.profile.house?1:0)});
+  pick.hidden=!act.filter(function(c){return !(c.profile&&c.profile.house)}).length&&me.role!=='admin';
   var cur=cliFind(CLI.cur);
   $('#cliName').textContent=cur?cur.name:'هوية الاتحاد';
   $('#cliDots').innerHTML=cur?dotsOf(cur):'<i style="background:#2B0F4D"></i><i style="background:#F32D7E"></i>';
-  var h='<button type="button" role="option" data-cid="" aria-selected="'+(!CLI.cur)+'"><span class="cdots"><i style="background:#2B0F4D"></i><i style="background:#F32D7E"></i></span>هوية الاتحاد (الافتراضية)</button>';
+  var h=cliHouse()?'':'<button type="button" role="option" data-cid="" aria-selected="'+(!CLI.cur)+'"><span class="cdots"><i style="background:#2B0F4D"></i><i style="background:#F32D7E"></i></span>هوية الاتحاد (الافتراضية)</button>';
   act.forEach(function(c){h+='<button type="button" role="option" data-cid="'+esc(c.id)+'" aria-selected="'+(c.id===CLI.cur)+'"><span class="cdots">'+dotsOf(c)+'</span>'+esc(c.name)+'</button>'});
   if(me.role==='admin')h+='<hr><button type="button" data-cmanage>إدارة العملاء…</button>';
   $('#cliPop').innerHTML=h;
@@ -2777,12 +2794,15 @@ function clSummary(c){
   var nf=CL_ROLES.filter(function(r){return p.fonts&&p.fonts[r[0]]&&p.fonts[r[0]].path}).length;if(nf)a.push(nf+' خطوط');
   var nb=Object.keys(p.badges||{}).filter(function(k){return p.badges[k]}).length;if(nb)a.push(nb+' شارات');
   if(p.tone&&(p.tone.voice||p.tone.rules))a.push('نبرة');
+  if(p.files&&p.files.length)a.push(p.files.length+' ملفات');
   return a.join(' · ')||'لم تُضبط الهوية بعد';
 }
 function clPaintList(){
   var g=$('#clGrid');if(!g)return;
-  g.innerHTML=CLI.list.length?CLI.list.map(function(c){
-    return '<button type="button" class="ccard'+(c.active?'':' off')+'" data-open="'+esc(c.id)+'"><span class="cdots big">'+dotsOf(c)+'</span><b>'+esc(c.name)+'</b><small>'+esc(clSummary(c))+'</small>'+(c.active?'':'<span class="pill offb">موقوف</span>')+'</button>';
+  var L=CLI.list.slice().sort(function(a,b){return (b.profile&&b.profile.house?1:0)-(a.profile&&a.profile.house?1:0)});
+  g.innerHTML=L.length?L.map(function(c){
+    var hs=c.profile&&c.profile.house;
+    return '<button type="button" class="ccard'+(c.active?'':' off')+(hs?' house':'')+'" data-open="'+esc(c.id)+'"><span class="cdots big">'+dotsOf(c)+'</span><b>'+esc(c.name)+'</b><small>'+esc(clSummary(c))+'</small>'+(hs?'<span class="pill adm">الهوية الأساسية</span>':'')+(c.active?'':'<span class="pill offb">موقوف</span>')+'</button>';
   }).join(''):'<p class="empty">لا يوجد عملاء بعد. اضغط «عميل جديد» وأضف الأول.</p>';
   $('#clSub').textContent=CLI.list.length?CLI.list.length+' عميل. افتح أي عميل لضبط هويته.':'كل عميل له هوية مستقلة: ألوان وخطوط وشعار ونبرة كتابة.';
 }
@@ -2812,10 +2832,10 @@ function edHtml(){
       +'<div class="row">'+upBtn('font:'+r[0],f.path?'استبدال':'رفع خط','.woff,.woff2,.ttf,.otf')+(f.path?'<button type="button" class="x" data-rm="font:'+r[0]+'">إزالة</button>':'')+'</div></div>';
   }).join('');
   var lg=p.logo||{};
-  var marks='<div class="field"><span class="lab">الشعار الذي يظهر في التصميم</span><div class="seg full"><label><input type="radio" name="edLogo" data-k="logo.mode" value="brand"'+(lm==='brand'?' checked':'')+'><span>شعارات الاتحاد</span></label><label><input type="radio" name="edLogo" data-k="logo.mode" value="client"'+(lm==='client'?' checked':'')+'><span>شعار العميل</span></label></div></div>'
+  var marks='<div class="field"><span class="lab">الشعار الذي يظهر في التصميم</span><div class="seg full"><label><input type="radio" name="edLogo" data-k="logo.mode" value="brand"'+(lm==='brand'?' checked':'')+'><span>'+(ED.house?'الشعارات الجاهزة':'شعارات الاتحاد')+'</span></label><label><input type="radio" name="edLogo" data-k="logo.mode" value="client"'+(lm==='client'?' checked':'')+'><span>'+(ED.house?'شعار أرفعه أنا':'شعار العميل')+'</span></label></div></div>'
     +'<div class="two">'+[['light','للخلفية الفاتحة'],['dark','للخلفية الداكنة']].map(function(k){return '<div class="rowf mk"><b>شعار '+k[1]+'</b>'+prevImg(lg[k[0]])+'<div class="row">'+upBtn('logo:'+k[0],lg[k[0]]?'استبدال':'رفع','image/png,image/jpeg,image/webp')+(lg[k[0]]?'<button type="button" class="x" data-rm="logo:'+k[0]+'">إزالة</button>':'')+'</div></div>'}).join('')+'</div>'
     +'<p class="hint">يُفضّل PNG بخلفية شفافة. شعار الخلفية الداكنة غالباً أبيض أو فاتح. لو رفعت واحداً فقط يُستخدم في الحالتين.</p>'
-    +'<span class="lab">شارات الأقسام (تظهر في الركن حسب القالب)</span><div class="bgrid">'+SECS.filter(function(s){return s[0]!=='news'}).map(function(s){var b=(p.badges||{})[s[0]];return '<div class="rowf mk"><b>'+s[1]+'</b>'+prevImg(b)+'<div class="row">'+upBtn('badge:'+s[0],b?'استبدال':'رفع','image/png,image/jpeg,image/webp')+(b?'<button type="button" class="x" data-rm="badge:'+s[0]+'">إزالة</button>':'')+'</div></div>'}).join('')+'</div>';
+    +'<span class="lab">شارات الأقسام (تظهر في الركن حسب القالب)</span>'+(ED.house?'<p class="hint">الأقسام اللي ليها شارة جاهزة في النظام تستخدمها تلقائياً. ارفع شارة هنا للقسم الناقص وتظهر في تصاميمه تلقائياً.</p>':'')+'<div class="bgrid">'+SECS.filter(function(s){return s[0]!=='news'}).map(function(s){var b=(p.badges||{})[s[0]];return '<div class="rowf mk"><b>'+s[1]+'</b>'+prevImg(b)+'<div class="row">'+upBtn('badge:'+s[0],b?'استبدال':'رفع','image/png,image/jpeg,image/webp')+(b?'<button type="button" class="x" data-rm="badge:'+s[0]+'">إزالة</button>':'')+'</div></div>'}).join('')+'</div>';
   var photos='<div class="field"><div class="rl"><label for="edShade">قوة التظليل على الصور</label><output id="edShadeV">'+ph.shade+'</output></div><input type="range" id="edShade" min="0" max="100" step="5" value="'+ph.shade+'" data-k="photo.shade" data-num="1"><p class="hint">50 هي القيمة المعتادة. ارفعها لو الصور فاتحة والنص لا يظهر جيداً.</p></div>'
     +'<div class="field"><span class="lab">شكل صورة الشخص في الشريحة الأخيرة</span><div class="seg full"><label><input type="radio" name="edShape" data-k="photo.shape" value="circle"'+(ph.shape==='circle'?' checked':'')+'><span>دائرة</span></label><label><input type="radio" name="edShape" data-k="photo.shape" value="rect"'+(ph.shape==='rect'?' checked':'')+'><span>مستطيل</span></label></div></div>'
     +'<div class="field"><label for="edGrad">تدرج غلاف الكاروسيل</label><select id="edGrad" data-k="photo.grad"><option value="soft"'+(ph.grad==='soft'?' selected':'')+'>خفيف (يبدأ أدنى الصورة)</option><option value="standard"'+(ph.grad==='standard'?' selected':'')+'>معتاد</option><option value="strong"'+(ph.grad==='strong'?' selected':'')+'>قوي (يغطي مساحة أكبر)</option></select></div>';
@@ -2823,7 +2843,12 @@ function edHtml(){
     +'<div class="field"><label for="edVoice">نبرة الكتابة</label><textarea id="edVoice" data-k="tone.voice" maxlength="800" rows="4" placeholder="مثال: رسمية وهادئة، جمل قصيرة، بدون مبالغة، نخاطب القارئ بصيغة الغائب.">'+esc(tn.voice||'')+'</textarea></div>'
     +'<div class="field"><label for="edRules">تعليمات إضافية</label><textarea id="edRules" data-k="tone.rules" maxlength="700" rows="4" placeholder="مثال: نكتب «الإمارات» لا «دولة الإمارات العربية المتحدة». لا نستخدم علامات التعجب. العناوين لا تزيد عن أربع كلمات.">'+esc(tn.rules||'')+'</textarea></div>'
     +'<div class="field"><label for="edTl">لغة الكتابة</label><select id="edTl" data-k="tone.lang"><option value="">تلقائي حسب النص</option><option value="ar"'+(tn.lang==='ar'?' selected':'')+'>العربية دائماً</option><option value="en"'+(tn.lang==='en'?' selected':'')+'>الإنجليزية دائماً</option></select></div>';
-  return ac('col','الألوان',colors)+ac('fnt','الخطوط',fonts)+ac('mrk','الشعار والشارات',marks)+ac('pho','معالجة الصور',photos)+ac('ton','النبرة واللغة',tone);
+  var fl=p.files||[];
+  var files='<p class="hint">ملفات مرجعية تبقى محفوظة مع الهوية (دليل الهوية، PDF، مستندات، صور). الحد 10 ميجابايت للملف.</p>'
+    +fl.map(function(f,i){return '<div class="rowf frow"><div class="ft"><b>'+esc(f.name||'ملف')+'</b><small>'+(f.size?Math.max(1,Math.round(f.size/1024))+' ك.ب':'')+'</small></div><div class="row"><button type="button" class="tool ghost" data-dlfile="'+i+'">تنزيل</button><button type="button" class="x" data-rmfile="'+i+'">إزالة</button></div></div>'}).join('')
+    +'<div class="row">'+upBtn('file:add','رفع ملف','.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg,.webp,.svg,.zip,.idml,.ai,.psd')+'</div>'
+    +'<div class="field"><label for="edNotes">ملاحظات داخلية</label><textarea id="edNotes" data-k="notes" maxlength="1500" rows="4" placeholder="أي ملاحظات للفريق عن هذه الهوية. لا تُرسل إلى النظام الذكي.">'+esc(p.notes||'')+'</textarea></div>';
+  return ac('col','الألوان',colors)+ac('fnt','الخطوط',fonts)+ac('mrk','الشعار والشارات',marks)+ac('pho','معالجة الصور',photos)+ac('ton','النبرة واللغة',tone)+ac('fil','ملفات وملاحظات',files);
 }
 function edPaint(){
   var a=$('#clAcc');a.innerHTML=edHtml();
@@ -2833,14 +2858,26 @@ function edMsg(m,ok){var e=$('#edMsg');e.textContent=m||'';e.className='dlg-msg'
 function edShow(on){$('#clList').hidden=on;$('#clEd').hidden=!on;$('#viewClients').scrollTop=0}
 function edOpen(id){
   var c=cliFind(id);if(!c)return;
-  ED={id:c.id,name:c.name,active:c.active,profile:JSON.parse(JSON.stringify(c.profile||{})),trash:[],dirty:false,open:'col',sure:''};
-  $('#edName').value=ED.name;$('#edActive').checked=ED.active;edMsg('');edBtns();edPaint();edShow(true);
+  ED={id:c.id,name:c.name,active:c.active,profile:JSON.parse(JSON.stringify(c.profile||{})),trash:[],dirty:false,open:'col',sure:'',house:!!(c.profile&&c.profile.house)};
+  $('#edName').value=ED.name;$('#edActive').checked=ED.house?true:ED.active;$('#edActive').disabled=ED.house;$('#edDel').hidden=ED.house;edMsg('');edBtns();edPaint();edShow(true);
 }
 function edBtns(){
   $('#edBack').textContent=ED&&ED.dirty&&ED.sure==='back'?'تجاهل التعديلات والرجوع':'← كل العملاء';
   $('#edDel').textContent=ED&&ED.sure==='del'?'تأكيد حذف العميل':'حذف العميل';
 }
+async function edUploadFile(file){
+  var ext=((file.name.match(/\.([a-z0-9]+)$/i)||[])[1]||'').toLowerCase();
+  if(!/^(pdf|docx?|pptx?|xlsx?|csv|txt|md|png|jpe?g|webp|svg|zip|idml|ai|psd)$/.test(ext)){edMsg('نوع الملف غير مدعوم.');return}
+  if(file.size>10*1048576){edMsg('الملف كبير. الحد 10 ميجابايت.');return}
+  edMsg('جارٍ الرفع…',true);
+  var path=ED.id+'/file-'+Date.now()+'.'+ext;
+  var r=await sb.storage.from('clients').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+  if(r.error){edMsg('تعذّر الرفع. أعد المحاولة.');return}
+  (ED.profile.files=ED.profile.files||[]).push({path:path,name:file.name.slice(0,80),size:file.size});ED.dirty=true;
+  edMsg('تم الرفع. اضغط «حفظ» لتثبيت التغييرات.',true);edPaint();
+}
 async function edUpload(kind,file){
+  if(kind==='file:add')return edUploadFile(file);
   var isFont=kind.indexOf('font:')===0,ext=((file.name.match(/\.([a-z0-9]+)$/i)||[])[1]||'').toLowerCase();
   if(isFont?!/^(woff2?|ttf|otf)$/.test(ext):!/^(png|jpe?g|webp)$/.test(ext)){edMsg(isFont?'الخط لازم يكون WOFF أو TTF أو OTF.':'الصورة لازم تكون PNG أو JPG أو WebP.');return}
   if(file.size>(isFont?6:3)*1048576){edMsg('الملف كبير. الحد '+(isFont?'6':'3')+' ميجابايت.');return}
@@ -2888,6 +2925,7 @@ async function edSave(){
   return true;
 }
 async function edDelete(){
+  if(ED.house)return;
   var id=ED.id,name=ED.name;
   try{
     var l=await sb.storage.from('clients').list(id);
@@ -2939,6 +2977,8 @@ function clInit(){
     var b=e.target.closest('button');if(!b)return;
     if(b.dataset.clr){eset(b.dataset.clr,'');var s=$('[data-st="'+b.dataset.clr+'"]',a);if(s)s.textContent='تلقائي'}
     else if(b.dataset.rm)edRemove(b.dataset.rm);
+    else if(b.dataset.rmfile!=null){var f=(ED.profile.files||[])[+b.dataset.rmfile];if(f){ED.trash.push(f.path);ED.profile.files.splice(+b.dataset.rmfile,1);if(!ED.profile.files.length)delete ED.profile.files;ED.dirty=true;edPaint()}}
+    else if(b.dataset.dlfile!=null){var g=(ED.profile.files||[])[+b.dataset.dlfile];if(g)cliBlob(g.path).then(function(bl){var u=URL.createObjectURL(bl),l=document.createElement('a');l.href=u;l.download=g.name||'file';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)},function(){edMsg('تعذّر تنزيل الملف.')})}
   });
 }
 
@@ -3131,6 +3171,7 @@ function czLogo(){
   var lg=OV['eco_dark'],bd=CZ.sec==='news'?null:OV[CZ.sec+'_dark'];
   if(lg)cx.drawImage(lg,90,60,400,250,46,34,192,120);
   if(bd)cx.drawImage(bd,1920,60,260,250,W-46-125,34,125,120);
+  else cliBadgeFallback(cx,true,CZ.sec);
 }
 function czLogoBig(cxm,y,scale){
   if(CZ.sec==='none')return 0;
@@ -4172,6 +4213,7 @@ function chMarks(){
   var th=dark?'_dark':'_light',lg=OV['eco'+th],bd=sec==='news'?null:OV[sec+th];
   if(lg)c.drawImage(lg,90,60,400,250,46,34,192,120);
   if(bd)c.drawImage(bd,1920,60,260,250,W-46-125,34,125,120);
+  else cliBadgeFallback(c,dark,sec);
   HK.box(46,34,238,154);HK.tag();
 }
 
