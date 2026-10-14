@@ -864,6 +864,11 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .nk svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .nk b{font-size:15px}.nk span{font-size:11.5px;color:var(--muted)}
 @media(max-width:520px){.newkinds{grid-template-columns:1fr}.nk{flex-direction:row;justify-content:flex-start;padding:12px 14px}.newbig{padding:34px 36px}}
+
+/* carousel look: paragraph text box */
+.inrow.ta{align-items:flex-start}
+.inrow.ta textarea{flex:1;min-height:104px;line-height:1.7;resize:vertical}
+.inrow.ta .tool{height:44px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1114,7 +1119,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
             <option value="sports">رياضي</option>
             <option value="world">عالمي</option>
             <option value="ent">ترفيه</option>
-            <option value="invite">دعوة</option>
+            <option value="invite">دعوة</option><option value="event">شعار حدث / حملة</option>
             <option value="none">بدون شعار</option>
           </select></div>
 <div class="field"><span class="lab">النمط</span><div class="seg full" id="segTheme"><label><input type="radio" name="theme" value="light"><span>فاتح</span></label><label><input type="radio" name="theme" value="dark"><span>داكن</span></label></div></div>
@@ -1164,6 +1169,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           <select id="czLang"><option value="auto">تلقائي حسب النص</option><option value="ar">العربية</option><option value="en">English</option></select></div>
         <div class="cta"><button class="primary block" id="czGen" type="button">حوّل النص إلى شرائح</button><button id="czStop" type="button" class="tool" hidden>إيقاف</button></div>
         <div class="tools two-t"><button type="button" id="czPfBtn" class="tool">مراجعة لغوية</button><button id="czDemo" type="button" class="tool">مثال جاهز</button></div>
+        <div class="tools"><button type="button" id="czBrics" class="tool">مثال بستايل «سماء» (قمة بريكس)</button></div>
         <div id="czStatus" role="status" aria-live="polite"></div>
         <div id="czPhNotes" class="phnotes" hidden></div>
       </div>
@@ -1206,6 +1212,8 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           <section class="ac" data-ac="tpl">
             <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">القالب والأرقام</span><span class="ac-s" data-csum="tpl"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
             <div class="ac-w"><div class="ac-b">
+<div class="field"><label for="czLook">شكل الشرائح</label>
+  <select id="czLook"><option value="classic">كلاسيكي (صورة في الأعلى)</option><option value="sky">سماء (صورة تتلاشى إلى الأبيض)</option></select></div>
 <div class="field"><label for="czSecSel">القالب</label>
   <select id="czSecSel">
     <option value="news">قالب خبري</option>
@@ -1216,6 +1224,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
     <option value="world">عالمي</option>
     <option value="ent">ترفيه</option>
     <option value="invite">دعوة</option>
+    <option value="event">شعار حدث / حملة</option>
     <option value="none">بدون شعار</option>
   </select></div>
 <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span>
@@ -2807,7 +2816,7 @@ function ttInit(){
 /* ---------- client identity: profiles, switching, editor, saved colour sets ---------- */
 var CLI={list:[],cur:null,base:null,fam:{},logoMode:'brand',logo:{},badge:{},photo:{shade:50,shape:'circle',grad:'standard'},blobs:{},imgs:{},faces:{},tok:0};
 var CLI_PH0={shade:50,shape:'circle',grad:'standard'};
-var SECS=[['news','قالب خبري'],['statement','قالب تصريح'],['eco','اقتصادي'],['dar','علوم الدار'],['sports','رياضي'],['world','عالمي'],['ent','ترفيه'],['invite','دعوة']];
+var SECS=[['news','قالب خبري'],['statement','قالب تصريح'],['eco','اقتصادي'],['dar','علوم الدار'],['sports','رياضي'],['world','عالمي'],['ent','ترفيه'],['invite','دعوة'],['event','شعار حدث / حملة']];
 var CL_ROLES=[['head','خط العناوين','العنوان والكلمات المميزة'],['body','خط النص','الفقرات والتفاصيل'],['num','خط الأرقام','الأرقام الكبيرة']];
 var PREFS={tour:0,last:null};
 
@@ -2834,7 +2843,7 @@ function cliContain(c,im,x,y,w,h,align){
 function cliMarks(c,dark,sec){
   if(CLI.logoMode!=='client')return false;
   var lg=cliLogoImg(dark);if(lg)cliContain(c,lg,46,34,192,120,'left');
-  var b=sec!=='news'&&CLI.badge[sec];if(b)cliContain(c,b,W-46-125,34,125,120,'right');
+  var b=sec!=='news'&&CLI.badge[sec],bw=cliBadgeW(sec);if(b)cliContain(c,b,W-46-bw,34,bw,120,'right');
   return true;
 }
 function drawOverlay(){
@@ -2846,8 +2855,10 @@ function drawOverlay(){
 function cliBadgeFallback(c,dark,sec){
   if(!sec||sec==='none'||sec==='news'||CLI.logoMode==='client')return;
   var b=CLI.badge[sec];if(!b||OV[sec+(dark?'_dark':'_light')])return;
-  cliContain(c,b,W-46-125,34,125,120,'right');
+  var bw=cliBadgeW(sec);cliContain(c,b,W-46-bw,34,bw,120,'right');
 }
+/* the corner badge is square; an event / campaign mark is wide */
+function cliBadgeW(sec){return sec==='event'?440:125}
 function cliHouse(){return CLI.list.filter(function(c){return c.profile&&c.profile.house})[0]}
 /* the server loads the client's tone itself from this id */
 function cliPayload(name,p){
@@ -3249,7 +3260,7 @@ var CPAL=[
   {n:'بنفسجي ونعناع',main:'#3E2A8C',accent:'#17B38C'},
   {n:'غابة وكورال',main:'#1B5E3B',accent:'#EE6A4D'}
 ];
-var CZ={lang:'ar',main:CPAL[0].main,accent:CPAL[0].accent,sec:'news',labelPos:'above',titleFont:'',titleScale:100,bgMode:'auto',bgC1:'#0F5C4D',bgC2:'#0A3F37',bgAngle:135,bgPlain:false,cur:0,slides:[]};
+var CZ={lang:'ar',main:CPAL[0].main,accent:CPAL[0].accent,sec:'news',labelPos:'above',titleFont:'',titleScale:100,bgMode:'auto',bgC1:'#0F5C4D',bgC2:'#0A3F37',bgAngle:135,bgPlain:false,look:'classic',cur:0,slides:[]};
 var CZ0=JSON.parse(JSON.stringify(CZ));
 var czcv=null,cx=null,CZ_S=2,czInited=false,czCtl=null,czPhotoFor=-1,HC=mkHit(),czCurS=null;
 var CZ_DEMO={
@@ -3287,14 +3298,18 @@ function czVal(v){
 
 /* ----- rich text (words wrapped in ** get the highlight style) ----- */
 function czTok(t){
-  var out=[];String(t==null?'':t).split('**').forEach(function(p,i){p.split(/\s+/).filter(Boolean).forEach(function(w){out.push({w:fixPct(w),b:i%2===1})})});return out;
+  var out=[],prev='';String(t==null?'':t).split('**').forEach(function(p,i){
+    /* a highlight that touches the word before it (و**الخدمات**) stays glued to it */
+    p.split(/\s+/).filter(Boolean).forEach(function(w,j){var tk={w:fixPct(w),b:i%2===1};if(j===0&&i>0&&prev&&!/\s$/.test(prev)&&!/^\s/.test(p))tk.g=true;out.push(tk)});
+    prev=p;
+  });return out;
 }
 function czWrap(text,fontOf,maxW){
   var R=czR(),toks=czTok(text);cx.direction=R?'rtl':'ltr';
   cx.font=fontOf(false);var sp=cx.measureText(' ').width,lines=[],cur=[],cw=0;
   toks.forEach(function(t){
     cx.font=fontOf(t.b);t.mw=cx.measureText(t.w).width;
-    if(cur.length&&cw+sp+t.mw>maxW){lines.push({t:cur,w:cw});cur=[t];cw=t.mw}else{cw+=(cur.length?sp:0)+t.mw;cur.push(t)}
+    var gp=t.g?0:sp;if(cur.length&&cw+gp+t.mw>maxW){lines.push({t:cur,w:cw});cur=[t];cw=t.mw}else{cw+=(cur.length?gp:0)+t.mw;cur.push(t)}
   });
   if(cur.length)lines.push({t:cur,w:cw});
   lines.sp=sp;return lines;
@@ -3313,9 +3328,9 @@ function czDraw(lines,xs,yb,lh,fontOf,colOf,align){
   var R=czR(),sp=lines.sp;if(!sp){cx.font=fontOf(false);cx.direction=R?'rtl':'ltr';sp=cx.measureText(' ').width}
   lines.forEach(function(L,i){
     var x=align==='center'?(R?xs+L.w/2:xs-L.w/2):xs;
-    L.t.forEach(function(t){
+    L.t.forEach(function(t,ti){
       cx.font=fontOf(t.b);cx.fillStyle=colOf(t.b);cx.direction=R?'rtl':'ltr';cx.textAlign=R?'right':'left';cx.textBaseline='alphabetic';
-      cx.fillText(t.w,x,yb+i*lh);if(HC.t){var fz=+((/(\d+(?:\.\d+)?)px/.exec(cx.font)||[])[1]||40);HC.box(R?x-t.mw:x,yb+i*lh-fz*.88,R?x:x+t.mw,yb+i*lh+fz*.32)}x+=(R?-1:1)*(t.mw+sp);
+      cx.fillText(t.w,x,yb+i*lh);if(HC.t){var fz=+((/(\d+(?:\.\d+)?)px/.exec(cx.font)||[])[1]||40);HC.box(R?x-t.mw:x,yb+i*lh-fz*.88,R?x:x+t.mw,yb+i*lh+fz*.32)}var nx=L.t[ti+1];x+=(R?-1:1)*(t.mw+(nx&&nx.g?0:sp));
     });
   });
 }
@@ -3583,7 +3598,8 @@ function czDrawSlide(i){
   var s=CZ.slides[i];if(!s)return;
   cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,czcv.width,czcv.height);cx.setTransform(CZ_S,0,0,CZ_S,0,0);cx.lineCap='butt';cx.lineJoin='miter';
   var n=CZ.slides.length;czCurS=s;HC.on=(i===CZ.cur);if(HC.on){HC.reset();HC.tag('bg','','الخلفية والألوان');HC.box(0,0,W,H,-5);HC.tag('logo','','الشعار والقسم');HC.box(0,0,W,170,-3);HC.tag()}
-  if(s.type==='cover')czCover(s,i,n);
+  if(skyOn())skDraw(s,i,n);
+  else if(s.type==='cover')czCover(s,i,n);
   else if(s.type==='closing')czClosing(s,i,n);
   else{var num=0;for(var k=0;k<=i;k++)if(CZ.slides[k].type==='content')num++;czContent(s,i,n,num)}
   fxDraw('cz',cx,s);
@@ -3604,29 +3620,34 @@ function czFit(){
 function czBlank(type){
   if(type==='cover')return{type:'cover',kicker:'',title:'',text:'',cta:'اسحب للمزيد',photo:null,pa:'center'};
   if(type==='closing')return{type:'closing',title:'',text:'',cta:'',handle:'',photo:null,pa:'center'};
-  return{type:'content',title:'',subtitle:'',text:'',stats:[],points:[],pills:'',photo:null,pa:'center'};
+  return{type:'content',title:'',subtitle:'',text:'',foot:'',tz:'',lay:'',stats:[],points:[],pills:'',photo:null,pa:'center'};
 }
 function czFix(t,max){t=clean(t,max);if((t.match(/\*\*/g)||[]).length%2)t=t.replace(/\*\*(?!.*\*\*)/,'');return t}
+/* keeps the line breaks (paragraphs) of a text box */
+function czFixM(t,max){return String(t==null?'':t).split(/\r?\n/).map(function(l){return czFix(l,max)}).filter(function(l){return l!==''}).join('\n').slice(0,max*3)}
 function czLoad(d,keepPhotos){
   var old=CZ.slides,cover=Object.assign(czBlank('cover'),{kicker:clean(d.cover&&d.cover.kicker,40),title:czFix(d.cover&&d.cover.title,70),text:czFix(d.cover&&d.cover.text,140),cta:clean(d.cover&&d.cover.cta,20)||'اسحب للمزيد'});
   var arr=[cover];
   (d.slides||[]).slice(0,10).forEach(function(s){
-    var c=czBlank('content');c.title=czFix(s.title,60);c.subtitle=clean(s.subtitle,90);c.text=czFix(s.text,260);
-    c.stats=(s.stats||[]).slice(0,4).map(function(t){return{value:clean(t.value,12),label:clean(t.label,40),text:clean(t.text,90)}});
+    var c=czBlank('content');c.title=czFix(s.title,60);c.subtitle=clean(s.subtitle,90);c.text=skyOn()||s.look==='sky'||d.look==='sky'?czFixM(s.text,260):czFix(s.text,260);c.foot=czFix(s.foot,90);c.tz=s.tz==='s'||s.tz==='l'?s.tz:'';c.lay=/^(single|duo|trio|hero3|flags)$/.test(s.lay)?s.lay:'';
+    c.stats=(s.stats||[]).slice(0,4).map(function(t){return{value:clean(t.value,12),label:clean(t.label,60),text:clean(t.text,90),flag:clean(t.flag,30)}});
     c.points=(s.points||[]).slice(0,4).map(function(t){return{title:clean(t.title,50),text:clean(t.text,110)}});
     if(c.stats.length)c.points=[];
     c.pills=Array.isArray(s.pills)?s.pills.slice(0,3).map(function(x){return clean(x,24)}).join('، '):clean(s.pills,60);
     arr.push(c);
   });
   var cl=d.closing||{},closing=Object.assign(czBlank('closing'),{title:czFix(cl.title,60),text:czFix(cl.text,140),cta:clean(cl.cta,30),handle:clean(cl.handle,40)});
-  arr.push(closing);
-  if(keepPhotos&&old.length){arr[0].photo=old[0].photo;arr[0].pa=old[0].pa;var ol=old[old.length-1];if(ol.type==='closing'){closing.photo=ol.photo;closing.pa=ol.pa}}
+  if(d.closing!==false)arr.push(closing);
+  if(keepPhotos&&old.length){arr[0].photo=old[0].photo;arr[0].pa=old[0].pa;var ol=old[old.length-1];if(ol.type==='closing'&&d.closing!==false){closing.photo=ol.photo;closing.pa=ol.pa}}
   CZ.slides=arr;CZ.cur=0;
+  if(d.look==='sky'||d.look==='classic')CZ.look=d.look;
   if(d.lang==='en'||d.lang==='ar'){var sel=$('#czLang').value;CZ.lang=sel==='auto'?d.lang:sel}
 }
 
 /* ----- editor ----- */
 function czIn(path,val,ph,color){return '<div class="inrow"><input type="text" dir="auto" data-cz="'+path+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+(color?'<button type="button" class="tool hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
+function czTa(path,val,ph,color){return '<div class="inrow ta"><textarea dir="auto" rows="5" data-cz="'+path+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+esc(val)+'</textarea>'+(color?'<button type="button" class="tool hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
+function czSel(path,val,opts){return '<select data-czsel="'+path+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+((val||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select>'}
 var CHV='<svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 function czAc(key,title,sum,body,open){return '<section class="ac'+(open?' open':'')+'" data-ac="'+key+'"><button type="button" class="ac-h" aria-expanded="'+(open?'true':'false')+'"><span class="ac-t">'+title+'</span><span class="ac-s">'+esc(sum||'')+'</span>'+CHV+'</button><div class="ac-w"><div class="ac-b">'+body+'</div></div></section>'}
 function czBuildEditor(){
@@ -3637,12 +3658,16 @@ function czBuildEditor(){
   var txt,sum=(s.title||'').replace(/\*\*/g,'');
   if(s.type==='cover')txt=f('السترابة',czIn(pre+'kicker',s.kicker,'السترابة'))+f('العنوان الكبير',czIn(pre+'title',s.title,'العنوان الكبير',1))+f('سطر الوصف',czIn(pre+'text',s.text,'وصف قصير',1))+f('نص زر السحب',czIn(pre+'cta',s.cta,'اسحب للمزيد'));
   else if(s.type==='closing')txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('النص',czIn(pre+'text',s.text,'جملة قصيرة',1))+'<div class="two">'+f('نص الزر',czIn(pre+'cta',s.cta,'تابعونا'))+f('الحساب (اختياري)',czIn(pre+'handle',s.handle,'@aletihad'))+'</div>';
+  else if(skyOn())txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('سطر تحت العنوان (اختياري)',czIn(pre+'subtitle',s.subtitle,'جملة قصيرة'))+f('حجم العنوان',czSel('tz',s.tz,[['','عادي'],['s','أصغر'],['l','أكبر']]))+f('نص الشريحة (كل سطر فقرة)',czTa(pre+'text',s.text,'اكتب الفقرات، كل سطر في فقرة',1))+'<p class="hint">في أول السطر: <b>#</b> عنوان أزرق كبير، <b>+</b> نص غامق، <b>-</b> نص صغير خفيف، و<b>---</b> فاصل ذهبي. و«تلوين» يظهر الكلمات المحددة باللون الأزرق.</p>'+f('سطر ختامي أسفل الأرقام (اختياري)',czIn(pre+'foot',s.foot,'مثال: والأرقام تشرح…',1));
   else txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('العنوان الثانوي',czIn(pre+'subtitle',s.subtitle,'سطر رمادي قصير'))+f('نص داخل المربع الملون',czIn(pre+'text',s.text,'جملة أو جملتان',1))+f('وسوم أسفل الشريحة (افصل بفاصلة)',czIn(pre+'pills',s.pills,'مثال: التعليم، الإمارات'));
   txt+=ttHtml('cz');
   secs.push(['txt','النصوص',sum,txt]);
   if(s.type==='content'){
     var h='';
-    s.stats.forEach(function(t,j){h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div></div>'});
+    var sk=skyOn();
+    if(sk&&s.stats.length>1)h+='<div class="field"><label>تخطيط الأرقام</label>'+czSel('lay',s.lay,[['','تلقائي'],['single','رقم واحد كبير'],['duo','رقمان جنباً إلى جنب'],['trio','ثلاثة أرقام'],['hero3','رقم كبير وثلاثة تحته'],['flags','شبكة بالأعلام']])+'</div>';
+    s.stats.forEach(function(t,j){if(sk){h+='<div class="rowf item"><div class="field">'+czIn(pre+'stats.'+j+'.label',t.label,'قبل الرقم (مثل: نحو)')+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+czIn(pre+'stats.'+j+'.text',t.text,'بعد الرقم (مثل: مليار دولار)')+czIn(pre+'stats.'+j+'.flag',t.flag||'','علم دولة (اختياري): اكتب اسمها')+'</div><button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button></div>';return}
+      h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div></div>'});
     h+='<button type="button" class="tool add" data-cadd="stats">+ إضافة رقم</button>';
     secs.push(['num','الأرقام',s.stats.length?s.stats.length+' أرقام':'',h]);
     h='';
@@ -3662,8 +3687,8 @@ function czSelect(i){epClose();CZ.cur=Math.max(0,Math.min(CZ.slides.length-1,i))
 function czNav(){
   $('#czPos').textContent=(CZ.cur+1)+' / '+CZ.slides.length;
   $('#czPrev').disabled=CZ.cur<=0;$('#czNext').disabled=CZ.cur>=CZ.slides.length-1;
-  var t=CZ.slides[CZ.cur];$('#czDel').disabled=CZ.slides.length<=2||t.type!=='content';$('#czDup').disabled=t.type!=='content';
-  $('#czL').disabled=t.type!=='content'||CZ.slides[CZ.cur-1].type!=='content';$('#czRt').disabled=t.type!=='content'||CZ.slides[CZ.cur+1].type!=='content';
+  var t=CZ.slides[CZ.cur];$('#czDel').disabled=CZ.slides.length<=2||(t.type!=='content'&&!(t.type==='closing'&&skyOn()));$('#czDup').disabled=t.type!=='content';
+  var pv=CZ.slides[CZ.cur-1],nx=CZ.slides[CZ.cur+1];$('#czL').disabled=t.type!=='content'||!pv||pv.type!=='content';$('#czRt').disabled=t.type!=='content'||!nx||nx.type!=='content';
   $$('#czThumbs .th').forEach(function(b,k){b.setAttribute('aria-pressed',String(k===CZ.cur))});
 }
 function czBuildThumbs(){
@@ -3687,7 +3712,7 @@ function czSyncStyle(){
   czBgSet();
   $$('#czPal .chip').forEach(function(b,k){var P=CPAL[k];b.setAttribute('aria-pressed',String(P&&P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()))});
   $('#czMain').value=CZ.main.toLowerCase();$('#czAcc').value=CZ.accent.toLowerCase();
-  $('#czSecSel').value=CZ.sec;
+  $('#czSecSel').value=CZ.sec;var lk=$('#czLook');if(lk)lk.value=CZ.look||'classic';
   $$('input[name="czlp"]').forEach(function(r){r.checked=r.value===CZ.labelPos});
   var pn=CPAL.filter(function(P){return P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()})[0],se=$('#czSecSel');
   var a=$('[data-csum="pal"]'),b=$('[data-csum="tpl"]');if(a)a.textContent=pn?pn.n:'ألوان مخصصة';if(b&&se.selectedOptions[0])b.textContent=se.selectedOptions[0].textContent;
@@ -3759,6 +3784,8 @@ function czInit(){
   $('#czMain').addEventListener('input',function(){CZ.main=this.value.toUpperCase();czSyncStyle();czRenderAll()});
   $('#czAcc').addEventListener('input',function(){CZ.accent=this.value.toUpperCase();czSyncStyle();czRenderAll()});
   $('#czSecSel').addEventListener('change',function(){CZ.sec=this.value;czSyncStyle();czRenderAll()});
+  $('#czLook').addEventListener('change',function(){czSetLook(this.value)});
+  $('#czBrics').addEventListener('click',czBricks);
   $$('input[name="czbg"]').forEach(function(r){r.addEventListener('change',function(){czBgMode(r.value)})});
   $('#czBg1').addEventListener('input',function(){CZ.bgC1=this.value.toUpperCase();czBgSet();czRenderAll()});
   $('#czBg2').addEventListener('input',function(){CZ.bgC2=this.value.toUpperCase();czBgSet();czRenderAll()});
@@ -3776,7 +3803,7 @@ function czInit(){
     CZ.slides.splice(at+1,0,czBlank('content'));czBuildThumbs();czRenderAll();czSelect(at+1);
   });
   $('#czDup').addEventListener('click',function(){var c=JSON.parse(JSON.stringify(Object.assign({},CZ.slides[CZ.cur],{photo:null})));c.photo=CZ.slides[CZ.cur].photo;(CZ.slides[CZ.cur].fx||[]).forEach(function(e,k){if(c.fx&&c.fx[k]&&e.pimg)c.fx[k].pimg=e.pimg});CZ.slides.splice(CZ.cur+1,0,c);czBuildThumbs();czRenderAll();czSelect(CZ.cur+1)});
-  $('#czDel').addEventListener('click',function(){if(CZ.slides[CZ.cur].type!=='content')return;CZ.slides.splice(CZ.cur,1);var k=Math.min(CZ.cur,CZ.slides.length-1);czBuildThumbs();czRenderAll();czSelect(k)});
+  $('#czDel').addEventListener('click',function(){var ty=CZ.slides[CZ.cur].type;if(ty!=='content'&&!(ty==='closing'&&skyOn()))return;CZ.slides.splice(CZ.cur,1);var k=Math.min(CZ.cur,CZ.slides.length-1);czBuildThumbs();czRenderAll();czSelect(k)});
   $('#czL').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k-1];a[k-1]=t;czBuildThumbs();czRenderAll();czSelect(k-1)});
   $('#czRt').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k+1];a[k+1]=t;czBuildThumbs();czRenderAll();czSelect(k+1)});
   $('#czDl1').addEventListener('click',czDownloadOne);$('#czDlAll').addEventListener('click',czDownloadAll);
@@ -3786,13 +3813,13 @@ function czInit(){
   ed.addEventListener('click',function(e){
     var t=e.target.closest('button');if(!t)return;var s=CZ.slides[CZ.cur];
     if(t.dataset.hl){
-      var inp=t.parentNode.querySelector('input'),a=inp.selectionStart,b=inp.selectionEnd,v=inp.value;
+      var inp=t.parentNode.querySelector('input,textarea'),a=inp.selectionStart,b=inp.selectionEnd,v=inp.value;
       if(a==null||a===b){czStatus('حدّد الكلمات داخل الحقل أولاً ثم اضغط «تلوين».',true);return}
       var sel=v.slice(a,b),sw=sel.replace(/^\s+|\s+$/g,'');
       var nv=/^\*\*.*\*\*$/.test(sw)?v.slice(0,a)+sw.slice(2,-2)+v.slice(b):v.slice(0,a)+'**'+sw+'**'+v.slice(b);
       inp.value=nv;czSet(inp.dataset.cz,nv);czSchedule();czStatus('');return;
     }
-    if(t.dataset.cadd){var k=t.dataset.cadd;if(k==='stats'&&s.stats.length<4){s.stats.push({value:'',label:'',text:''});s.points=[]}if(k==='points'&&s.points.length<4){s.points.push({title:'',text:''});s.stats=[]}czBuildEditor();czSchedule()}
+    if(t.dataset.cadd){var k=t.dataset.cadd;if(k==='stats'&&s.stats.length<4){s.stats.push({value:'',label:'',text:'',flag:''});s.points=[]}if(k==='points'&&s.points.length<4){s.points.push({title:'',text:''});s.stats=[]}czBuildEditor();czSchedule()}
     else if(t.dataset.crm){var p=t.dataset.crm.split('.');s[p[0]].splice(+p[1],1);czBuildEditor();czSchedule()}
     else if(t.dataset.cphoto==='1'){czPhotoFor=CZ.cur;$('#czFile').click()}
     else if(t.dataset.cphoto==='0'){s.photo=null;czBuildEditor();czSchedule()}
@@ -3843,7 +3870,318 @@ function czBoot(){
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)modeSwitch(r.value)})});
 }
 czBoot();
-window.__cz={CZ:CZ,render:function(){czRenderAll()},select:czSelect,show:czShow,load:czLoad,DEMO:CZ_DEMO,zip:czZip};
+window.__cz={CZ:CZ,LIB:LIB,CLI:CLI,get SKI(){return SKI},rebuild:function(){libRebuild()},render:function(){czRenderAll()},select:czSelect,show:czShow,load:czLoad,DEMO:CZ_DEMO,zip:czZip};
+
+/* ---------- carousel look "sky": event / summit series ----------
+   a photo that fades to white at the top, blue titles, big numbers (optionally with flags),
+   statement slides with highlighted words, a header with the house logo and an event badge. */
+var SKY={main:'#2B4A9C',accent:'#D9A441',ink:'#3B3B3D',dark:'#26262A',dot:'#8E8E93',paper:'255,253,249'};
+function skyOn(){return CZ.look==='sky'}
+function skDeep(){return mixc(CZ.main,'#000000',.32)}
+function skFont(kind,sz,hi){return function(b){return czFont(b&&hi?hi:kind,sz)}}
+
+/* ----- flags (looked up by country name in the library; fetched once when missing) ----- */
+var SKI={},SKR=0;
+function skRedraw(){if(SKR)return;SKR=setTimeout(function(){SKR=0;try{czRenderAll()}catch(e){}},60)}
+function skFlag(name){
+  name=String(name||'').trim();if(!name)return null;
+  var a=libFind('flag',name);
+  if(!a){
+    if(countryCode(name)&&!SKI['q|'+name]){SKI['q|'+name]=1;libFetch('flag',name).then(skRedraw,function(){})}
+    return null;
+  }
+  var p=libPathFor(a,false),v=SKI[p];
+  if(v&&v!=='loading'&&v!=='fail')return v;
+  if(!v){SKI[p]='loading';libImg(a,false).then(function(im){SKI[p]=im;skRedraw()},function(){SKI[p]='fail'})}
+  return null;
+}
+
+/* ----- background, header, chevron ----- */
+function skSky(){
+  var g=cx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#FFFFFF');g.addColorStop(.45,'#FCF6EC');g.addColorStop(.78,'#F5E0BD');g.addColorStop(1,'#E9C48C');
+  cx.fillStyle=g;cx.fillRect(0,0,W,H+1);
+  var r=cx.createRadialGradient(W*.72,H*.8,0,W*.72,H*.8,560);r.addColorStop(0,'rgba(255,224,168,.55)');r.addColorStop(1,'rgba(255,224,168,0)');
+  cx.fillStyle=r;cx.fillRect(0,0,W,H+1);
+  cx.fillStyle='rgba(43,74,156,.07)';cx.fillRect(0,H*.88,W,H*.12+1);
+}
+function skBg(s,fadeEnd){
+  cx.fillStyle='#FFFFFF';cx.fillRect(0,0,W,H+1);
+  if(s.photo){var r=czCrop(s.photo,0,0,W,H,s.pa,s.pf,.5);cx.drawImage(s.photo,r.x,r.y,r.w,r.h)}else skSky();
+  HC.tag('photo','','الصورة');HC.box(0,0,W,H,-4);HC.tag();
+  var fe=Math.max(560,Math.min(1030,fadeEnd)),fs=Math.max(220,fe-480),q=fs/fe,g=cx.createLinearGradient(0,0,0,fe),P=SKY.paper;
+  g.addColorStop(0,'rgba('+P+',.98)');g.addColorStop(q,'rgba('+P+',.95)');g.addColorStop(q+(1-q)*.45,'rgba('+P+',.55)');g.addColorStop(1,'rgba('+P+',0)');
+  cx.fillStyle=g;cx.fillRect(0,0,W,fe+1);
+}
+function skHeader(){
+  if(CZ.sec==='none')return;
+  if(!cliMarks(cx,false,CZ.sec)){
+    var lg=OV['eco_light'],bd=CZ.sec==='news'?null:OV[CZ.sec+'_light'];
+    if(lg)cx.drawImage(lg,90,60,400,250,46,34,192,120);
+    if(bd)cx.drawImage(bd,1920,60,260,250,W-46-125,34,125,120);else cliBadgeFallback(cx,false,CZ.sec);
+  }
+  var b=CZ.sec==='event'&&CLI.badge&&CLI.badge.event;
+  if(b){
+    var k=Math.min(440/b.naturalWidth,120/b.naturalHeight),dw=b.naturalWidth*k,dh=b.naturalHeight*k,lx=W-46-dw+4,ly=94+dh/2+11;
+    cx.strokeStyle='#76767B';cx.lineWidth=1.4;cx.beginPath();cx.moveTo(lx+12,ly);cx.lineTo(W,ly);cx.stroke();
+    cx.fillStyle='#76767B';cx.beginPath();cx.moveTo(lx,ly);cx.lineTo(lx+17,ly-5.5);cx.lineTo(lx+17,ly+5.5);cx.closePath();cx.fill();
+  }
+}
+function skChev(photo){
+  cx.save();cx.lineWidth=7;cx.lineCap='round';cx.lineJoin='round';
+  if(photo){cx.strokeStyle='#FFFFFF';cx.shadowColor='rgba(0,0,0,.4)';cx.shadowBlur=7;cx.shadowOffsetY=1}else cx.strokeStyle=CZ.main;
+  for(var k=0;k<2;k++){var x=984+k*20;cx.beginPath();cx.moveTo(x,1262);cx.lineTo(x+22,1280.5);cx.lineTo(x,1299);cx.stroke()}
+  cx.restore();
+}
+function skGold(x1,x2,y,lw){cx.fillStyle=CZ.accent;cx.fillRect(x1,y-lw/2,x2-x1,lw)}
+
+/* ----- text blocks ----- */
+function skTitle(s,k,w){
+  var base=Math.round(60*k*({s:.72,l:1.12}[s.tz]||1)),size=base,lines;
+  for(;size>=38;size-=3){lines=czBal(s.title,skFont('sub',size),w);if(lines.length<=3)break}
+  var lh=size*(CZ.lang==='en'?1.18:1.3),deep=skDeep();
+  return{h:lines.length*lh,draw:function(y){HC.tag('title','','العنوان');czDraw(lines,W/2,y+size*.98,lh,skFont('sub',size),function(b){return b?deep:CZ.main},'center');HC.tag()}};
+}
+/* paragraphs: one per line; "#" blue headline, "+" strong dark, "-" light small, "---" gold divider, **words** highlighted */
+var SK_PS={'':46,'+':54,'#':64,'-':42};
+function skParas(text,k,w,tag,size0){
+  var ps=String(text||'').split(/\n+/).map(function(l){return l.trim()}).filter(Boolean),items=[],h=0,deep=skDeep();
+  ps.forEach(function(l,j){
+    if(/^-{3,}$/.test(l)){items.push({div:1,h:36*k});return}
+    var m=/^([#+\-])\s*(.*)$/.exec(l),kd=m?m[1]:'',t=m?m[2]:l;if(!t)return;
+    var size=Math.round((size0||SK_PS[kd])*k*(size0&&kd?SK_PS[kd]/SK_PS['']:1)),kind=kd==='#'||kd==='+'?'sub':kd==='-'?'body':'head';
+    var col=kd==='#'?function(b){return b?deep:CZ.main}:kd==='+'?function(b){return b?CZ.main:SKY.dark}:function(b){return b?CZ.main:SKY.ink};
+    var lines=czBal(t,skFont(kind,size,'sub'),w),lh=size*(CZ.lang==='en'?1.25:1.36);
+    items.push({lines:lines,size:size,kind:kind,lh:lh,col:col,h:lines.length*lh,gap:size*.1});
+  });
+  items.forEach(function(it,j){h+=it.h+(j<items.length-1?(it.gap||0):0)});
+  return{h:h,draw:function(y){
+    var yy=y;
+    items.forEach(function(it,j){
+      if(it.div){var cy=yy+it.h/2;skGold(W/2-238,W/2-16,cy,2.4);skGold(W/2+16,W/2+238,cy,2.4);cx.fillStyle=CZ.accent;cx.beginPath();cx.arc(W/2,cy,6.5,0,6.3);cx.fill();yy+=it.h;return}
+      HC.tag(tag||'text','','النص');czDraw(it.lines,W/2,yy+it.size*1.0+(it.lh-it.size)*.22,it.lh,skFont(it.kind,it.size,'sub'),it.col,'center');HC.tag();
+      yy+=it.h+it.gap;
+    });
+  }};
+}
+
+/* ----- one number cell: [word before] NUMBER [word after] ----- */
+function skCell(st,o){
+  var R=czR(),nt=czVal(st.value),ns=o.num,lab=String(st.label||'').trim(),inl=o.inline===true?!!lab:(o.inline==='auto'&&!!lab&&lab.length<=2);
+  var short=inl&&lab.length<=2,preSz=short?Math.round(o.num*.4):o.lab,preK=short?'sub':'head',lw=0,gap=Math.round(preSz*.3);
+  if(inl){cx.font=czFont(preK,preSz);cx.direction=R?'rtl':'ltr';lw=cx.measureText(lab).width+gap}
+  cx.font=czFont('num',ns);cx.direction='ltr';
+  while(ns>38&&cx.measureText(nt).width>o.w-lw){ns-=4;cx.font=czFont('num',ns)}
+  var nw=cx.measureText(nt).width,dh=czDigitH(czFont('num',ns));
+  var ll=!inl&&lab?czCut(czBal(fixPct(lab),skFont('head',o.lab,'sub'),o.w),4):[];
+  var tl=st.text?czCut(czBal(fixPct(st.text),skFont('head',o.txt,'sub'),o.tw||o.w),3):[];
+  var labH=ll.length*o.lab*1.32,txtH=tl.length*o.txt*1.34;
+  return{preSz:preSz,preK:preK,preCol:short?CZ.main:SKY.ink,st:st,nt:nt,ns:ns,nw:nw,dh:dh,inl:inl,lab:lab,lw:lw,gap:gap,ll:ll,tl:tl,labH:labH,txtH:txtH,o:o,
+    h:labH+(labH?8:0)+dh+(tl.length?16+txtH:0)};
+}
+/* mode 'center': x is the middle of the cell; 'start': x is the edge the reading starts from.
+   resv = label height reserved above the number so numbers of neighbouring cells line up. */
+function skCellDraw(c,sg,mode,x,y,resv){
+  var R=czR(),o=c.o,blue=CZ.main,ink=SKY.ink,hi=function(b){return b?blue:ink},al=mode==='center'?'center':'start';
+  var ly=y+(resv-c.labH);
+  HC.tag(sg,'label','الكلمة قبل الرقم');
+  c.ll.forEach(function(l,j){czDraw([l],x,ly+o.lab*.98+j*o.lab*1.32,0,skFont('head',o.lab,'sub'),hi,al)});HC.tag();
+  var yn=y+resv+(resv?8:0)+c.dh,total=c.nw+c.lw,S=mode==='center'?x+(R?total/2:-total/2):x,ta=R?'right':'left',e0,e1;
+  var xn=R?S-c.lw:S+c.lw;
+  if(c.inl){HC.tag(sg,'label','الكلمة قبل الرقم');czPut(c.lab,S,yn-(o.lift||0),czFont(c.preK,c.preSz),c.preCol,ta,R?'rtl':'ltr');HC.tag()}
+  HC.tag(sg,'value','الرقم');czPut(c.nt,xn,yn,czFont('num',c.ns),blue,ta,'ltr');HC.tag();
+  e0=R?S-total:S;e1=R?S:S+total;
+  if(c.tl.length){HC.tag(sg,'text','النص');c.tl.forEach(function(l,j){czDraw([l],x,yn+16+o.txt*.98+j*o.txt*1.34,0,skFont('head',o.txt,'sub'),hi,al)});HC.tag()}
+  return{x0:e0,x1:e1,yn:yn};
+}
+function skDash(x1,y1,x2,y2){cx.save();cx.strokeStyle=SKY.dot;cx.lineWidth=1.5;cx.setLineDash([2,5]);cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();cx.restore()}
+function skSg(st){return 'stats.'+((czCurS&&czCurS.stats||[]).indexOf(st))}
+function skColX(i,n,x0,fw){var cw=fw/n;return czR()?x0+fw-(i+.5)*cw:x0+(i+.5)*cw}
+
+function skTrio(list,k,fw){
+  var n=list.length,cw=fw/n,o={num:Math.round(132*k),lab:Math.round(38*k),txt:Math.round(36*k),w:cw-30,inline:'auto'};
+  var cells=list.map(function(st){return skCell(st,o)}),resv=0,h=0;
+  cells.forEach(function(c){resv=Math.max(resv,c.labH)});
+  cells.forEach(function(c){h=Math.max(h,resv+(resv?8:0)+c.dh+(c.tl.length?16+c.txtH:0))});
+  return{h:h,draw:function(y){
+    var x0=(W-fw)/2;
+    cells.forEach(function(c,i){skCellDraw(c,skSg(c.st),'center',skColX(i,n,x0,fw),y,resv)});
+    for(var i=1;i<n;i++){var lx=czR()?x0+fw-i*cw:x0+i*cw;skDash(lx,y+4,lx,y+h)}
+  }};
+}
+function skDuo(list,k,fw){
+  var R=czR(),w1=fw*.57,w2=fw-w1;
+  var o1={num:Math.round(250*k),lab:Math.round(44*k),txt:Math.round(62*k),w:w1-44,inline:'auto'},o2={num:Math.round(168*k),lab:Math.round(44*k),txt:Math.round(50*k),w:w2-44,inline:'auto'};
+  var c1=skCell(list[0],o1),c2=skCell(list[1],o2),h=Math.max(c1.h,c2.h);
+  return{h:h,draw:function(y){
+    var x0=(W-fw)/2,m1=R?x0+fw-w1/2:x0+w1/2,m2=R?x0+w2/2:x0+fw-w2/2,bx=R?x0+fw-w1:x0+w1;
+    skCellDraw(c1,skSg(c1.st),'center',m1,y+(h-c1.h)/2,c1.labH);
+    skCellDraw(c2,skSg(c2.st),'center',m2,y+(h-c2.h)/2,c2.labH);
+    skDash(bx,y,bx,y+h);
+  }};
+}
+function skHero(st,k,fw){
+  var words=String(st.label||'').trim().split(/\s+/).filter(Boolean).length,o={num:Math.round(180*k),lab:Math.round(64*k),txt:Math.round(42*k),w:fw-60,tw:Math.round(fw*.62),inline:words<=3,lift:Math.round(8*k)};
+  var c=skCell(st,o);
+  return{h:c.h,draw:function(y){
+    var e=skCellDraw(c,skSg(st),'center',W/2,y,c.labH),my=e.yn-c.dh*.52,len=Math.max(0,Math.min(150,(W-2*70-(e.x1-e.x0))/2-30));
+    if(len>40){skGold(e.x0-30-len,e.x0-30,my,3);skGold(e.x1+30,e.x1+30+len,my,3)}
+  }};
+}
+function skHero3(list,k,fw){
+  var a=skHero(list[0],k,fw),b=skTrio(list.slice(1,4),k*.98,fw),gp=Math.round(44*k);
+  return{h:a.h+gp+b.h,draw:function(y){a.draw(y);b.draw(y+a.h+gp)}};
+}
+function skFlags(list,k,fw){
+  var R=czR(),fwF=Math.min(fw,900),cw=fwF/2,pad=26,any=list.some(function(t){return t.flag}),fW=any?Math.round(100*k):0,fH=Math.round(fW*.68),fg=any?24:0;
+  var o={num:Math.round(100*k),lab:Math.round(37*k),txt:Math.round(38*k),w:cw-2*pad-(fW?fW+fg:0),inline:false};
+  var cells=list.map(function(st){var c=skCell(st,o);c.fl=st.flag&&fW?skFlag(st.flag):null;c.hasF=!!(st.flag&&fW);return c});
+  var rows=[];for(var i=0;i<cells.length;i+=2)rows.push(cells.slice(i,i+2));
+  var rg=Math.round(36*k),rhs=rows.map(function(r){
+    var top=0,m=0;r.forEach(function(c){top=Math.max(top,c.hasF?Math.max(fH,c.labH):c.labH)});
+    r.forEach(function(c){m=Math.max(m,top+(top?10:0)+c.dh+(c.tl.length?16+c.txtH:0))});return{top:top,h:m};
+  });
+  var total=rhs.reduce(function(a,r){return a+r.h},0)+(rows.length-1)*(rg*2+1);
+  return{h:total,draw:function(y){
+    var x0=(W-fwF)/2,yy=y;
+    rows.forEach(function(r,ri){
+      var rh=rhs[ri];
+      r.forEach(function(c,ci){
+        var edge=R?x0+fwF-ci*cw-pad:x0+ci*cw+pad,sg=skSg(c.st),ty=yy+(c.hasF&&c.labH<fH?(fH-c.labH)/2:0),tx=c.hasF?(R?edge-fW-fg:edge+fW+fg):edge;
+        if(c.hasF){
+          var fx=R?edge-fW:edge;HC.tag(sg,'flag','العلم');HC.box(fx,yy,fx+fW,yy+fH);HC.tag();
+          if(c.fl){cx.save();cx.shadowColor='rgba(0,0,0,.18)';cx.shadowBlur=8;cx.shadowOffsetY=2;cx.fillStyle='#fff';cx.fillRect(fx,yy,fW,fH);cx.restore();var k2=Math.max(fW/c.fl.naturalWidth,fH/c.fl.naturalHeight);cx.save();cx.beginPath();cx.rect(fx,yy,fW,fH);cx.clip();cx.drawImage(c.fl,fx+(fW-c.fl.naturalWidth*k2)/2,yy+(fH-c.fl.naturalHeight*k2)/2,c.fl.naturalWidth*k2,c.fl.naturalHeight*k2);cx.restore()}
+          else{cx.fillStyle='rgba(43,74,156,.1)';cx.fillRect(fx,yy,fW,fH);cx.strokeStyle='rgba(43,74,156,.35)';cx.lineWidth=1.5;cx.strokeRect(fx,yy,fW,fH)}
+        }
+        /* label next to the flag, number and text below it */
+        var cc=Object.assign({},c,{labH:0}),lyy=ty;
+        HC.tag(sg,'label','الكلمة قبل الرقم');c.ll.forEach(function(l,j){czDraw([l],tx,lyy+o.lab*.98+j*o.lab*1.32,0,skFont('head',o.lab,'sub'),function(b){return b?CZ.main:SKY.ink},'start')});HC.tag();
+        var yn=yy+rh.top+(rh.top?10:0)+c.dh,ta=R?'right':'left';
+        HC.tag(sg,'value','الرقم');czPut(c.nt,tx,yn,czFont('num',c.ns),CZ.main,ta,'ltr');HC.tag();
+        if(c.tl.length){HC.tag(sg,'text','النص');c.tl.forEach(function(l,j){czDraw([l],tx,yn+16+o.txt*.98+j*o.txt*1.34,0,skFont('head',o.txt,'sub'),function(b){return b?CZ.main:SKY.ink},'start')});HC.tag()}
+      });
+      if(ri<rows.length-1){var ly=yy+rh.h+rg;skDash(x0+pad,ly,x0+fwF-pad,ly)}
+      yy+=rh.h+(ri<rows.length-1?rg*2+1:0);
+    });
+    if(rows.length&&rows[0].length>1){var bx=x0+cw;skDash(bx,y+4,bx,y+total)}
+  }};
+}
+function skPoints(list,k,fw){
+  var items=list.map(function(p){
+    var a=p.title?czCut(czBal(fixPct(p.title),skFont('sub',Math.round(50*k)),fw),2):[],b=p.text?czCut(czBal(fixPct(p.text),skFont('head',Math.round(42*k),'sub'),fw),3):[];
+    var ts=Math.round(50*k),bs=Math.round(42*k);return{p:p,a:a,b:b,ts:ts,bs:bs,h:a.length*ts*1.3+(a.length&&b.length?6:0)+b.length*bs*1.38};
+  });
+  var gp=Math.round(34*k),h=items.reduce(function(a,i){return a+i.h},0)+(items.length-1)*(gp*2+8);
+  return{h:h,draw:function(y){
+    var yy=y;
+    items.forEach(function(it,j){
+      var pg='points.'+((czCurS&&czCurS.points||[]).indexOf(it.p));
+      HC.tag(pg,'title','عنوان النقطة');czDraw(it.a,W/2,yy+it.ts*.98,it.ts*1.3,skFont('sub',it.ts),function(b){return b?skDeep():CZ.main},'center');HC.tag();
+      var by=yy+it.a.length*it.ts*1.3+(it.a.length&&it.b.length?6:0);
+      HC.tag(pg,'text','نص النقطة');czDraw(it.b,W/2,by+it.bs*1.0,it.bs*1.38,skFont('head',it.bs,'sub'),function(b){return b?CZ.main:SKY.ink},'center');HC.tag();
+      yy+=it.h;
+      if(j<items.length-1){cx.fillStyle=CZ.accent;cx.beginPath();cx.arc(W/2,yy+gp+4,5,0,6.3);cx.fill();yy+=gp*2+8}
+    });
+  }};
+}
+function skFoot(text,k,fw){
+  var size=Math.round(46*k),lines=czCut(czBal(fixPct(text),skFont('sub',size),fw),2),lh=size*1.32;
+  return{h:lines.length*lh,draw:function(y){HC.tag('foot','','السطر الختامي');czDraw(lines,W/2,y+size*.98,lh,skFont('sub',size),function(b){return b?skDeep():CZ.main},'center');HC.tag()}};
+}
+function skStatLay(s,list){
+  var lay=s.lay&&s.lay!=='auto'?s.lay:'',n=list.length,fl=list.some(function(t){return t.flag});
+  if(lay==='hero3'&&n<4)lay='';if(lay==='trio'&&(n<2||n>4))lay='';if(lay==='duo'&&n!==2)lay='';
+  if(lay)return lay;
+  if(n===1)return 'single';
+  if(fl&&n>=2)return 'flags';
+  return n===2?'duo':n===3?'trio':'hero3';
+}
+function skStats(s,list,k,fw){
+  var lay=skStatLay(s,list);
+  if(lay==='single')return skHero(list[0],k,fw);
+  if(lay==='duo')return skDuo(list,k,fw);
+  if(lay==='trio')return skTrio(list,k,fw);
+  if(lay==='hero3')return skHero3(list,k,fw);
+  return skFlags(list,k,fw);
+}
+
+/* ----- slide types ----- */
+function skContent(s,i,n){
+  var fw=W-2*76,stats=(s.stats||[]).filter(function(t){return t.value||t.label||t.text}).slice(0,4),pts=(s.points||[]).filter(function(t){return t.title||t.text}).slice(0,4);
+  var top0=250,bottom=1010,avail=bottom-top0,k=1,res;
+  function make(k){
+    var mods=[],gaps=[];
+    function add(m,g){if(mods.length)gaps.push(g);mods.push(m)}
+    if(s.title)add(skTitle(s,k,fw-20),0);
+    if(s.subtitle)add(skParas(s.subtitle,k,fw,'subtitle',40),(mods.length?26:0)*k);
+    if(s.text)add(skParas(s.text,k,stats.length||pts.length?fw:W-2*44,'text',stats.length||pts.length?38:0),(mods.length?(s.title&&!stats.length&&!pts.length?58:40):0)*k);
+    if(stats.length)add(skStats(s,stats,k,fw),(mods.length?44:0)*k);
+    else if(pts.length)add(skPoints(pts,k,fw),(mods.length?40:0)*k);
+    if(s.foot)add(skFoot(s.foot,k,fw),(mods.length?50:0)*k);
+    var h=mods.reduce(function(a,m){return a+m.h},0)+gaps.reduce(function(a,g){return a+g},0);
+    return{mods:mods,gaps:gaps,h:h};
+  }
+  for(;k>=.5;k-=.05){res=make(k);if(res.h<=avail)break}
+  var y=top0+Math.max(0,avail-res.h)*.1,end=y+res.h;
+  skBg(s,end+150);skHeader();
+  res.mods.forEach(function(m,j){if(j)y+=res.gaps[j-1];m.draw(y);y+=m.h});
+  if(i<n-1)skChev(!!s.photo);
+}
+function skCover(s,i,n){
+  var cw=W-2*70,size=ttMax(108),tl,tf=function(sz){return function(){return czFont('title',sz)}};
+  for(;size>=ttMin(60);size-=4){tl=czBal(s.title,tf(size),cw);if(tl.length<=2||(size<=ttMin(72)&&tl.length<=3))break}
+  var lh=size*(CZ.lang==='en'?1.1:1.22),text=s.text?skParas(s.text,1,cw-40,'text',44):null,strapH=s.kicker?62:0;
+  var h=(strapH?strapH+34:0)+tl.length*lh+36+4+(text?40+text.h:0),y=Math.max(250,470-h/2);
+  skBg(s,y+h+170);skHeader();
+  if(strapH){czStrap(s.kicker,y,'center');y+=strapH+34}
+  HC.tag('title','','العنوان');czDraw(tl,W/2,y+size*.92,lh,tf(size),function(b){return b?CZ.accent:CZ.main},'center');HC.tag();y+=tl.length*lh+36;
+  skGold(W/2-74,W/2+74,y,5);y+=40;
+  if(text)text.draw(y);
+  if(i<n-1)skChev(!!s.photo);
+}
+function skClosing(s,i,n){
+  var cw=W-2*70,size=ttMax(96),tl,tf=function(sz){return function(){return czFont('title',sz)}};
+  for(;size>=ttMin(56);size-=4){tl=czBal(s.title,tf(size),cw);if(tl.length<=3)break}
+  var lh=size*(CZ.lang==='en'?1.1:1.22),text=s.text?skParas(s.text,1,cw-40,'text',48):null,y=330;
+  var h=tl.length*lh+40+(text?44+text.h:0)+(s.cta?110:0)+(s.handle?70:0);
+  skBg(s,y+h+170);skHeader();
+  HC.tag('title','','العنوان');czDraw(tl,W/2,y+size*.92,lh,tf(size),function(b){return b?CZ.accent:CZ.main},'center');HC.tag();y+=tl.length*lh+30;
+  skGold(W/2-74,W/2+74,y,5);y+=46;
+  if(text){text.draw(y);y+=text.h+34}
+  if(s.cta){var pf=czFont('strap',34),ph=84;HC.tag('cta','','زر الختام');czPill(fixPct(s.cta),W/2,y,ph,CZ.accent,lum(CZ.accent)>.5?skDeep():'#fff',pf,null,'center');HC.tag();y+=ph+26}
+  if(s.handle){HC.tag('handle','','الحساب');czPut(s.handle,W/2,y+34,czFont('strap',32),SKY.ink,'center','ltr');HC.tag()}
+}
+function skDraw(s,i,n){
+  if(s.type==='cover')skCover(s,i,n);else if(s.type==='closing')skClosing(s,i,n);else skContent(s,i,n);
+}
+
+/* ----- the ready example (the summit carousel the style was taken from) ----- */
+var CZ_BRICS={
+  lang:'ar',look:'sky',
+  cover:{kicker:'',title:'الإمارات و«بريكس».. ماذا تقول أرقام التجارة؟',text:'',cta:''},
+  slides:[
+    {title:'منذ يناير 2024',tz:'s',text:'أصبحت الإمارات عضواً رسمياً\nفي مجموعة «بريكس» التي تمثّل دولها',stats:[{value:'49.5%',label:'نحو',text:'من سكان العالم'},{value:'40%',label:'وقرابة',text:'من الناتج المحلي الإجمالي العالمي'},{value:'26%',label:'و',text:'من التجارة العالمية'}],foot:'والأرقام تشرح لماذا تزداد أهمية هذه العضوية؟'},
+    {title:'في 2025',tz:'',text:'',stats:[{value:'312',label:'تجاوزت تجارة الإمارات غير النفطية مع دول «بريكس»',text:'مليار دولار'},{value:'28.5%',label:'بنمو',text:'خلال عام واحد'}]},
+    {title:'وبلغت التجارة الخارجية غير النفطية للإمارات مع الصين',text:'',stats:[{value:'111.5',label:'نحو',text:'مليار دولار',flag:'الصين'},{value:'107.5',label:'ومع الهند',text:'مليار درهم',flag:'الهند'},{value:'20.4',label:'ووصلت مع روسيا إلى',text:'مليار دولار',flag:'روسيا'},{value:'5.4',label:'وفي البرازيل، تجاوزت التجارة الثنائية بين البلدين',text:'مليار دولار',flag:'البرازيل'}]},
+    {title:'واستحوذت دول المجموعة',text:'',stats:[{value:'31%',label:'على نحو',text:'من إجمالي التجارة الخارجية غير النفطية للإمارات'},{value:'34%',label:'و',text:'من الواردات،'},{value:'23%',label:'و',text:'من الصادرات غير النفطية'},{value:'28%',label:'و',text:'من إعادة التصدير'}]},
+    {title:'لكن القصة ليست تجارة فقط',text:'**الإمارات** تدخل «بريكس»\nكمركز عالمي **للاستثمار** و**الخدمات اللوجستية**\nوبوابة تربط آسيا بالشرق الأوسط وأفريقيا وأوروبا'},
+    {title:'ومع قمة نيودلهي',text:'تتجاوز أهمية المشاركة الإماراتية في «بريكس»\nبالهند الحضور الرسمي\n---\n+لتوفُر منصةً\n#لتوسيع التجارة والاستثمار والخدمات\n-وترسيخ موقع الإمارات جسرًا تجارياً ولوجستياً واستثمارياً\n-بين دول المجموعة والأسواق العالمية'}
+  ],
+  closing:false
+};
+/* switching the look also switches the colours that belong to it */
+function czSetLook(v){
+  var was=CZ.look;CZ.look=v==='sky'?'sky':'classic';
+  var def=CPAL.some(function(P){return P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()});
+  if(CZ.look==='sky'&&was!=='sky'&&def){CZ.main=SKY.main;CZ.accent=SKY.accent}
+  if(CZ.look==='classic'&&was==='sky'&&CZ.main.toLowerCase()===SKY.main.toLowerCase()&&CZ.accent.toLowerCase()===SKY.accent.toLowerCase()){CZ.main=CPAL[0].main;CZ.accent=CPAL[0].accent}
+  czSyncStyle();czBuildEditor();czRenderAll();
+}
+function czBricks(){
+  CZ.look='sky';CZ.main=SKY.main;CZ.accent=SKY.accent;CZ.sec='event';CZ.bgMode='auto';CZ.labelPos='above';
+  czLoad(CZ_BRICS,true);CZ.lang='ar';
+  czBuildThumbs();czRenderAll();czSyncStyle();czBuildEditor();czNav();
+}
 
 /* ---------- photo gate: before a design is generated, ask for photos (upload or none) ---------- */
 var PG={mode:'',files:[],choice:'upload',next:null,busy:0};
@@ -7673,7 +8011,7 @@ function desApplyIg(st){
 function desApplyCz(st){
   desSetMode('cz');
   var src=st.__src;delete st.__src;
-  Object.assign(CZ,st);
+  Object.assign(CZ,{look:'classic'},st);
   $('#czSrc').value=src||'';
   $('#czNote').hidden=true;
   ttEnsure();czBuildThumbs();czSyncStyle();czRenderAll();czBuildEditor();czNav();czFit();
