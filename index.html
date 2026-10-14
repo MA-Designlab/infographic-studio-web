@@ -74,6 +74,12 @@ input[type=range]{width:100%;accent-color:var(--navy)}
 .grp>.head b{font:400 14px/1.3 var(--fh)}
 .rowf{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1fr) auto;gap:8px;align-items:start;padding-top:10px;border-top:1px dashed var(--line)}
 .rowf .full{grid-column:1/-1}
+.rowf{position:relative;padding-top:24px}
+.rowf .grip{position:absolute;top:0;left:50%;transform:translateX(-50%);width:56px;height:26px;border:0;background:none;padding:0;cursor:grab;touch-action:none;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:8px}
+.rowf .grip svg{width:22px;height:22px;fill:currentColor}
+.rowf .grip:hover,.rowf .grip:focus-visible{color:var(--violet);background:var(--soft)}
+.rowf.dragging{box-shadow:0 10px 28px rgba(36,16,63,.25);border-color:var(--violet);z-index:2;opacity:.96}
+.rowf.dragging .grip{cursor:grabbing;color:var(--violet)}
 .rowf.bar{grid-template-columns:minmax(0,1.2fr) minmax(0,.7fr) minmax(0,.6fr) auto}
 .rowf.item{grid-template-columns:minmax(0,1fr) auto}
 @media (max-width:420px){.rowf,.rowf.bar{grid-template-columns:1fr 1fr}.rowf .x{grid-column:2;justify-self:end}}
@@ -785,6 +791,13 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .ep.mob.min .ep-min svg{transform:rotate(180deg)}
 .ep.mob.min .ep-b,.ep.mob.min .ep-f{display:none}
 .ep.mob.min{max-height:none}
+.ac-b .rowf,.ac-b .rowf.item,.ac-b .rowf.bar{padding-top:28px}.ac-b .rowf .grip{top:2px}
+
+.rowf .grip{width:64px;height:28px;background:var(--soft);border-radius:0 0 12px 12px;top:-1px!important}
+.rowf .grip svg{width:26px;height:26px}
+.rowf .x{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
+.rowf .x svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ac-b .rowf{padding-top:34px}.ac-b .rowf.item,.ac-b .rowf.bar{padding-top:34px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1802,16 +1815,16 @@ function buildEditor(){
   $('#edHero').innerHTML='<div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero);
   h='';
   if(L==='list'||L==='cards'){
-    S.items.forEach(function(it,i){h+='<div class="rowf item"><div class="field">'+inp('items.'+i+'.title',it.title,'العنوان الفرعي')+inp('items.'+i+'.text',it.text,'النص')+'</div><button type="button" class="x" data-rm="items.'+i+'" aria-label="حذف">حذف</button></div>'});
+    S.items.forEach(function(it,i){h+='<div class="rowf item" data-arr="items" data-i="'+i+'">'+GRIP+'<div class="field">'+inp('items.'+i+'.title',it.title,'العنوان الفرعي')+inp('items.'+i+'.text',it.text,'النص')+'</div><button type="button" class="x" data-rm="items.'+i+'" aria-label="حذف" title="حذف"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg></button></div>'});
     h+=addRow('items',L==='list'?'إضافة نقطة':'إضافة بطاقة');
   }else if(L==='bars'){
     h+='<div class="two">'+inp('legend.0',S.legend[0]||'','مفتاح الأعمدة')+inp('legend.1',S.legend[1]||'','مفتاح النسبة')+'</div>';
-    S.bars.forEach(function(b,i){h+='<div class="rowf bar">'+inp('bars.'+i+'.label',b.label,'الاسم')+inp('bars.'+i+'.value',b.value,'القيمة')+inp('bars.'+i+'.note',b.note,'النسبة')+'<button type="button" class="x" data-rm="bars.'+i+'" aria-label="حذف">حذف</button></div>'});
+    S.bars.forEach(function(b,i){h+='<div class="rowf bar" data-arr="bars" data-i="'+i+'">'+GRIP+inp('bars.'+i+'.label',b.label,'الاسم')+inp('bars.'+i+'.value',b.value,'القيمة')+inp('bars.'+i+'.note',b.note,'النسبة')+'<button type="button" class="x" data-rm="bars.'+i+'" aria-label="حذف" title="حذف"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg></button></div>'});
     h+=addRow('bars','إضافة عمود');
   }
   $('#edList').innerHTML=h;
   h='';
-  S.stats.forEach(function(s,i){h+='<div class="rowf"><div class="field">'+inp('stats.'+i+'.value',s.value,'الرقم')+'</div>'+inp('stats.'+i+'.label',s.label,'الكلمة المميزة')+'<button type="button" class="x" data-rm="stats.'+i+'" aria-label="حذف">حذف</button><div class="full">'+inp('stats.'+i+'.text',s.text,'النص تحت الرقم')+'</div><div class="full">'+colRow('stats.'+i,s)+'</div></div>'});
+  S.stats.forEach(function(s,i){h+='<div class="rowf" data-arr="stats" data-i="'+i+'">'+GRIP+'<div class="field">'+inp('stats.'+i+'.value',s.value,'الرقم')+'</div>'+inp('stats.'+i+'.label',s.label,'الكلمة المميزة')+'<button type="button" class="x" data-rm="stats.'+i+'" aria-label="حذف" title="حذف"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg></button><div class="full">'+inp('stats.'+i+'.text',s.text,'النص تحت الرقم')+'</div><div class="full">'+colRow('stats.'+i,s)+'</div></div>'});
   h+=addRow('stats','إضافة رقم');
   $('#edStats').innerHTML=h;
   $('[data-ac="list"] .ac-t').textContent=L==='list'?'النقاط':L==='cards'?'البطاقات':'الأعمدة';
@@ -1851,8 +1864,46 @@ function setPath(path,val){
   for(var i=0;i<p.length-1;i++)o=o[p[i]];
   o[p[p.length-1]]=val;
 }
+var GRIP='<button type="button" class="grip" data-grip aria-label="اسحب لتغيير الترتيب" title="اسحب لتغيير الترتيب"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="16" cy="9" r="1.6"/><circle cx="8" cy="15" r="1.6"/><circle cx="12" cy="15" r="1.6"/><circle cx="16" cy="15" r="1.6"/></svg></button>';
+/* drag (or arrow keys) on the grip icon to reorder rows of numbers / points / bars */
+function rowsMove(arr,from,to){
+  var l=S[arr];if(!l||from===to||to<0||to>=l.length)return;
+  l.splice(to,0,l.splice(from,1)[0]);buildEditor();schedule();
+}
+function gripInit(ed){
+  var drag=null;
+  ed.addEventListener('pointerdown',function(e){
+    var g=e.target.closest&&e.target.closest('[data-grip]');if(!g||(e.pointerType==='mouse'&&e.button))return;
+    var row=g.closest('.rowf');if(!row)return;
+    e.preventDefault();
+    drag={row:row,arr:row.dataset.arr,from:+row.dataset.i,box:row.parentNode,sp:scrollParent(row),id:e.pointerId};
+    row.classList.add('dragging');try{g.setPointerCapture(e.pointerId)}catch(x){}
+  });
+  ed.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    var rows=[].slice.call(drag.box.querySelectorAll(':scope>.rowf[data-arr="'+drag.arr+'"]'));
+    for(var i=0;i<rows.length;i++){var r=rows[i];if(r===drag.row)continue;var b=r.getBoundingClientRect();
+      if(e.clientY>b.top&&e.clientY<b.bottom){
+        var below=rows.indexOf(drag.row)<i;
+        if(below)r.after(drag.row);else r.before(drag.row);
+        break}}
+    if(drag.sp){var sb=drag.sp.getBoundingClientRect();if(e.clientY<sb.top+50)drag.sp.scrollTop-=14;else if(e.clientY>sb.bottom-50)drag.sp.scrollTop+=14}
+  });
+  function end(){
+    if(!drag)return;var d=drag;drag=null;d.row.classList.remove('dragging');
+    var rows=[].slice.call(d.box.querySelectorAll(':scope>.rowf[data-arr="'+d.arr+'"]')),to=rows.indexOf(d.row);
+    if(to!==d.from)rowsMove(d.arr,d.from,to);
+  }
+  ed.addEventListener('pointerup',end);ed.addEventListener('pointercancel',end);
+  ed.addEventListener('keydown',function(e){
+    var g=e.target.closest&&e.target.closest('[data-grip]');if(!g)return;
+    var row=g.closest('.rowf'),k=e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0;if(!row||!k)return;
+    e.preventDefault();var i=+row.dataset.i,arr=row.dataset.arr;rowsMove(arr,i,i+k);
+    var n=$('#acc [data-arr="'+arr+'"][data-i="'+(i+k)+'"] [data-grip]');if(n)n.focus();
+  });
+}
 function bindEditor(){
-  var ed=$('#acc');accBind(ed);
+  var ed=$('#acc');accBind(ed);gripInit(ed);
   ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.p){setPath(t.dataset.p,t.value);$('#exampleNote').hidden=true;schedule()}
     else if(t.dataset&&t.dataset.c){setPath(t.dataset.c,t.value.toUpperCase());schedule();var b=t.parentNode.querySelector('.hint,button');if(b&&b.classList.contains('hint')){b.outerHTML='<button type="button" class="mini" data-cr="'+t.dataset.c+'">الافتراضي</button>'}}});
   ed.addEventListener('click',function(e){
