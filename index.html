@@ -683,7 +683,7 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
 .ep-f{flex:none;padding:8px 14px 12px;border-top:1px solid var(--line);background:#fff}
 .ep-more{width:100%;border:0;background:var(--soft);color:var(--navy);font:500 13px/1 var(--fh);padding:10px;border-radius:10px;cursor:pointer}
 .ep-more:hover{background:#E6DCF8}
-.ep.mob{left:0!important;right:0;top:auto!important;bottom:0;width:auto;max-height:54vh;border-radius:18px 18px 0 0;border-bottom:0}
+.ep.mob{left:0!important;right:0;top:auto!important;bottom:0;width:auto;max-height:46vh;border-radius:18px 18px 0 0;border-bottom:0}
 .ep.mob .ep-h{cursor:default}
 @media(max-width:920px){.ep-hint span{font-size:12px}}
 .ep .inrow input[type=color]{flex:none;width:44px}
@@ -777,6 +777,14 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 
 @media(max-width:920px){.sheetwrap{flex:none;min-height:0;overflow:visible;align-items:flex-start}}
 @media(max-width:920px){#viewStudio{overflow-y:auto;overflow-x:hidden}#viewStudio .grid{flex:none;grid-template-rows:auto auto;height:auto}#viewStudio .stage{flex:none}#viewStudio .panel{overflow:visible}}
+
+.ep-min{display:none;flex:none;width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;padding:0;cursor:pointer;align-items:center;justify-content:center}
+.ep-min svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.ep.mob .ep-min{display:inline-flex}
+.ep.mob .ep-h{cursor:pointer}
+.ep.mob.min .ep-min svg{transform:rotate(180deg)}
+.ep.mob.min .ep-b,.ep.mob.min .ep-f{display:none}
+.ep.mob.min{max-height:none}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5582,10 +5590,13 @@ function epBuild(){
 function epEnsure(){
   if(EP.card)return EP.card;
   var c=document.createElement('div');c.id='ep';c.className='ep';c.hidden=true;c.setAttribute('role','dialog');c.setAttribute('aria-label','خيارات العنصر');
-  c.innerHTML='<div class="ep-h"><span class="ep-grip" aria-hidden="true"></span><b class="ep-t"></b><button type="button" class="ep-x" aria-label="إغلاق">×</button></div><div class="ep-b"></div><div class="ep-f"><button type="button" class="ep-more">كل الإعدادات لهذا العنصر</button></div>';
+  c.innerHTML='<div class="ep-h"><span class="ep-grip" aria-hidden="true"></span><b class="ep-t"></b><button type="button" class="ep-min" aria-label="تصغير النافذة" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><button type="button" class="ep-x" aria-label="إغلاق">×</button></div><div class="ep-b"></div><div class="ep-f"><button type="button" class="ep-more">كل الإعدادات لهذا العنصر</button></div>';
   document.body.appendChild(c);EP.card=c;
   c.addEventListener('input',epInput);c.addEventListener('change',epChange);c.addEventListener('click',epClick);c.addEventListener('input',epChX);c.addEventListener('change',epChX);c.addEventListener('click',epChX);['input','change','click'].forEach(function(ev){c.addEventListener(ev,ttEvent)});
   $('.ep-x',c).addEventListener('click',function(){epClose()});
+  /* phone: collapse the card to its title bar so the design shows in full */
+  $('.ep-min',c).addEventListener('click',function(){epMin(!c.classList.contains('min'))});
+  $('.ep-h',c).addEventListener('click',function(e){if(epMobile()&&!e.target.closest('button'))epMin(!c.classList.contains('min'))});
   $('.ep-more',c).addEventListener('click',epMore);
   /* drag by the header (desktop) */
   var h=$('.ep-h',c),dr=null;
@@ -5593,6 +5604,10 @@ function epEnsure(){
   h.addEventListener('pointermove',function(e){if(!dr)return;c.style.left=Math.max(4,Math.min(window.innerWidth-c.offsetWidth-4,e.clientX-dr.dx))+'px';c.style.top=Math.max(4,Math.min(window.innerHeight-60,e.clientY-dr.dy))+'px';c.dataset.moved='1'});
   h.addEventListener('pointerup',function(){dr=null});
   return c;
+}
+function epMin(on){
+  var c=EP.card;if(!c)return;c.classList.toggle('min',!!on);
+  var b=$('.ep-min',c);if(b){b.setAttribute('aria-expanded',on?'false':'true');b.setAttribute('aria-label',on?'توسيع النافذة':'تصغير النافذة')}
 }
 function epPlace(anchor){
   var c=EP.card;
@@ -5614,7 +5629,7 @@ function epOpen(m,r,e){
   var c=epEnsure();
   var same=EP.on&&EP.mode===m&&EP.g===r.g;
   EP.mode=m;EP.g=r.g;EP.p=r.p||'';EP.on=true;
-  epBuild();c.hidden=false;
+  epBuild();c.hidden=false;if(!same)epMin(false);
   var sh=epSheet(m);epFrame(sh,'ep-hl',null);
   var box=epGroup(m,r.g)||r;EP.box=box;epFrame(sh,'ep-sel',box,'');
   var cvb=sh.querySelector('canvas').getBoundingClientRect(),
