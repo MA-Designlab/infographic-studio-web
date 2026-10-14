@@ -1982,11 +1982,11 @@ function applyData(d){
   var lay=['stats','list','bars','cards'];
   S.layout=lay.indexOf(d.layout)>-1?d.layout:'stats';
   S.kicker=clean(d.kicker,60);S.title=clean(d.title,60);S.subtitle=clean(d.subtitle,90);S.footer='';
-  var hv=d.hero&&d.hero.value?d.hero:null;
+  var hv=d.hero&&(d.hero.value||d.hero.label)?d.hero:null;
   S.hero=hv?{value:clean(hv.value,12),label:clean(hv.label,40),text:clean(hv.text,110)}:{value:'',label:'',text:''};
   S.tpl=tplValid(d.template,S.layout)?d.template:'';
   S.stats=(d.stats||[]).slice(0,S.tpl?8:6).map(function(s){return{value:clean(s.value,12),label:clean(s.label,40),text:clean(s.text,110)}});
-  S.items=(d.items||[]).slice(0,6).map(function(s){var o={title:clean(s.title,60),text:clean(s.text,150)};if(s.value)o.value=clean(s.value,12);return o});
+  S.items=(d.items||[]).slice(0,8).map(function(s){var o={title:clean(s.title,60),text:clean(s.text,150)};if(s.value)o.value=clean(s.value,12);return o});
   S.bars=(d.bars||[]).slice(0,10).map(function(b){return{label:clean(b.label,40),value:clean(b.value!=null?b.value:b.display,16),note:clean(b.note,12)}});
   S.legend=(d.legend||[]).slice(0,2).map(function(x){return clean(x,40)});
   var sel=$('#lang').value;
