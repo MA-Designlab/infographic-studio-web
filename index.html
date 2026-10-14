@@ -1474,7 +1474,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
       <p class="hint" id="pgSub"></p>
       <div class="pgopts" role="group" aria-label="اختيار">
         <button type="button" class="pgopt" data-pgo="upload" aria-pressed="true"><b>رفع صور</b><span>صورك تظهر في التصميم بنفس طريقة النماذج</span></button>
-        <button type="button" class="pgopt" data-pgo="stock" aria-pressed="false"><b>صور من الإنترنت</b><span>صور مجانية مناسبة لنصك من Pexels</span></button>
+        <button type="button" class="pgopt" data-pgo="stock" aria-pressed="false"><b>صور من الإنترنت</b><span>صور مجانية مناسبة لنصك</span></button>
         <button type="button" class="pgopt" data-pgo="none" aria-pressed="false"><b>بدون صور</b><span>تصميم زخرفي بألوان القالب</span></button>
       </div>
       <div id="pgUp" class="pgup-zone">
@@ -1488,7 +1488,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <div class="pgst-bar"><input type="search" id="pgStIn" dir="auto" placeholder="ابحث عن صورة (البحث بالإنجليزية أدق)" aria-label="بحث عن صورة"><button type="button" class="tool" id="pgStGo">بحث</button></div>
         <div class="pgst-grid" id="pgStGrid"></div>
         <button type="button" class="tool" id="pgStMore" hidden>عرض المزيد</button>
-        <p class="hint" id="pgStHint">اضغط على الصورة لاختيارها. الصور من Pexels وترخيصها مجاني للاستخدام.</p>
+        <p class="hint" id="pgStHint">اضغط على الصورة لاختيارها. الصور من مكتبات صور مجانية (Pixabay وPexels) وترخيصها مجاني للاستخدام.</p>
         <div class="pggrid" id="pgGrid2"></div>
       </div>
         <label class="check" id="pgSmartW"><input type="checkbox" id="pgSmart" checked> اختيار ذكي: النظام الذكي يوزّع الصور على الشرائح حسب المعنى ويحدد مكان الوجه للقص وينبّهك لأي صورة ضعيفة</label>
@@ -4325,7 +4325,7 @@ function pgBoot(){
 var PGS={text:'',queries:[],q:'',page:1,photos:[],total:0,loading:0,busyIds:{},err:''};
 function pgStErr(e){
   var c=e&&e.code;
-  if(c==='stock_not_configured')return 'خدمة الصور من الإنترنت لم تُفعَّل بعد (تحتاج مفتاح Pexels من المسؤول).';
+  if(c==='stock_not_configured')return 'خدمة الصور من الإنترنت لم تُفعَّل بعد (تحتاج مفتاح مكتبة صور من المسؤول).';
   if(c==='stock_rate_limited')return 'وصلنا لحد البحث المؤقت. جرّب بعد قليل.';
   if(c==='stock_timeout'||c==='stock_failed'||c==='stock_too_big')return 'تعذّر تحميل الصور الآن. أعد المحاولة.';
   return errText(c);
