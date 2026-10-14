@@ -527,7 +527,7 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
 .ac-b .inrow{gap:8px}
 
 /* ---- photo gate dialog ---- */
-.pgopts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pgopts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .pgopt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:start;padding:16px;border:1.5px solid var(--line);border-radius:16px;background:#fff;font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
 .pgopt b{font:700 15px/1.2 sans-serif;font-family:inherit;color:var(--ink)}
 .pgopt span{font:400 12.5px/1.5 sans-serif;font-family:inherit;color:var(--muted)}
@@ -753,7 +753,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .chst small{color:var(--muted);font-size:11.5px;line-height:1.35}
 .chst[aria-pressed=true]{border-color:var(--brand);box-shadow:0 0 0 2px rgba(179,19,95,.18);background:var(--soft)}
 .chks{display:flex;flex-direction:column;gap:6px}
-.chtabw{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+.chtabw{max-height:250px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0}
 .chtab{border-collapse:collapse;width:100%}
 .chtab th,.chtab td{padding:3px;border-bottom:1px solid var(--line)}
 .chtab input{width:100%;min-width:70px;border:0;background:transparent;font:inherit;font-size:13px;padding:6px;color:var(--ink)}
@@ -878,6 +878,23 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .rcb{width:20px;height:20px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;flex:none}
 .rcb:hover{box-shadow:0 0 0 2px var(--ink)}
 .field>.rcs,.epf>.rcs{display:flex;margin-top:6px}
+
+/* stock photos */
+.pgst-q{display:flex;flex-wrap:wrap;gap:6px}
+.pgst-q:empty{display:none}
+.pgst-bar{display:flex;gap:8px}
+.pgst-bar input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+.pgst-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:250px;overflow:auto;padding:2px}
+.pgst-grid:empty{display:none}
+.stth{position:relative;aspect-ratio:3/4;border:2px solid transparent;border-radius:10px;overflow:hidden;padding:0;background:var(--soft);cursor:pointer}
+.stth img{width:100%;height:100%;object-fit:cover;display:block}
+.stth .stck{position:absolute;top:6px;inset-inline-start:6px;width:22px;height:22px;border-radius:50%;background:var(--violet);color:#fff;font:700 13px/22px sans-serif;text-align:center;display:none}
+.stth[aria-pressed=true]{border-color:var(--violet)}
+.stth[aria-pressed=true] .stck{display:block}
+.stth .stby{position:absolute;bottom:0;left:0;right:0;padding:12px 6px 4px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font:400 10.5px/1.2 sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .15s}
+.stth:hover .stby{opacity:1}
+.stth.busy{opacity:.55;pointer-events:none}
+.pgst-ph{color:var(--muted);font-size:13px;padding:6px 2px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1457,6 +1474,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
       <p class="hint" id="pgSub"></p>
       <div class="pgopts" role="group" aria-label="اختيار">
         <button type="button" class="pgopt" data-pgo="upload" aria-pressed="true"><b>رفع صور</b><span>صورك تظهر في التصميم بنفس طريقة النماذج</span></button>
+        <button type="button" class="pgopt" data-pgo="stock" aria-pressed="false"><b>صور من الإنترنت</b><span>صور مجانية مناسبة لنصك من Pexels</span></button>
         <button type="button" class="pgopt" data-pgo="none" aria-pressed="false"><b>بدون صور</b><span>تصميم زخرفي بألوان القالب</span></button>
       </div>
       <div id="pgUp" class="pgup-zone">
@@ -1464,8 +1482,16 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <input type="file" id="pgFile" accept="image/*" hidden>
         <div class="pggrid" id="pgGrid"></div>
         <p class="hint">يمكنك أيضاً سحب الصور وإفلاتها هنا.</p>
-        <label class="check" id="pgSmartW"><input type="checkbox" id="pgSmart" checked> اختيار ذكي: النظام الذكي يوزّع الصور على الشرائح حسب المعنى ويحدد مكان الوجه للقص وينبّهك لأي صورة ضعيفة</label>
       </div>
+      <div id="pgStock" class="pgup-zone" hidden>
+        <div class="pgst-q" id="pgStQ"></div>
+        <div class="pgst-bar"><input type="search" id="pgStIn" dir="auto" placeholder="ابحث عن صورة (البحث بالإنجليزية أدق)" aria-label="بحث عن صورة"><button type="button" class="tool" id="pgStGo">بحث</button></div>
+        <div class="pgst-grid" id="pgStGrid"></div>
+        <button type="button" class="tool" id="pgStMore" hidden>عرض المزيد</button>
+        <p class="hint" id="pgStHint">اضغط على الصورة لاختيارها. الصور من Pexels وترخيصها مجاني للاستخدام.</p>
+        <div class="pggrid" id="pgGrid2"></div>
+      </div>
+        <label class="check" id="pgSmartW"><input type="checkbox" id="pgSmart" checked> اختيار ذكي: النظام الذكي يوزّع الصور على الشرائح حسب المعنى ويحدد مكان الوجه للقص وينبّهك لأي صورة ضعيفة</label>
       <div class="dlg-msg" id="pgMsg" role="status"></div>
       <div class="dlg-act" id="pgAct"><button type="button" class="btn pink" id="pgGo">كمّل</button><button type="button" class="btn ghost" id="pgCancel">إلغاء</button></div>
     </div>
@@ -4241,21 +4267,23 @@ function pgGate(mode,next){
   var ig=mode==='ig';
   $('#pgFile').multiple=!ig;
   $('#pgSub').textContent=ig?'الإنفوجراف يستخدم صورة واحدة كخلفية، وتقدر تعدّل ضبطها بعد التحويل.':'الصورة الأولى للغلاف، والباقي للشرائح بالترتيب. تقدر تبدّل أي صورة لأي شريحة بعد التحويل.';
-  PG.choice='upload';$('#pgSmartW').hidden=ig;pgPaint();openDlg('#dlgPhotos','#pgPick');
+  PG.choice='upload';pgPaint();openDlg('#dlgPhotos','#pgPick');
 }
 function pgPaint(){
-  var up=PG.choice==='upload',n=PG.files.length;
-  $$('#dlgPhotos .pgopt').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.pgo===PG.choice))});
-  $('#pgUp').hidden=!up;
-  var g=$('#pgGrid'),h='';
+  var ch=PG.choice,up=ch==='upload',stk=ch==='stock',n=PG.files.length;
+  $$('#dlgPhotos .pgopt').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.pgo===ch))});
+  $('#pgUp').hidden=!up;$('#pgStock').hidden=!stk;
+  var h='';
   PG.files.forEach(function(f,i){
-    h+='<figure class="pgth"><img src="'+f.url+'" alt=""><span class="pgn">'+(PG.mode==='cz'?(i===0?'الغلاف':i):'الخلفية')+'</span><button type="button" class="pgx" data-pgrm="'+i+'" aria-label="حذف الصورة">×</button>'+(PG.mode==='cz'&&i>0?'<button type="button" class="pgup" data-pgup="'+i+'" aria-label="تقديم الصورة">قدّم</button>':'')+'</figure>';
+    h+='<figure class="pgth"><img src="'+(f.thumb||f.url)+'" alt=""><span class="pgn">'+(PG.mode==='cz'?(i===0?'الغلاف':i):'الخلفية')+'</span><button type="button" class="pgx" data-pgrm="'+i+'" aria-label="حذف الصورة">×</button>'+(PG.mode==='cz'&&i>0?'<button type="button" class="pgup" data-pgup="'+i+'" aria-label="تقديم الصورة">قدّم</button>':'')+'</figure>';
   });
-  g.innerHTML=h;
+  $('#pgGrid').innerHTML=h;$('#pgGrid2').innerHTML=h;
   $('#pgPick').textContent=n?'+ إضافة صور أخرى':(PG.mode==='ig'?'+ اختر صورة':'+ اختر صور');
-  var go=$('#pgGo');go.disabled=PG.busy>0||(up&&!n);
-  go.textContent=up?(n?'كمّل بالصور':'ارفع صورة أولاً'):'كمّل بدون صور';
+  $('#pgSmartW').hidden=PG.mode!=='cz'||ch==='none';
+  var go=$('#pgGo');go.disabled=PG.busy>0||((up||stk)&&!n);
+  go.textContent=(up||stk)?(n?'كمّل بالصور':(stk?'اختر صورة أولاً':'ارفع صورة أولاً')):'كمّل بدون صور';
   $('#pgMsg').textContent=PG.busy?'جارٍ تجهيز الصور…':'';
+  if(stk)pgStPaintSel();
 }
 async function pgAdd(list){
   var files=Array.prototype.slice.call(list||[]).filter(function(f){return /^image\//.test(f.type)||/\.(jpe?g|png|webp|heic)$/i.test(f.name)});
@@ -4270,27 +4298,99 @@ async function pgAdd(list){
   if(files.length&&!got.length)$('#pgMsg').textContent='تعذّر قراءة الصور. جرّب JPG أو PNG.';
 }
 function pgGo(){
-  var imgs=PG.choice==='upload'?PG.files.map(function(f){return f.im}):[],mode=PG.mode,next=PG.next;
+  var imgs=PG.choice!=='none'?PG.files.map(function(f){return f.im}):[],mode=PG.mode,next=PG.next;
   closeDlg('#dlgPhotos');
   if(mode==='ig'&&imgs.length){S.bgImg=imgs[0];S.bgPreset=0;syncBg();schedule()}
   if(next)next(imgs,{smart:mode==='cz'&&imgs.length>0&&$('#pgSmart').checked});
 }
 function pgBoot(){
-  $$('#dlgPhotos .pgopt').forEach(function(b){b.addEventListener('click',function(){PG.choice=b.dataset.pgo;pgPaint()})});
+  $$('#dlgPhotos .pgopt').forEach(function(b){b.addEventListener('click',function(){PG.choice=b.dataset.pgo;pgPaint();if(PG.choice==='stock')pgStOpen()})});
+  pgStBoot();
   $('#pgPick').addEventListener('click',function(){$('#pgFile').click()});
   $('#pgFile').addEventListener('change',function(){pgAdd(this.files);this.value=''});
-  $('#pgGrid').addEventListener('click',function(e){
+  [$('#pgGrid'),$('#pgGrid2')].forEach(function(gr){gr.addEventListener('click',function(e){
     var t=e.target.closest('button');if(!t)return;
     if(t.dataset.pgrm!=null)PG.files.splice(+t.dataset.pgrm,1);
     else if(t.dataset.pgup!=null){var i=+t.dataset.pgup,a=PG.files;var x=a[i];a[i]=a[i-1];a[i-1]=x}
     pgPaint();
-  });
+  })});
   var dz=$('#pgUp');
   ['dragover','dragenter'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add('drag')})});
   ['dragleave','drop'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.remove('drag')})});
   dz.addEventListener('drop',function(e){if(e.dataTransfer)pgAdd(e.dataTransfer.files)});
   $('#pgGo').addEventListener('click',pgGo);
   $('#pgCancel').addEventListener('click',function(){closeDlg('#dlgPhotos')});
+}
+/* ----- stock photos (Pexels through the stock-photos function) ----- */
+var PGS={text:'',queries:[],q:'',page:1,photos:[],total:0,loading:0,busyIds:{},err:''};
+function pgStErr(e){
+  var c=e&&e.code;
+  if(c==='stock_not_configured')return 'خدمة الصور من الإنترنت لم تُفعَّل بعد (تحتاج مفتاح Pexels من المسؤول).';
+  if(c==='stock_rate_limited')return 'وصلنا لحد البحث المؤقت. جرّب بعد قليل.';
+  if(c==='stock_timeout'||c==='stock_failed'||c==='stock_too_big')return 'تعذّر تحميل الصور الآن. أعد المحاولة.';
+  return errText(c);
+}
+function pgStText(){return $(PG.mode==='ig'?'#src':'#czSrc').value.trim()}
+async function pgStOpen(){
+  var t=pgStText();
+  if(PGS.text===t&&(PGS.queries.length||PGS.photos.length)){pgStPaintGrid();return}
+  PGS.text=t;PGS.queries=[];PGS.photos=[];PGS.q='';PGS.page=1;PGS.err='';pgStPaintGrid();
+  $('#pgMsg').textContent='جارٍ اقتراح كلمات البحث…';
+  try{
+    var j=await callFn('stock-photos',{action:'queries',text:t});
+    PGS.queries=(j&&j.data&&j.data.queries)||[];
+    pgStPaintQ();
+    if(PGS.queries[0])await pgStSearch(PGS.queries[0].q,1,false);
+  }catch(e){PGS.err=pgStErr(e);pgStPaintGrid();if(e&&e.code==='not_signed_in')showLogin()}
+  finally{if(!PG.busy)$('#pgMsg').textContent=PGS.err||''}
+}
+async function pgStSearch(q,page,more){
+  q=String(q||'').trim();if(!q)return;
+  PGS.q=q;PGS.err='';PGS.loading++;if(!more){PGS.photos=[];PGS.page=1}
+  $('#pgStIn').value=q;pgStPaintQ();pgStPaintGrid();$('#pgMsg').textContent='جارٍ البحث…';
+  try{
+    var j=await callFn('stock-photos',{action:'search',q:q,page:page,orientation:'portrait'});
+    var d=j&&j.data||{photos:[],total:0};
+    PGS.photos=more?PGS.photos.concat(d.photos):d.photos;PGS.page=page;PGS.total=d.total||0;
+    if(!PGS.photos.length)PGS.err='لا توجد نتائج لهذه الكلمات. جرّب كلمات أخرى.';
+  }catch(e){PGS.err=pgStErr(e);if(e&&e.code==='not_signed_in')showLogin()}
+  finally{PGS.loading--;pgStPaintGrid();$('#pgMsg').textContent=PGS.err||''}
+}
+function pgStPaintQ(){
+  $('#pgStQ').innerHTML=PGS.queries.map(function(x){return '<button type="button" class="chip" data-stq="'+esc(x.q)+'" aria-pressed="'+(x.q===PGS.q)+'">'+esc(x.label||x.q)+'</button>'}).join('');
+}
+function pgStPaintGrid(){
+  var g=$('#pgStGrid');
+  g.innerHTML=PGS.photos.map(function(p){
+    var on=PG.files.some(function(f){return f.stockId===p.id});
+    return '<button type="button" class="stth'+(PGS.busyIds[p.id]?' busy':'')+'" data-stid="'+p.id+'" aria-pressed="'+on+'" aria-label="صورة من '+esc(p.by)+'"><img src="'+esc(p.thumb)+'" alt="" loading="lazy"><i class="stck">✓</i><span class="stby">'+esc(p.by)+'</span></button>';
+  }).join('');
+  $('#pgStMore').hidden=!PGS.photos.length||PGS.photos.length>=PGS.total||PGS.page>=10;
+}
+function pgStPaintSel(){$$('#pgStGrid .stth').forEach(function(b){var id=+b.dataset.stid;b.setAttribute('aria-pressed',String(PG.files.some(function(f){return f.stockId===id})))})}
+async function pgStPick(id){
+  var p=PGS.photos.filter(function(x){return x.id===id})[0];if(!p)return;
+  var at=PG.files.findIndex(function(f){return f.stockId===id});
+  if(at>-1){PG.files.splice(at,1);pgPaint();return}
+  if(PG.mode==='ig')PG.files=[];
+  else if(PG.files.length>=12){$('#pgMsg').textContent='الحد الأقصى 12 صورة.';return}
+  PGS.busyIds[id]=1;PG.busy++;pgStPaintGrid();pgPaint();
+  try{
+    var j=await callFn('stock-photos',{action:'get',url:p.full});
+    var d=j&&j.data;if(!d||!d.b64)throw{code:'stock_failed'};
+    var url='data:'+d.type+';base64,'+d.b64;
+    var im=await new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i)};i.onerror=function(){rej({code:'stock_failed'})};i.src=url});
+    PG.files.push({im:im,name:'pexels-'+id,url:url,thumb:p.thumb,stockId:id,by:p.by});
+    if(PG.mode==='ig')PG.files=PG.files.slice(-1);
+  }catch(e){PGS.err=pgStErr(e)}
+  finally{delete PGS.busyIds[id];PG.busy--;pgStPaintGrid();pgPaint();if(PGS.err)$('#pgMsg').textContent=PGS.err}
+}
+function pgStBoot(){
+  $('#pgStQ').addEventListener('click',function(e){var b=e.target.closest('[data-stq]');if(b)pgStSearch(b.dataset.stq,1,false)});
+  $('#pgStGrid').addEventListener('click',function(e){var b=e.target.closest('[data-stid]');if(b)pgStPick(+b.dataset.stid)});
+  $('#pgStGo').addEventListener('click',function(){pgStSearch($('#pgStIn').value,1,false)});
+  $('#pgStIn').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();pgStSearch(this.value,1,false)}});
+  $('#pgStMore').addEventListener('click',function(){pgStSearch(PGS.q,PGS.page+1,true)});
 }
 /* spread uploaded photos over a generated carousel: cover, then content slides, last spare one on the closing slide */
 function czDistribute(imgs){
