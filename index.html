@@ -709,6 +709,20 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
 html.prv-lock{overflow:hidden}
 .pvbtn{white-space:nowrap}
 @media(max-width:560px){.prv-btn{padding:9px 12px;font-size:12.5px}.prv-t{display:none}}
+
+/* ===== library: sub-libraries and logo states ===== */
+.libcats{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.libcats .chip em{font-style:normal;font-size:11.5px;opacity:.7;margin-inline-start:3px}
+.libcats .chip.add{border-style:dashed;color:var(--navy);background:transparent}
+.libcatops{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px;font-size:13px;color:var(--muted)}
+.libcatform{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 12px}
+.libcatform label{font-size:12.5px;color:var(--muted);font-weight:500}
+.libcatform input{flex:1;font:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--bg);color:var(--ink);min-width:0}
+.lprev.dk{background:#24103F;margin-top:-2px}
+.lprev.dk img{filter:none}
+.lnow{font-size:11px;color:#CBBDEB;text-align:center;padding:0 6px;line-height:1.3}
+.lcard .pill.cat{background:#EFE6FB;color:var(--navy)}
+.lprev.dk{height:56px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1106,6 +1120,10 @@ html.prv-lock{overflow:hidden}
         <div class="seg" id="libTabs" role="radiogroup" aria-label="نوع الملفات"><label><input type="radio" name="libk" value="flag" checked data-lk="flag"><span>الأعلام <em></em></span></label><label><input type="radio" name="libk" value="logo" data-lk="logo"><span>الشعارات <em></em></span></label><label><input type="radio" name="libk" value="font" data-lk="font"><span>الخطوط <em></em></span></label><label><input type="radio" name="libk" value="image" data-lk="image"><span>الصور <em></em></span></label></div>
         <input type="search" id="libQ" placeholder="بحث بالاسم" aria-label="بحث">
       </div>
+      <div class="libcats" id="libCats" aria-label="التصنيفات الفرعية"></div>
+      <div class="libcatops" id="libCatOps" hidden><b></b><button type="button" class="mini" id="libCatRen">تغيير الاسم</button><button type="button" class="mini danger" id="libCatDel">حذف التصنيف</button></div>
+      <div class="libcatform" id="libCatForm" hidden><label for="libCatName" id="libCatLab"></label><div class="inrow"><input type="text" id="libCatName" maxlength="60" placeholder="مثال: صور رسمية"><button type="button" class="btn pink sm" id="libCatSave">حفظ</button><button type="button" class="btn ghost sm" id="libCatCancel">إلغاء</button></div></div>
+      <input type="file" id="libWhiteFile" accept="image/png,image/webp,image/jpeg" hidden>
       <div class="libauto" id="libAutoBox" hidden>
         <p class="hint">اكتب الأسماء، اسماً في كل سطر. يبحث النظام عن كل واحد في مصادر عامة ويحفظه هنا، وإن لم يجده تستطيع رفعه بنفسك.</p>
         <textarea id="libNames" rows="5" dir="auto"></textarea>
@@ -1203,6 +1221,7 @@ html.prv-lock{overflow:hidden}
       <h3 id="leTitle">تعديل ملف المكتبة</h3>
       <p class="hint">الاسم والأسماء البديلة هي ما يُستخدم للعثور على الملف تلقائياً في الرسوم البيانية.</p>
       <div class="field"><label for="leName">الاسم</label><input type="text" id="leName" maxlength="80"></div>
+      <div class="field"><label for="leCat">التصنيف الفرعي</label><select id="leCat"></select></div>
       <div class="field"><label for="leKeys">أسماء بديلة (افصل بينها بفاصلة)</label><input type="text" id="leKeys" maxlength="200" placeholder="مثال: ADNOC، أدنوك للغاز"></div>
       <div class="dlg-msg" id="leMsg" role="alert"></div>
       <div class="dlg-act"><button type="submit" class="btn pink">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></div>
@@ -2120,7 +2139,8 @@ async function boot(){
 var COUNTRIES=[["ae",["الإمارات","الامارات العربية المتحدة","الإمارات العربية المتحدة","دولة الإمارات","إمارات","UAE","United Arab Emirates","Emirates"]],["sa",["السعودية","المملكة العربية السعودية","المملكة السعودية","Saudi Arabia","KSA","Saudi"]],["kw",["الكويت","Kuwait"]],["qa",["قطر","Qatar"]],["bh",["البحرين","Bahrain"]],["om",["عمان","سلطنة عمان","Oman"]],["ye",["اليمن","Yemen"]],["iq",["العراق","Iraq"]],["sy",["سوريا","سورية","Syria"]],["lb",["لبنان","Lebanon"]],["jo",["الأردن","الاردن","Jordan"]],["ps",["فلسطين","Palestine"]],["eg",["مصر","Egypt"]],["sd",["السودان","Sudan"]],["ss",["جنوب السودان","South Sudan"]],["ly",["ليبيا","Libya"]],["tn",["تونس","Tunisia"]],["dz",["الجزائر","Algeria"]],["ma",["المغرب","Morocco"]],["mr",["موريتانيا","Mauritania"]],["so",["الصومال","Somalia"]],["dj",["جيبوتي","Djibouti"]],["km",["جزر القمر","القمر","Comoros"]],["us",["الولايات المتحدة","الولايات المتحدة الأمريكية","أمريكا","امريكا","أميركا","USA","United States","America"]],["gb",["بريطانيا","المملكة المتحدة","إنجلترا","انجلترا","UK","United Kingdom","Britain","Great Britain"]],["fr",["فرنسا","France"]],["de",["ألمانيا","المانيا","Germany"]],["it",["إيطاليا","ايطاليا","Italy"]],["es",["إسبانيا","اسبانيا","Spain"]],["pt",["البرتغال","Portugal"]],["nl",["هولندا","Netherlands","Holland"]],["be",["بلجيكا","Belgium"]],["ch",["سويسرا","Switzerland"]],["at",["النمسا","Austria"]],["se",["السويد","Sweden"]],["no",["النرويج","Norway"]],["dk",["الدنمارك","Denmark"]],["fi",["فنلندا","Finland"]],["is",["أيسلندا","ايسلندا","Iceland"]],["ie",["أيرلندا","ايرلندا","Ireland"]],["pl",["بولندا","Poland"]],["cz",["التشيك","Czech Republic","Czechia"]],["sk",["سلوفاكيا","Slovakia"]],["hu",["المجر","Hungary"]],["ro",["رومانيا","Romania"]],["bg",["بلغاريا","Bulgaria"]],["gr",["اليونان","Greece"]],["tr",["تركيا","Turkey","Türkiye","Turkiye"]],["cy",["قبرص","Cyprus"]],["mt",["مالطا","Malta"]],["ru",["روسيا","Russia"]],["ua",["أوكرانيا","اوكرانيا","Ukraine"]],["by",["بيلاروسيا","Belarus"]],["md",["مولدوفا","Moldova"]],["lt",["ليتوانيا","Lithuania"]],["lv",["لاتفيا","Latvia"]],["ee",["إستونيا","استونيا","Estonia"]],["rs",["صربيا","Serbia"]],["hr",["كرواتيا","Croatia"]],["si",["سلوفينيا","Slovenia"]],["ba",["البوسنة والهرسك","البوسنة","Bosnia"]],["me",["الجبل الأسود","Montenegro"]],["mk",["مقدونيا الشمالية","مقدونيا","North Macedonia","Macedonia"]],["al",["ألبانيا","البانيا","Albania"]],["xk",["كوسوفو","Kosovo"]],["lu",["لوكسمبورغ","Luxembourg"]],["li",["ليختنشتاين","Liechtenstein"]],["mc",["موناكو","Monaco"]],["ad",["أندورا","اندورا","Andorra"]],["sm",["سان مارينو","San Marino"]],["va",["الفاتيكان","Vatican"]],["ge",["جورجيا","Georgia"]],["am",["أرمينيا","ارمينيا","Armenia"]],["az",["أذربيجان","اذربيجان","Azerbaijan"]],["kz",["كازاخستان","Kazakhstan"]],["uz",["أوزبكستان","اوزبكستان","Uzbekistan"]],["tm",["تركمانستان","Turkmenistan"]],["kg",["قيرغيزستان","Kyrgyzstan"]],["tj",["طاجيكستان","Tajikistan"]],["af",["أفغانستان","افغانستان","Afghanistan"]],["pk",["باكستان","Pakistan"]],["in",["الهند","India"]],["bd",["بنغلاديش","Bangladesh"]],["lk",["سريلانكا","Sri Lanka"]],["np",["نيبال","Nepal"]],["bt",["بوتان","Bhutan"]],["mv",["جزر المالديف","المالديف","Maldives"]],["cn",["الصين","China"]],["jp",["اليابان","Japan"]],["kr",["كوريا الجنوبية","كوريا","South Korea","Korea"]],["kp",["كوريا الشمالية","North Korea"]],["mn",["منغوليا","Mongolia"]],["tw",["تايوان","Taiwan"]],["hk",["هونج كونج","هونغ كونغ","هونغ كونج","هونج كونغ","Hong Kong"]],["mo",["ماكاو","Macau","Macao"]],["sg",["سنغافورة","Singapore"]],["my",["ماليزيا","Malaysia"]],["th",["تايلاند","Thailand"]],["vn",["فيتنام","Vietnam"]],["ph",["الفلبين","Philippines"]],["id",["إندونيسيا","اندونيسيا","Indonesia"]],["kh",["كمبوديا","Cambodia"]],["la",["لاوس","Laos"]],["mm",["ميانمار","Myanmar"]],["bn",["بروناي","Brunei"]],["tl",["تيمور الشرقية","Timor-Leste"]],["au",["أستراليا","استراليا","Australia"]],["nz",["نيوزيلندا","نيوزلندا","New Zealand"]],["fj",["فيجي","Fiji"]],["pg",["بابوا غينيا الجديدة","Papua New Guinea"]],["ir",["إيران","ايران","Iran"]],["il",["إسرائيل","اسرائيل","Israel"]],["ca",["كندا","Canada"]],["mx",["المكسيك","Mexico"]],["br",["البرازيل","Brazil"]],["ar",["الأرجنتين","الارجنتين","Argentina"]],["cl",["تشيلي","Chile"]],["co",["كولومبيا","Colombia"]],["pe",["بيرو","Peru"]],["ve",["فنزويلا","Venezuela"]],["ec",["الإكوادور","الاكوادور","Ecuador"]],["bo",["بوليفيا","Bolivia"]],["py",["باراغواي","باراجواي","Paraguay"]],["uy",["أوروغواي","اوروجواي","Uruguay"]],["cu",["كوبا","Cuba"]],["do",["الدومينيكان","جمهورية الدومينيكان","Dominican Republic"]],["pa",["بنما","Panama"]],["cr",["كوستاريكا","Costa Rica"]],["gt",["غواتيمالا","جواتيمالا","Guatemala"]],["hn",["هندوراس","Honduras"]],["sv",["السلفادور","El Salvador"]],["ni",["نيكاراغوا","Nicaragua"]],["jm",["جامايكا","Jamaica"]],["ht",["هايتي","Haiti"]],["tt",["ترينيداد وتوباغو","Trinidad and Tobago"]],["bs",["جزر البهاما","البهاما","Bahamas"]],["bb",["بربادوس","Barbados"]],["za",["جنوب أفريقيا","جنوب افريقيا","South Africa"]],["ng",["نيجيريا","Nigeria"]],["ke",["كينيا","Kenya"]],["et",["إثيوبيا","اثيوبيا","Ethiopia"]],["gh",["غانا","Ghana"]],["tz",["تنزانيا","Tanzania"]],["ug",["أوغندا","اوغندا","Uganda"]],["rw",["رواندا","Rwanda"]],["zm",["زامبيا","Zambia"]],["zw",["زيمبابوي","Zimbabwe"]],["mz",["موزمبيق","Mozambique"]],["ao",["أنغولا","انجولا","Angola"]],["na",["ناميبيا","Namibia"]],["bw",["بوتسوانا","Botswana"]],["sn",["السنغال","Senegal"]],["ci",["ساحل العاج","كوت ديفوار","Ivory Coast","Cote d'Ivoire"]],["cm",["الكاميرون","Cameroon"]],["cd",["الكونغو الديمقراطية","جمهورية الكونغو الديمقراطية","DR Congo","Democratic Republic of the Congo"]],["cg",["الكونغو","Congo"]],["ga",["الغابون","Gabon"]],["ml",["مالي","Mali"]],["ne",["النيجر","Niger"]],["td",["تشاد","Chad"]],["bf",["بوركينا فاسو","Burkina Faso"]],["gn",["غينيا","Guinea"]],["sl",["سيراليون","Sierra Leone"]],["lr",["ليبيريا","Liberia"]],["mg",["مدغشقر","Madagascar"]],["mu",["موريشيوس","Mauritius"]],["sc",["سيشل","Seychelles"]],["er",["إريتريا","اريتريا","Eritrea"]],["bi",["بوروندي","Burundi"]],["mw",["مالاوي","Malawi"]],["ls",["ليسوتو","Lesotho"]],["sz",["إسواتيني","اسواتيني","Eswatini"]],["gm",["غامبيا","Gambia"]],["bj",["بنين","Benin"]],["tg",["توغو","Togo"]],["cv",["الرأس الأخضر","Cape Verde"]],["eu",["الاتحاد الأوروبي","European Union","EU"]],["un",["الأمم المتحدة","United Nations","UN"]]];
 
 /* ---------- library: flags, logos, fonts and images shared by the team ---------- */
-var LIB={list:[],map:{flag:{},logo:{},font:{},image:{}},blobs:{},imgs:{},faces:{},tab:'flag',q:'',busy:false,editId:null};
+var LIB_COLS='id,kind,name,keys,path,source,created_by,created_at,category_id,path_white';
+var LIB={cats:[],cat:'all',list:[],map:{flag:{},logo:{},font:{},image:{}},blobs:{},imgs:{},faces:{},tab:'flag',q:'',busy:false,editId:null};
 var LIB_KINDS=[['flag','الأعلام'],['logo','الشعارات'],['font','الخطوط'],['image','الصور']];
 var LIB_FETCHING={};
 
@@ -2162,9 +2182,11 @@ function libFind(kind,name){
 }
 async function libLoad(){
   try{
-    var r=await sb.from('library_assets').select('id,kind,name,keys,path,source,created_by,created_at').order('created_at');
+    var r=await sb.from('library_assets').select(LIB_COLS).order('created_at');
     LIB.list=r.error?[]:(r.data||[]);
-  }catch(e){LIB.list=[]}
+    var c=await sb.from('library_categories').select('id,kind,name,created_by,created_at').order('created_at');
+    LIB.cats=c.error?[]:(c.data||[]);
+  }catch(e){LIB.list=[];LIB.cats=[]}
   libRebuild();libPaint();ttRefresh();
 }
 function libBlob(path){
@@ -2174,12 +2196,15 @@ function libBlob(path){
   }
   return LIB.blobs[path];
 }
-function libImg(a){
-  if(!LIB.imgs[a.path]){
-    LIB.imgs[a.path]=libBlob(a.path).then(function(b){return new Promise(function(res,rej){var im=new Image();im.onload=function(){res(im)};im.onerror=rej;im.src=URL.createObjectURL(b)})});
-    LIB.imgs[a.path].catch(function(){delete LIB.imgs[a.path]});
+/* a logo can have two states: its main colours and a white one, chosen by how dark the design is */
+function libPathFor(a,dark){return dark&&a.path_white?a.path_white:a.path}
+function libImg(a,dark){
+  var pth=libPathFor(a,dark);
+  if(!LIB.imgs[pth]){
+    LIB.imgs[pth]=libBlob(pth).then(function(b){return new Promise(function(res,rej){var im=new Image();im.onload=function(){res(im)};im.onerror=rej;im.src=URL.createObjectURL(b)})});
+    LIB.imgs[pth].catch(function(){delete LIB.imgs[pth]});
   }
-  return LIB.imgs[a.path];
+  return LIB.imgs[pth];
 }
 var libFaceN=0;
 function libFontFamily(a){
@@ -2202,7 +2227,7 @@ async function libEnsure(kind,name,fetchWeb){
   var a=libFind(kind,name);if(a||!fetchWeb)return a;
   return libFetch(kind,name);
 }
-async function libFetch(kind,name){
+async function libFetch(kind,name,cat){
   var id=kind+'|'+libNorm(name);
   if(LIB_FETCHING[id])return LIB_FETCHING[id];
   LIB_FETCHING[id]=(async function(){
@@ -2211,6 +2236,7 @@ async function libFetch(kind,name){
       if(kind==='flag'){var c=countryCode(name);if(!c)throw{code:'unknown_country'};body.code=c}
       var j=await callFn('fetch-asset',body);
       if(!j||!j.data)throw{code:'not_found'};
+      if(cat&&j.data.category_id!==cat){var u=await sb.from('library_assets').update({category_id:cat}).eq('id',j.data.id).select(LIB_COLS).maybeSingle();if(u&&u.data)j.data=u.data}
       LIB.list.push(j.data);libRebuild();libPaint();
       return j.data;
     }finally{delete LIB_FETCHING[id]}
@@ -2224,12 +2250,12 @@ function libOk(kind,file){
   else{if(!/^(png|jpe?g|webp)$/.test(ext))return 'الصورة لازم تكون PNG أو JPG أو WebP.';if(file.size>(kind==='image'?6:3)*1048576)return 'الصورة كبيرة (الحد '+(kind==='image'?6:3)+' ميجابايت).'}
   return '';
 }
-async function libUpload(kind,file,name){
+async function libUpload(kind,file,name,cat){
   var bad=libOk(kind,file);if(bad)throw{msg:bad};
   var ext=file.name.match(/\.([a-z0-9]+)$/i)[1].toLowerCase(),path=kind+'s/'+crypto.randomUUID()+'.'+ext;
   var up=await sb.storage.from('library').upload(path,file,{contentType:LIB_EXT[ext],upsert:false});
   if(up.error)throw{msg:'تعذّر رفع الملف.'};
-  var r=await sb.from('library_assets').insert({kind:kind,name:name.slice(0,80),keys:libAliasKeys(kind,name),path:path,source:'upload',created_by:me.email}).select('id,kind,name,keys,path,source,created_by,created_at').maybeSingle();
+  var r=await sb.from('library_assets').insert({kind:kind,name:name.slice(0,80),keys:libAliasKeys(kind,name),path:path,source:'upload',created_by:me.email,category_id:cat||null}).select(LIB_COLS).maybeSingle();
   if(r.error||!r.data){try{await sb.storage.from('library').remove([path])}catch(e){}throw{msg:'تعذّر حفظ الملف في المكتبة.'}}
   LIB.list.push(r.data);libRebuild();
   return r.data;
@@ -2239,7 +2265,8 @@ function libCan(a){return me.role==='admin'||(a.created_by||'')===me.email}
 /* ----- view ----- */
 function libPaint(){
   var g=$('#libGrid');if(!g)return;
-  var q=libNorm(LIB.q),list=LIB.list.filter(function(a){return a.kind===LIB.tab&&(!q||libNorm(a.name).indexOf(q)>-1||(a.keys||[]).some(function(k){return k.indexOf(q)>-1}))});
+  libCatPaint();
+  var q=libNorm(LIB.q),list=LIB.list.filter(function(a){return a.kind===LIB.tab&&(LIB.cat==='all'||(LIB.cat==='none'?!a.category_id:a.category_id===LIB.cat))&&(!q||libNorm(a.name).indexOf(q)>-1||(a.keys||[]).some(function(k){return k.indexOf(q)>-1}))});
   LIB_KINDS.forEach(function(k){var n=LIB.list.filter(function(a){return a.kind===k[0]}).length;var s=$('#libTabs input[data-lk="'+k[0]+'"] + span em');if(s)s.textContent=n?n:''});
   $('#libAuto').hidden=LIB.tab==='font'||LIB.tab==='image';
   if(LIB.tab==='font'||LIB.tab==='image')$('#libAutoBox').hidden=true;
@@ -2247,13 +2274,16 @@ function libPaint(){
   if(!list.length){g.innerHTML='<p class="empty">'+(q?'لا نتائج لهذا البحث.':'لا توجد ملفات في هذا القسم بعد.')+'</p>';return}
   g.innerHTML=list.map(function(a){
     var prev=a.kind==='font'?'<span class="lfont" data-lf="'+esc(a.id)+'">أبجد Abc 123</span>':'<img alt="" data-li="'+esc(a.id)+'">';
-    var al=(a.keys||[]).filter(function(k){return k.indexOf('iso:')!==0&&k!==libNorm(a.name)}).slice(0,3).join('، ');
+    var wprev=a.kind==='logo'?'<div class="lprev dk">'+(a.path_white?'<img alt="" data-lw="'+esc(a.id)+'">':'<span class="lnow">لا توجد نسخة بيضاء</span>')+'</div>':'';
+    var cn=a.category_id&&(LIB.cats.filter(function(c){return c.id===a.category_id})[0]||{}).name;var al=(a.keys||[]).filter(function(k){return k.indexOf('iso:')!==0&&k!==libNorm(a.name)}).slice(0,3).join('، ');
     var can=libCan(a);
-    return '<div class="lcard" data-id="'+esc(a.id)+'"><div class="lprev'+(a.kind==='flag'?' flag':'')+'">'+prev+'</div><b title="'+esc(a.name)+'">'+esc(a.name)+'</b><small>'+(al?esc(al):'&nbsp;')+'</small>'
-      +(a.source==='web'?'<span class="pill">من الإنترنت</span>':'')
-      +'<div class="lact">'+(can?'<button type="button" data-lact="edit">تعديل</button><button type="button" data-lact="del" class="warn">حذف</button>':'')+'</div></div>';
+    return '<div class="lcard" data-id="'+esc(a.id)+'"><div class="lprev'+(a.kind==='flag'?' flag':'')+'">'+prev+'</div>'+wprev+'<b title="'+esc(a.name)+'">'+esc(a.name)+'</b><small>'+(al?esc(al):'&nbsp;')+'</small>'
+      +(a.source==='web'?'<span class="pill">من الإنترنت</span>':'')+(LIB.cat==='all'&&cn?'<span class="pill cat">'+esc(cn)+'</span>':'')
+      +'<div class="lact">'+(can?'<button type="button" data-lact="edit">تعديل</button><button type="button" data-lact="del" class="warn">حذف</button>':'')+'</div>'
+      +(can&&a.kind==='logo'?'<div class="lact">'+(a.path_white?'<button type="button" data-lact="wup">تغيير الأبيض</button><button type="button" data-lact="wdel" class="warn">إزالة</button>':'<button type="button" data-lact="wup">رفع أبيض</button><button type="button" data-lact="wauto">توليد تلقائي</button>')+'</div>':'')+'</div>';
   }).join('');
   $$('[data-li]',g).forEach(function(im){var a=LIB.list.filter(function(x){return x.id===im.dataset.li})[0];if(a)libBlob(a.path).then(function(b){im.src=URL.createObjectURL(b)},function(){im.alt='تعذّر التحميل'})});
+  $$('[data-lw]',g).forEach(function(im){var a=LIB.list.filter(function(x){return x.id===im.dataset.lw})[0];if(a&&a.path_white)libBlob(a.path_white).then(function(b){im.src=URL.createObjectURL(b)},function(){})});
   $$('[data-lf]',g).forEach(function(sp){var a=LIB.list.filter(function(x){return x.id===sp.dataset.lf})[0];if(a)libFontFamily(a).then(function(f){sp.style.fontFamily=f},function(){})});
 }
 function libMsg(m,err){var e=$('#libMsg');e.textContent=m||'';e.className='dlg-msg'+(err?'':' ok')}
@@ -2261,7 +2291,7 @@ async function libUploadMany(files){
   var kind=LIB.tab,ok=0,fail=[];
   for(var i=0;i<files.length;i++){
     var f=files[i],name=f.name.replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' ').trim()||'ملف';
-    try{await libUpload(kind,f,name);ok++}catch(e){fail.push(f.name+': '+(e.msg||'فشل'))}
+    try{await libUpload(kind,f,name,libCatTarget());ok++}catch(e){fail.push(f.name+': '+(e.msg||'فشل'))}
   }
   libPaint();
   libMsg(ok?('تم رفع '+ok+' ملف. اضغط «تعديل» على أي بطاقة لتغيير اسمها أو إضافة أسماء بديلة.'):'',false);
@@ -2277,7 +2307,7 @@ async function libAutoRun(){
     var have=libFind(kind,lines[i]);
     if(have){st.textContent='موجود في المكتبة';st.className='lrs ok';continue}
     st.textContent='جارٍ الجلب…';
-    try{await libFetch(kind,lines[i]);st.textContent='تمت الإضافة';st.className='lrs ok'}
+    try{await libFetch(kind,lines[i],libCatTarget());st.textContent='تمت الإضافة';st.className='lrs ok'}
     catch(e){
       var c=e&&e.code;
       st.textContent=c==='unknown_country'?'اسم الدولة غير معروف، ارفع العلم يدوياً':c==='not_found'?'لم يُعثر عليه في المصادر العامة، ارفعه يدوياً':errText(c);
@@ -2288,7 +2318,7 @@ async function libAutoRun(){
 }
 function libEditOpen(id){
   var a=LIB.list.filter(function(x){return x.id===id})[0];if(!a)return;
-  LIB.editId=id;$('#leName').value=a.name;
+  LIB.editId=id;$('#leName').value=a.name;$('#leCat').innerHTML='<option value="">عام (بدون تصنيف)</option>'+LIB.cats.filter(function(c){return c.kind===a.kind}).map(function(c){return '<option value="'+esc(c.id)+'"'+(a.category_id===c.id?' selected':'')+'>'+esc(c.name)+'</option>'}).join('');
   $('#leKeys').value=(a.keys||[]).filter(function(k){return k.indexOf('iso:')!==0}).join('، ');
   $('#leMsg').textContent='';openDlg('#dlgLibEdit','#leName');
 }
@@ -2301,7 +2331,7 @@ async function libEditSave(e){
   (a.keys||[]).forEach(function(k){if(k.indexOf('iso:')===0&&keys.indexOf(k)<0)keys.push(k)});
   extra.forEach(function(k){if(keys.indexOf(k)<0)keys.push(k)});
   keys=keys.slice(0,12);
-  var r=await sb.from('library_assets').update({name:name.slice(0,80),keys:keys}).eq('id',a.id).select('id,kind,name,keys,path,source,created_by,created_at').maybeSingle();
+  var cs=$('#leCat').value||null;var r=await sb.from('library_assets').update({name:name.slice(0,80),keys:keys,category_id:cs}).eq('id',a.id).select(LIB_COLS).maybeSingle();
   if(r.error||!r.data){$('#leMsg').textContent='تعذّر الحفظ.';return}
   Object.assign(a,r.data);libRebuild();libPaint();closeDlg('#dlgLibEdit');toast('تم تعديل «'+a.name+'».');
 }
@@ -2312,8 +2342,101 @@ async function libDelete(id){
   try{await sb.storage.from('library').remove([a.path])}catch(e){}
   LIB.list=LIB.list.filter(function(x){return x.id!==id});libRebuild();libPaint();toast('تم حذف «'+a.name+'».');
 }
+async function libWhiteSave(id,blob,ext,ctype){
+  var a=LIB.list.filter(function(x){return x.id===id})[0];if(!a)return;
+  var path='logos/'+crypto.randomUUID()+'-w.'+ext;
+  var up=await sb.storage.from('library').upload(path,blob,{contentType:ctype,upsert:false});
+  if(up.error){toast('تعذّر رفع النسخة البيضاء.',true);return}
+  var r=await sb.from('library_assets').update({path_white:path}).eq('id',id).select(LIB_COLS).maybeSingle();
+  if(r.error||!r.data){try{await sb.storage.from('library').remove([path])}catch(e){}toast('تعذّر الحفظ.',true);return}
+  var old=a.path_white;Object.assign(a,r.data);if(old){try{await sb.storage.from('library').remove([old])}catch(e){}}
+  libPaint();toast('تم حفظ النسخة البيضاء لـ «'+a.name+'».');
+}
+async function libWhiteUpload(file){
+  var id=LIB.whiteFor;LIB.whiteFor=null;if(!id||!file)return;
+  var bad=libOk('logo',file);if(bad){toast(bad,true);return}
+  var ext=file.name.match(/\.([a-z0-9]+)$/i)[1].toLowerCase();
+  await libWhiteSave(id,file,ext,LIB_EXT[ext]);
+}
+/* white version made from the main one: every visible pixel becomes white, transparency is kept */
+async function libWhiteAuto(id,btn){
+  var a=LIB.list.filter(function(x){return x.id===id})[0];if(!a)return;
+  if(btn){btn.disabled=true;btn.textContent='جارٍ التوليد…'}
+  try{
+    var im=await libImg(a,false),c=document.createElement('canvas'),k=Math.min(1,900/Math.max(im.naturalWidth,im.naturalHeight));
+    c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+    var x=c.getContext('2d');x.drawImage(im,0,0,c.width,c.height);x.globalCompositeOperation='source-in';x.fillStyle='#FFFFFF';x.fillRect(0,0,c.width,c.height);
+    var blob=await new Promise(function(res){c.toBlob(res,'image/png')});
+    if(!blob)throw 0;await libWhiteSave(id,blob,'png','image/png');
+  }catch(e){toast('تعذّر توليد النسخة البيضاء. ارفعها يدوياً.',true);libPaint()}
+}
+async function libWhiteDel(id){
+  var a=LIB.list.filter(function(x){return x.id===id})[0];if(!a||!a.path_white)return;
+  var r=await sb.from('library_assets').update({path_white:null}).eq('id',id).select(LIB_COLS).maybeSingle();
+  if(r.error||!r.data){toast('تعذّر الحذف.',true);return}
+  var old=a.path_white;Object.assign(a,r.data);try{await sb.storage.from('library').remove([old])}catch(e){}libPaint();toast('تمت إزالة النسخة البيضاء.');
+}
+
+/* ----- sub-libraries (categories inside each kind) ----- */
+function libCatsOf(kind){return LIB.cats.filter(function(c){return c.kind===kind})}
+function libCatTarget(){return LIB.cat==='all'||LIB.cat==='none'?null:LIB.cat}
+function libCatPaint(){
+  var box=$('#libCats');if(!box)return;
+  var kind=LIB.tab,cs=libCatsOf(kind),cnt=function(f){return LIB.list.filter(function(a){return a.kind===kind&&f(a)}).length};
+  if(LIB.cat!=='all'&&LIB.cat!=='none'&&!cs.some(function(c){return c.id===LIB.cat}))LIB.cat='all';
+  var h='<button type="button" class="chip" data-cat="all" aria-pressed="'+(LIB.cat==='all')+'">الكل <em>'+cnt(function(){return true})+'</em></button>';
+  h+='<button type="button" class="chip" data-cat="none" aria-pressed="'+(LIB.cat==='none')+'">عام <em>'+cnt(function(a){return !a.category_id})+'</em></button>';
+  cs.forEach(function(c){h+='<button type="button" class="chip" data-cat="'+esc(c.id)+'" aria-pressed="'+(LIB.cat===c.id)+'">'+esc(c.name)+' <em>'+cnt(function(a){return a.category_id===c.id})+'</em></button>'});
+  h+='<button type="button" class="chip add" data-cat="+">+ تصنيف فرعي</button>';
+  box.innerHTML=h;
+  var cur=cs.filter(function(c){return c.id===LIB.cat})[0],ops=$('#libCatOps');
+  ops.hidden=!cur||!(me.role==='admin'||cur.created_by===me.email);
+  if(cur)ops.querySelector('b').textContent='التصنيف: '+cur.name;
+}
+var libCatMode='add';
+function libCatForm(on,mode){
+  var f=$('#libCatForm');if(!f)return;f.hidden=!on;if(!on)return;
+  libCatMode=mode||'add';var cur=libCatsOf(LIB.tab).filter(function(c){return c.id===LIB.cat})[0];
+  $('#libCatName').value=libCatMode==='rename'&&cur?cur.name:'';$('#libCatName').focus();
+  $('#libCatLab').textContent=libCatMode==='rename'?'الاسم الجديد للتصنيف':'اسم التصنيف الفرعي في قسم «'+(LIB_KINDS.filter(function(k){return k[0]===LIB.tab})[0]||[])[1]+'»';
+}
+async function libCatSave(){
+  var name=$('#libCatName').value.trim().slice(0,60);if(!name){libMsg('اكتب اسم التصنيف.',true);return}
+  var dup=libCatsOf(LIB.tab).some(function(c){return c.name.toLowerCase()===name.toLowerCase()&&!(libCatMode==='rename'&&c.id===LIB.cat)});
+  if(dup){libMsg('يوجد تصنيف بهذا الاسم في هذا القسم.',true);return}
+  if(libCatMode==='rename'){
+    var r=await sb.from('library_categories').update({name:name}).eq('id',LIB.cat).select('id,kind,name,created_by,created_at').maybeSingle();
+    if(r.error||!r.data){libMsg('تعذّر التعديل.',true);return}
+    var c=LIB.cats.filter(function(x){return x.id===LIB.cat})[0];if(c)Object.assign(c,r.data);
+  }else{
+    var r2=await sb.from('library_categories').insert({kind:LIB.tab,name:name,created_by:me.email}).select('id,kind,name,created_by,created_at').maybeSingle();
+    if(r2.error||!r2.data){libMsg('تعذّر إضافة التصنيف.',true);return}
+    LIB.cats.push(r2.data);LIB.cat=r2.data.id;
+  }
+  libMsg('');libCatForm(false);libPaint();
+}
+async function libCatDelete(btn){
+  if(btn.dataset.sure!=='1'){btn.dataset.sure='1';btn.textContent='تأكيد الحذف (الملفات تنتقل إلى «عام»)';return}
+  var id=LIB.cat,r=await sb.from('library_categories').delete().eq('id',id);
+  if(r.error){toast('تعذّر الحذف.',true);return}
+  LIB.cats=LIB.cats.filter(function(c){return c.id!==id});LIB.list.forEach(function(a){if(a.category_id===id)a.category_id=null});LIB.cat='all';libPaint();toast('تم حذف التصنيف.');
+}
+function libCatInit(){
+  $('#libCats').addEventListener('click',function(e){
+    var b=e.target.closest('[data-cat]');if(!b)return;var v=b.dataset.cat;
+    if(v==='+'){libCatForm(true,'add');return}
+    LIB.cat=v;libCatForm(false);libPaint();
+  });
+  $('#libCatSave').addEventListener('click',libCatSave);
+  $('#libCatName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();libCatSave()}else if(e.key==='Escape')libCatForm(false)});
+  $('#libCatCancel').addEventListener('click',function(){libCatForm(false)});
+  $('#libCatRen').addEventListener('click',function(){libCatForm(true,'rename')});
+  $('#libCatDel').addEventListener('click',function(){libCatDelete(this)});
+  $('#libWhiteFile').addEventListener('change',function(){var f=this.files&&this.files[0];this.value='';if(f)libWhiteUpload(f)});
+}
 function libInit(){
-  $('#libTabs').addEventListener('change',function(e){LIB.tab=e.target.value;libPaint()});
+  $('#libTabs').addEventListener('change',function(e){LIB.tab=e.target.value;LIB.cat='all';libCatForm(false);libPaint()});
+  libCatInit();
   $('#libQ').addEventListener('input',function(){LIB.q=this.value;libPaint()});
   $('#libFile').addEventListener('change',function(){var f=Array.prototype.slice.call(this.files||[]);this.value='';if(f.length)libUploadMany(f)});
   $('#libAuto').addEventListener('click',function(){var b=$('#libAutoBox');b.hidden=!b.hidden;if(!b.hidden)$('#libNames').focus();
@@ -2322,6 +2445,9 @@ function libInit(){
   $('#libGrid').addEventListener('click',function(e){
     var b=e.target.closest('button[data-lact]');if(!b)return;var id=b.closest('.lcard').dataset.id;
     if(b.dataset.lact==='edit')libEditOpen(id);
+    else if(b.dataset.lact==='wup'){LIB.whiteFor=id;$('#libWhiteFile').click()}
+    else if(b.dataset.lact==='wauto')libWhiteAuto(id,b);
+    else if(b.dataset.lact==='wdel')libWhiteDel(id);
     else{if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='تأكيد الحذف';return}libDelete(id)}
   });
   $('#libEditForm').addEventListener('submit',libEditSave);
