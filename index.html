@@ -2317,7 +2317,7 @@ function showPending(email){$('#auth').hidden=false;$('#lpModal').hidden=false;$
 function initUI(){
   buildSwatches('#swTitle','titleC');buildSwatches('#swMain','main');buildSwatches('#swStrap','strap');buildSwatches('#swFoot','footC',true);
   S0=JSON.parse(JSON.stringify(S));
-  Object.assign(S,JSON.parse(JSON.stringify({kicker:DEMO.kicker,title:DEMO.title,subtitle:DEMO.subtitle,hero:DEMO.hero,stats:DEMO.stats,items:DEMO.items,bars:DEMO.bars,legend:DEMO.legend,layout:DEMO.layout})));
+  var en=$('#exampleNote');if(en)en.hidden=true;
   syncControls();buildEditor();bindControls();bindEditor();
   $('#gen').addEventListener('click',function(){pgGate('ig',function(){generate()})});
   $('#stopGen').addEventListener('click',function(){if(ctl)ctl.abort()});
@@ -3876,7 +3876,7 @@ function czInit(){
   });
   try{if(window.ResizeObserver)new ResizeObserver(czFit).observe($('#czWrap'))}catch(e){}
   window.addEventListener('resize',czFit);
-  czLoad(CZ_DEMO,false);czSyncStyle();czBuildThumbs();czBuildEditor();czNav();czFit();czRenderAll();
+  CZ.slides=[czBlank('cover'),czBlank('content'),czBlank('closing')];CZ.cur=0;$('#czNote').hidden=true;czSyncStyle();czBuildThumbs();czBuildEditor();czNav();czFit();czRenderAll();
 }
 function czFonts(){
   return Promise.all(['20px BahijPlain','20px BahijBold','20px BahijXBold','20px AlIttihad','20px DINCond','400 20px Acumin','700 20px Acumin','800 20px Acumin'].map(function(f){return document.fonts.load(f,'ابجد abc 0123').catch(function(){})}));
@@ -5806,7 +5806,7 @@ async function chDownload(){
 /* ----- start ----- */
 function chInit(){
   if(chInited)return;chInited=true;chSetup();
-  chLoadDemo(CH.style);
+  chIsDemo=false;$('#chNote').hidden=true;
   CH.bgC1=chSt().bg[0];CH.bgC2=chSt().bg[1];
   chBuildEditor();
   var ac=$('#chAccordion');accBind(ac,function(k){chOpenKey=k});
