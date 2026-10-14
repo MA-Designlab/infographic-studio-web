@@ -627,6 +627,29 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
   .edbar .btn{flex:1 1 auto;justify-content:center;padding:12px 10px}
   .edbar .dlg-msg{flex-basis:100%;order:5;min-height:0}
 }
+
+/* ---- library ---- */
+.libbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:16px 0 12px}
+.libbar input[type=search]{flex:1;min-width:180px;max-width:320px;font:inherit;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;color:var(--ink)}
+.libbar .seg span em{font-style:normal;font-size:11.5px;color:var(--muted);margin-inline-start:4px}
+.libbar .seg input:checked+span em{color:#E3D4FA}
+.libauto{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.libres{display:flex;flex-direction:column;gap:6px}
+.lr{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:7px 10px;border-radius:10px;background:var(--soft)}
+.lrs{color:var(--muted)}.lrs.ok{color:#1d7a46}.lrs.bad{color:#B3135F}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-top:6px}
+.lcard{position:relative;display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px}
+.lprev{height:84px;display:grid;place-items:center;border-radius:12px;background:repeating-conic-gradient(#EEE8F8 0 25%,#fff 0 50%) 50%/14px 14px;overflow:hidden}
+.lprev img{max-width:88%;max-height:88%;object-fit:contain}
+.lprev.flag img{max-height:64px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.lfont{font-size:22px;line-height:1.2;text-align:center;color:var(--ink)}
+.lcard b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcard small{color:var(--muted);font-size:11.5px;min-height:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcard .pill{align-self:flex-start;font-size:10.5px;padding:3px 8px}
+.lact{display:flex;gap:6px;margin-top:2px}
+.lact button{flex:1;border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 4px;font:500 12px/1 sans-serif;font-family:inherit;color:var(--ink);cursor:pointer}
+.lact button:hover{background:var(--soft)}
+.lact .warn{color:#B3135F}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -761,6 +784,7 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
       <button type="button" data-nav="clients" data-admin><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="12" rx="2.5"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5M3.5 13h17"/></svg>العملاء</button>
       <button type="button" data-nav="dash" data-admin><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="9" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.8"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.8"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.8"/></svg>لوحة التحكم</button>
       <button type="button" data-nav="studio"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 16l3.2-3.6 2.6 2.6 2-2 2.7 3"/><circle cx="8.6" cy="9.1" r="1.3"/></svg>إنتاج المحتوى</button>
+      <button type="button" data-nav="lib"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="4.5" width="7" height="7" rx="3.5"/><path d="M4 15.5h6.5M4 19h4M13.5 15.5h7M13.5 19h4.5"/></svg>المكتبة</button>
       <hr>
       <button type="button" id="navTour"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.6a2.3 2.3 0 1 1 3.2 2.1c-.7.4-1 .9-1 1.6M12 16.6v.1"/></svg>الجولة التعريفية</button>
       <button type="button" id="navPw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21M18 12v3M15 12v2.2"/></svg>تغيير كلمة السر</button>
@@ -991,6 +1015,30 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
   </div>
   </section>
 
+  <section class="view" id="viewLib" aria-label="المكتبة" hidden>
+    <div class="page-in">
+      <div class="pg-head">
+        <div><h2 class="pg-title">المكتبة</h2><p class="pg-sub" id="libSub"></p></div>
+        <div class="row">
+          <label class="btn ghost upl">رفع ملفات<input type="file" id="libFile" multiple accept="image/png,image/jpeg,image/webp,.woff,.woff2,.ttf,.otf" hidden></label>
+          <button type="button" class="btn pink" id="libAuto">جلب تلقائي من الإنترنت</button>
+        </div>
+      </div>
+      <div class="libbar">
+        <div class="seg" id="libTabs" role="radiogroup" aria-label="نوع الملفات"><label><input type="radio" name="libk" value="flag" checked data-lk="flag"><span>الأعلام <em></em></span></label><label><input type="radio" name="libk" value="logo" data-lk="logo"><span>الشعارات <em></em></span></label><label><input type="radio" name="libk" value="font" data-lk="font"><span>الخطوط <em></em></span></label><label><input type="radio" name="libk" value="image" data-lk="image"><span>الصور <em></em></span></label></div>
+        <input type="search" id="libQ" placeholder="بحث بالاسم" aria-label="بحث">
+      </div>
+      <div class="libauto" id="libAutoBox" hidden>
+        <p class="hint">اكتب الأسماء، اسماً في كل سطر. يبحث النظام عن كل واحد في مصادر عامة ويحفظه هنا، وإن لم يجده تستطيع رفعه بنفسك.</p>
+        <textarea id="libNames" rows="5" dir="auto"></textarea>
+        <div class="row"><button type="button" class="btn pink sm" id="libAutoGo">جلب</button></div>
+        <div id="libRes" class="libres"></div>
+      </div>
+      <div class="dlg-msg" id="libMsg" role="status"></div>
+      <div class="libgrid" id="libGrid"></div>
+    </div>
+  </section>
+
   <section class="view" id="viewClients" aria-label="العملاء" hidden>
     <div class="page-in" id="clList">
       <div class="pg-head">
@@ -1072,6 +1120,16 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
     </form>
   </div>
 
+  <div class="dlg-wrap" id="dlgLibEdit" hidden>
+    <form class="dlg" id="libEditForm" role="dialog" aria-modal="true" aria-labelledby="leTitle" autocomplete="off">
+      <h3 id="leTitle">تعديل ملف المكتبة</h3>
+      <p class="hint">الاسم والأسماء البديلة هي ما يُستخدم للعثور على الملف تلقائياً في الرسوم البيانية.</p>
+      <div class="field"><label for="leName">الاسم</label><input type="text" id="leName" maxlength="80"></div>
+      <div class="field"><label for="leKeys">أسماء بديلة (افصل بينها بفاصلة)</label><input type="text" id="leKeys" maxlength="200" placeholder="مثال: ADNOC، أدنوك للغاز"></div>
+      <div class="dlg-msg" id="leMsg" role="alert"></div>
+      <div class="dlg-act"><button type="submit" class="btn pink">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></div>
+    </form>
+  </div>
   <div class="dlg-wrap" id="dlgPhotos" hidden>
     <div class="dlg wide" role="dialog" aria-modal="true" aria-labelledby="pgTitle">
       <h3 id="pgTitle">هل عندك صور للتصميم؟</h3>
@@ -1085,7 +1143,7 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
         <input type="file" id="pgFile" accept="image/*" hidden>
         <div class="pggrid" id="pgGrid"></div>
         <p class="hint">يمكنك أيضاً سحب الصور وإفلاتها هنا.</p>
-        <label class="check" id="pgSmartW"><input type="checkbox" id="pgSmart" checked> اختيار ذكي: Claude يوزّع الصور على الشرائح حسب المعنى ويحدد مكان الوجه للقص وينبّهك لأي صورة ضعيفة</label>
+        <label class="check" id="pgSmartW"><input type="checkbox" id="pgSmart" checked> اختيار ذكي: النظام الذكي يوزّع الصور على الشرائح حسب المعنى ويحدد مكان الوجه للقص وينبّهك لأي صورة ضعيفة</label>
       </div>
       <div class="dlg-msg" id="pgMsg" role="status"></div>
       <div class="dlg-act" id="pgAct"><button type="button" class="btn pink" id="pgGo">كمّل</button><button type="button" class="btn ghost" id="pgCancel">إلغاء</button></div>
@@ -1573,7 +1631,7 @@ var ERR={
   empty_text:'الصق النص أولاً.',weak_password:'كلمة السر لازم تكون 8 أحرف على الأقل.',bad_email:'الإيميل غير صحيح.',cannot_remove_self:'لا يمكنك حذف حسابك بنفسك.',
   user_not_found:'المستخدم غير موجود.',not_admin:'هذه الميزة للمسؤول فقط.',cancelled:'تم الإيقاف.',
   account_disabled:'هذا الحساب موقوف. تواصل مع المسؤول.',protected_super_admin:'هذا حساب المالك وهو محمي، لا يمكن تعديله أو إيقافه أو حذفه.',forbidden:'لا تملك صلاحية على هذا الحساب.',super_admin_only:'هذه الميزة للمالك فقط.',cannot_modify_self:'لا يمكن تطبيق هذا على حسابك.',
-  empty_name:'اكتب الاسم.',ai_no_credit:'رصيد حساب Anthropic لم يُشحن أو انتهى. أضف رصيداً من صفحة الفوترة في Console ثم أعد المحاولة.',ai_bad_key:'مفتاح Anthropic غير صحيح أو انتهت صلاحيته.',ai_bad_model:'اسم النموذج غير مقبول من Anthropic.',ai_rate_limited:'ضغط كبير على الخدمة الآن. أعد المحاولة بعد قليل.'
+  empty_name:'اكتب الاسم.',ai_no_credit:'رصيد خدمة الذكاء الاصطناعي لم يُشحن أو انتهى. أضف رصيداً من صفحة الفوترة في لوحة الخدمة ثم أعد المحاولة.',ai_bad_key:'مفتاح خدمة الذكاء الاصطناعي غير صحيح أو انتهت صلاحيته.',ai_bad_model:'اسم النموذج غير مقبول من خدمة الذكاء الاصطناعي.',ai_rate_limited:'ضغط كبير على الخدمة الآن. أعد المحاولة بعد قليل.',not_found:'لم يُعثر عليه في المصادر العامة. ارفعه يدوياً.',unknown_country:'اسم الدولة غير معروف. ارفع العلم يدوياً.',store_failed:'تعذّر حفظ الملف في المكتبة.',bad_code:'رمز الدولة غير صحيح.'
 };
 function errText(c){return ERR[c]||'حصل خطأ غير متوقع. أعد المحاولة.'}
 async function callFn(name,payload,signal){
@@ -1678,13 +1736,14 @@ function setDrawer(open){
 function go(v){
   if((v==='users'||v==='dash'||v==='clients')&&me.role!=='admin')v='studio';
   curView=v;
-  $('#viewStudio').hidden=v!=='studio';$('#viewDash').hidden=v!=='dash';$('#viewUsers').hidden=v!=='users';$('#viewClients').hidden=v!=='clients';
+  $('#viewStudio').hidden=v!=='studio';$('#viewDash').hidden=v!=='dash';$('#viewUsers').hidden=v!=='users';$('#viewClients').hidden=v!=='clients';$('#viewLib').hidden=v!=='lib';
   document.querySelectorAll('.dr-nav [data-nav]').forEach(function(b){b.classList.toggle('on',b.dataset.nav===v)});
   if(drawerOpen){lastFocus=$('#userChip');setDrawer(false)}
   if(v==='studio'){fit();render()}
   if(v==='dash')loadStats();
   if(v==='users')loadUsers();
   if(v==='clients'){ED=null;edShow(false);clPaintList()}
+  if(v==='lib')libPaint();
 }
 
 /* dialogs */
@@ -1693,7 +1752,7 @@ function openDlg(id,focusSel){
   setTimeout(function(){var f=w.querySelector(focusSel||'input:not([type=radio])');if(f)f.focus()},30);
 }
 function closeDlg(id){var w=$(id);w.hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus()}
-function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos'].filter(function(i){return !$(i).hidden})[0]}
+function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit'].filter(function(i){return !$(i).hidden})[0]}
 
 /* user dialog (add / new password) */
 var udMode='add';
@@ -1834,7 +1893,7 @@ async function loadStats(){
 
 /* ---------- sign-in flow ---------- */
 function showLogin(open){
-  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos'].forEach(function(i){$(i).hidden=true});
+  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit'].forEach(function(i){$(i).hidden=true});
   $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
   if(open)setTimeout(function(){$('#email').focus()},30);
 }
@@ -1845,7 +1904,7 @@ function initUI(){
   syncControls();buildEditor();bindControls();bindEditor();
   $('#gen').addEventListener('click',function(){pgGate('ig',function(){generate()})});
   $('#stopGen').addEventListener('click',function(){if(ctl)ctl.abort()});
-  cliPickInit();clInit();mpInit();
+  cliPickInit();clInit();mpInit();libInit();
   try{if(window.ResizeObserver){new ResizeObserver(fit).observe($('.sheetwrap'))}}catch(e){}
   window.addEventListener('resize',fit);
 }
@@ -1872,7 +1931,7 @@ async function enter(session){
   status(missing?'بعض الخطوط أو الشعارات غير مرفوعة في التخزين الخاص، فيظهر التصميم بخطوط بديلة حتى ترفعها.':'',!!missing);
   /* per-account extras: preferences, clients, saved colour sets, first-time tour */
   CLI.cur=null;
-  await Promise.all([prefsLoad(),cliLoad(),mpLoad()]);
+  await Promise.all([prefsLoad(),cliLoad(),mpLoad(),libLoad()]);
   var last=PREFS.last&&cliFind(PREFS.last);
   if(last&&(last.active||me.role==='admin'))await cliSet(last);else cliSet(null);
   if((PREFS.tour||0)<TOUR_V)setTimeout(function(){tourStart(true)},500);
@@ -1931,6 +1990,217 @@ async function boot(){
   $('#dl').addEventListener('click',download);
   var s=(await sb.auth.getSession()).data.session;
   if(s)await enter(s);else showLogin(false);
+}
+
+/* country names (Arabic and English) -> ISO code, used to find flags in the library */
+var COUNTRIES=[["ae",["الإمارات","الامارات العربية المتحدة","الإمارات العربية المتحدة","دولة الإمارات","إمارات","UAE","United Arab Emirates","Emirates"]],["sa",["السعودية","المملكة العربية السعودية","المملكة السعودية","Saudi Arabia","KSA","Saudi"]],["kw",["الكويت","Kuwait"]],["qa",["قطر","Qatar"]],["bh",["البحرين","Bahrain"]],["om",["عمان","سلطنة عمان","Oman"]],["ye",["اليمن","Yemen"]],["iq",["العراق","Iraq"]],["sy",["سوريا","سورية","Syria"]],["lb",["لبنان","Lebanon"]],["jo",["الأردن","الاردن","Jordan"]],["ps",["فلسطين","Palestine"]],["eg",["مصر","Egypt"]],["sd",["السودان","Sudan"]],["ss",["جنوب السودان","South Sudan"]],["ly",["ليبيا","Libya"]],["tn",["تونس","Tunisia"]],["dz",["الجزائر","Algeria"]],["ma",["المغرب","Morocco"]],["mr",["موريتانيا","Mauritania"]],["so",["الصومال","Somalia"]],["dj",["جيبوتي","Djibouti"]],["km",["جزر القمر","القمر","Comoros"]],["us",["الولايات المتحدة","الولايات المتحدة الأمريكية","أمريكا","امريكا","أميركا","USA","United States","America"]],["gb",["بريطانيا","المملكة المتحدة","إنجلترا","انجلترا","UK","United Kingdom","Britain","Great Britain"]],["fr",["فرنسا","France"]],["de",["ألمانيا","المانيا","Germany"]],["it",["إيطاليا","ايطاليا","Italy"]],["es",["إسبانيا","اسبانيا","Spain"]],["pt",["البرتغال","Portugal"]],["nl",["هولندا","Netherlands","Holland"]],["be",["بلجيكا","Belgium"]],["ch",["سويسرا","Switzerland"]],["at",["النمسا","Austria"]],["se",["السويد","Sweden"]],["no",["النرويج","Norway"]],["dk",["الدنمارك","Denmark"]],["fi",["فنلندا","Finland"]],["is",["أيسلندا","ايسلندا","Iceland"]],["ie",["أيرلندا","ايرلندا","Ireland"]],["pl",["بولندا","Poland"]],["cz",["التشيك","Czech Republic","Czechia"]],["sk",["سلوفاكيا","Slovakia"]],["hu",["المجر","Hungary"]],["ro",["رومانيا","Romania"]],["bg",["بلغاريا","Bulgaria"]],["gr",["اليونان","Greece"]],["tr",["تركيا","Turkey","Türkiye","Turkiye"]],["cy",["قبرص","Cyprus"]],["mt",["مالطا","Malta"]],["ru",["روسيا","Russia"]],["ua",["أوكرانيا","اوكرانيا","Ukraine"]],["by",["بيلاروسيا","Belarus"]],["md",["مولدوفا","Moldova"]],["lt",["ليتوانيا","Lithuania"]],["lv",["لاتفيا","Latvia"]],["ee",["إستونيا","استونيا","Estonia"]],["rs",["صربيا","Serbia"]],["hr",["كرواتيا","Croatia"]],["si",["سلوفينيا","Slovenia"]],["ba",["البوسنة والهرسك","البوسنة","Bosnia"]],["me",["الجبل الأسود","Montenegro"]],["mk",["مقدونيا الشمالية","مقدونيا","North Macedonia","Macedonia"]],["al",["ألبانيا","البانيا","Albania"]],["xk",["كوسوفو","Kosovo"]],["lu",["لوكسمبورغ","Luxembourg"]],["li",["ليختنشتاين","Liechtenstein"]],["mc",["موناكو","Monaco"]],["ad",["أندورا","اندورا","Andorra"]],["sm",["سان مارينو","San Marino"]],["va",["الفاتيكان","Vatican"]],["ge",["جورجيا","Georgia"]],["am",["أرمينيا","ارمينيا","Armenia"]],["az",["أذربيجان","اذربيجان","Azerbaijan"]],["kz",["كازاخستان","Kazakhstan"]],["uz",["أوزبكستان","اوزبكستان","Uzbekistan"]],["tm",["تركمانستان","Turkmenistan"]],["kg",["قيرغيزستان","Kyrgyzstan"]],["tj",["طاجيكستان","Tajikistan"]],["af",["أفغانستان","افغانستان","Afghanistan"]],["pk",["باكستان","Pakistan"]],["in",["الهند","India"]],["bd",["بنغلاديش","Bangladesh"]],["lk",["سريلانكا","Sri Lanka"]],["np",["نيبال","Nepal"]],["bt",["بوتان","Bhutan"]],["mv",["جزر المالديف","المالديف","Maldives"]],["cn",["الصين","China"]],["jp",["اليابان","Japan"]],["kr",["كوريا الجنوبية","كوريا","South Korea","Korea"]],["kp",["كوريا الشمالية","North Korea"]],["mn",["منغوليا","Mongolia"]],["tw",["تايوان","Taiwan"]],["hk",["هونج كونج","هونغ كونغ","هونغ كونج","هونج كونغ","Hong Kong"]],["mo",["ماكاو","Macau","Macao"]],["sg",["سنغافورة","Singapore"]],["my",["ماليزيا","Malaysia"]],["th",["تايلاند","Thailand"]],["vn",["فيتنام","Vietnam"]],["ph",["الفلبين","Philippines"]],["id",["إندونيسيا","اندونيسيا","Indonesia"]],["kh",["كمبوديا","Cambodia"]],["la",["لاوس","Laos"]],["mm",["ميانمار","Myanmar"]],["bn",["بروناي","Brunei"]],["tl",["تيمور الشرقية","Timor-Leste"]],["au",["أستراليا","استراليا","Australia"]],["nz",["نيوزيلندا","نيوزلندا","New Zealand"]],["fj",["فيجي","Fiji"]],["pg",["بابوا غينيا الجديدة","Papua New Guinea"]],["ir",["إيران","ايران","Iran"]],["il",["إسرائيل","اسرائيل","Israel"]],["ca",["كندا","Canada"]],["mx",["المكسيك","Mexico"]],["br",["البرازيل","Brazil"]],["ar",["الأرجنتين","الارجنتين","Argentina"]],["cl",["تشيلي","Chile"]],["co",["كولومبيا","Colombia"]],["pe",["بيرو","Peru"]],["ve",["فنزويلا","Venezuela"]],["ec",["الإكوادور","الاكوادور","Ecuador"]],["bo",["بوليفيا","Bolivia"]],["py",["باراغواي","باراجواي","Paraguay"]],["uy",["أوروغواي","اوروجواي","Uruguay"]],["cu",["كوبا","Cuba"]],["do",["الدومينيكان","جمهورية الدومينيكان","Dominican Republic"]],["pa",["بنما","Panama"]],["cr",["كوستاريكا","Costa Rica"]],["gt",["غواتيمالا","جواتيمالا","Guatemala"]],["hn",["هندوراس","Honduras"]],["sv",["السلفادور","El Salvador"]],["ni",["نيكاراغوا","Nicaragua"]],["jm",["جامايكا","Jamaica"]],["ht",["هايتي","Haiti"]],["tt",["ترينيداد وتوباغو","Trinidad and Tobago"]],["bs",["جزر البهاما","البهاما","Bahamas"]],["bb",["بربادوس","Barbados"]],["za",["جنوب أفريقيا","جنوب افريقيا","South Africa"]],["ng",["نيجيريا","Nigeria"]],["ke",["كينيا","Kenya"]],["et",["إثيوبيا","اثيوبيا","Ethiopia"]],["gh",["غانا","Ghana"]],["tz",["تنزانيا","Tanzania"]],["ug",["أوغندا","اوغندا","Uganda"]],["rw",["رواندا","Rwanda"]],["zm",["زامبيا","Zambia"]],["zw",["زيمبابوي","Zimbabwe"]],["mz",["موزمبيق","Mozambique"]],["ao",["أنغولا","انجولا","Angola"]],["na",["ناميبيا","Namibia"]],["bw",["بوتسوانا","Botswana"]],["sn",["السنغال","Senegal"]],["ci",["ساحل العاج","كوت ديفوار","Ivory Coast","Cote d'Ivoire"]],["cm",["الكاميرون","Cameroon"]],["cd",["الكونغو الديمقراطية","جمهورية الكونغو الديمقراطية","DR Congo","Democratic Republic of the Congo"]],["cg",["الكونغو","Congo"]],["ga",["الغابون","Gabon"]],["ml",["مالي","Mali"]],["ne",["النيجر","Niger"]],["td",["تشاد","Chad"]],["bf",["بوركينا فاسو","Burkina Faso"]],["gn",["غينيا","Guinea"]],["sl",["سيراليون","Sierra Leone"]],["lr",["ليبيريا","Liberia"]],["mg",["مدغشقر","Madagascar"]],["mu",["موريشيوس","Mauritius"]],["sc",["سيشل","Seychelles"]],["er",["إريتريا","اريتريا","Eritrea"]],["bi",["بوروندي","Burundi"]],["mw",["مالاوي","Malawi"]],["ls",["ليسوتو","Lesotho"]],["sz",["إسواتيني","اسواتيني","Eswatini"]],["gm",["غامبيا","Gambia"]],["bj",["بنين","Benin"]],["tg",["توغو","Togo"]],["cv",["الرأس الأخضر","Cape Verde"]],["eu",["الاتحاد الأوروبي","European Union","EU"]],["un",["الأمم المتحدة","United Nations","UN"]]];
+
+/* ---------- library: flags, logos, fonts and images shared by the team ---------- */
+var LIB={list:[],map:{flag:{},logo:{},font:{},image:{}},blobs:{},imgs:{},faces:{},tab:'flag',q:'',busy:false,editId:null};
+var LIB_KINDS=[['flag','الأعلام'],['logo','الشعارات'],['font','الخطوط'],['image','الصور']];
+var LIB_FETCHING={};
+
+function libNorm(s){
+  s=String(s||'').toLowerCase().replace(/[ً-ٰٟـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ؤ/g,'و').replace(/ئ/g,'ي')
+    .replace(/[^\p{L}\p{N} ]/gu,' ').replace(/\s+/g,' ').trim();
+  return s.split(' ').map(function(w){return w.length>3&&w.indexOf('ال')===0?w.slice(2):w}).join(' ');
+}
+var CTRY=null;
+function ctryIdx(){
+  if(CTRY)return CTRY;
+  CTRY={names:{},aliases:{}};
+  COUNTRIES.forEach(function(c){
+    c[1].forEach(function(n){var k=libNorm(n);if(k&&!CTRY.names[k])CTRY.names[k]=c[0]});
+    CTRY.aliases[c[0]]=c[1].map(libNorm).filter(Boolean);
+  });
+  return CTRY;
+}
+function countryCode(name){
+  var ix=ctryIdx(),n=libNorm(name);if(!n)return null;
+  if(ix.names[n])return ix.names[n];
+  var m=n.replace(/^(دوله|مملكه|سلطنه|جمهوريه|اتحاد)\s+/,'');
+  if(ix.names[m])return ix.names[m];
+  /* a country name inside a longer label, longest name first */
+  var padded=' '+n+' ',best=null,bl=0;
+  Object.keys(ix.names).forEach(function(k){if(k.length>=3&&k.length>bl&&padded.indexOf(' '+k+' ')>-1){best=ix.names[k];bl=k.length}});
+  return best;
+}
+function libRebuild(){
+  var m={flag:{},logo:{},font:{},image:{}};
+  LIB.list.forEach(function(a){(a.keys||[]).forEach(function(k){if(m[a.kind]&&!m[a.kind][k])m[a.kind][k]=a});var n=libNorm(a.name);if(n&&m[a.kind]&&!m[a.kind][n])m[a.kind][n]=a});
+  LIB.map=m;
+}
+function libFind(kind,name){
+  var m=LIB.map[kind]||{},n=libNorm(name);if(!n)return null;
+  if(m[n])return m[n];
+  if(kind==='flag'){var c=countryCode(name);if(c&&m['iso:'+c])return m['iso:'+c]}
+  return null;
+}
+async function libLoad(){
+  try{
+    var r=await sb.from('library_assets').select('id,kind,name,keys,path,source,created_by,created_at').order('created_at');
+    LIB.list=r.error?[]:(r.data||[]);
+  }catch(e){LIB.list=[]}
+  libRebuild();libPaint();
+}
+function libBlob(path){
+  if(!LIB.blobs[path]){
+    LIB.blobs[path]=sb.storage.from('library').download(path).then(function(r){if(r.error||!r.data)throw new Error('dl');return r.data});
+    LIB.blobs[path].catch(function(){delete LIB.blobs[path]});
+  }
+  return LIB.blobs[path];
+}
+function libImg(a){
+  if(!LIB.imgs[a.path]){
+    LIB.imgs[a.path]=libBlob(a.path).then(function(b){return new Promise(function(res,rej){var im=new Image();im.onload=function(){res(im)};im.onerror=rej;im.src=URL.createObjectURL(b)})});
+    LIB.imgs[a.path].catch(function(){delete LIB.imgs[a.path]});
+  }
+  return LIB.imgs[a.path];
+}
+var libFaceN=0;
+function libFontFamily(a){
+  if(!LIB.faces[a.path]){
+    LIB.faces[a.path]=libBlob(a.path).then(function(b){return b.arrayBuffer()}).then(async function(buf){
+      var name='LibF'+(++libFaceN),f=new FontFace(name,buf,{weight:'100 900'});
+      await f.load();document.fonts.add(f);return name;
+    });
+    LIB.faces[a.path].catch(function(){delete LIB.faces[a.path]});
+  }
+  return LIB.faces[a.path];
+}
+function libAliasKeys(kind,name){
+  var k=[libNorm(name)];
+  if(kind==='flag'){var c=countryCode(name);if(c){k.push('iso:'+c);ctryIdx().aliases[c].forEach(function(x){if(k.indexOf(x)<0)k.push(x)})}}
+  return k.filter(Boolean).slice(0,12);
+}
+/* look in the library; when missing and allowed, fetch from the internet once and keep it */
+async function libEnsure(kind,name,fetchWeb){
+  var a=libFind(kind,name);if(a||!fetchWeb)return a;
+  return libFetch(kind,name);
+}
+async function libFetch(kind,name){
+  var id=kind+'|'+libNorm(name);
+  if(LIB_FETCHING[id])return LIB_FETCHING[id];
+  LIB_FETCHING[id]=(async function(){
+    try{
+      var body={kind:kind,query:String(name).trim().slice(0,80),keys:libAliasKeys(kind,name)};
+      if(kind==='flag'){var c=countryCode(name);if(!c)throw{code:'unknown_country'};body.code=c}
+      var j=await callFn('fetch-asset',body);
+      if(!j||!j.data)throw{code:'not_found'};
+      LIB.list.push(j.data);libRebuild();libPaint();
+      return j.data;
+    }finally{delete LIB_FETCHING[id]}
+  })();
+  return LIB_FETCHING[id];
+}
+var LIB_EXT={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',woff:'font/woff',woff2:'font/woff2',ttf:'font/ttf',otf:'font/otf'};
+function libOk(kind,file){
+  var ext=((file.name.match(/\.([a-z0-9]+)$/i)||[])[1]||'').toLowerCase();
+  if(kind==='font'){if(!/^(woff2?|ttf|otf)$/.test(ext))return 'الخط لازم يكون WOFF أو TTF أو OTF.';if(file.size>6*1048576)return 'ملف الخط كبير (الحد 6 ميجابايت).'}
+  else{if(!/^(png|jpe?g|webp)$/.test(ext))return 'الصورة لازم تكون PNG أو JPG أو WebP.';if(file.size>(kind==='image'?6:3)*1048576)return 'الصورة كبيرة (الحد '+(kind==='image'?6:3)+' ميجابايت).'}
+  return '';
+}
+async function libUpload(kind,file,name){
+  var bad=libOk(kind,file);if(bad)throw{msg:bad};
+  var ext=file.name.match(/\.([a-z0-9]+)$/i)[1].toLowerCase(),path=kind+'s/'+crypto.randomUUID()+'.'+ext;
+  var up=await sb.storage.from('library').upload(path,file,{contentType:LIB_EXT[ext],upsert:false});
+  if(up.error)throw{msg:'تعذّر رفع الملف.'};
+  var r=await sb.from('library_assets').insert({kind:kind,name:name.slice(0,80),keys:libAliasKeys(kind,name),path:path,source:'upload',created_by:me.email}).select('id,kind,name,keys,path,source,created_by,created_at').maybeSingle();
+  if(r.error||!r.data){try{await sb.storage.from('library').remove([path])}catch(e){}throw{msg:'تعذّر حفظ الملف في المكتبة.'}}
+  LIB.list.push(r.data);libRebuild();
+  return r.data;
+}
+function libCan(a){return me.role==='admin'||(a.created_by||'')===me.email}
+
+/* ----- view ----- */
+function libPaint(){
+  var g=$('#libGrid');if(!g)return;
+  var q=libNorm(LIB.q),list=LIB.list.filter(function(a){return a.kind===LIB.tab&&(!q||libNorm(a.name).indexOf(q)>-1||(a.keys||[]).some(function(k){return k.indexOf(q)>-1}))});
+  LIB_KINDS.forEach(function(k){var n=LIB.list.filter(function(a){return a.kind===k[0]}).length;var s=$('#libTabs input[data-lk="'+k[0]+'"] + span em');if(s)s.textContent=n?n:''});
+  $('#libAuto').hidden=LIB.tab==='font'||LIB.tab==='image';
+  if(LIB.tab==='font'||LIB.tab==='image')$('#libAutoBox').hidden=true;
+  $('#libSub').textContent=LIB.list.length?LIB.list.length+' ملف في المكتبة. تظهر تلقائياً في الرسوم البيانية بحسب الاسم.':'ارفع الأعلام والشعارات والخطوط مرة واحدة، أو اترك النظام يجلبها لك.';
+  if(!list.length){g.innerHTML='<p class="empty">'+(q?'لا نتائج لهذا البحث.':'لا توجد ملفات في هذا القسم بعد.')+'</p>';return}
+  g.innerHTML=list.map(function(a){
+    var prev=a.kind==='font'?'<span class="lfont" data-lf="'+esc(a.id)+'">أبجد Abc 123</span>':'<img alt="" data-li="'+esc(a.id)+'">';
+    var al=(a.keys||[]).filter(function(k){return k.indexOf('iso:')!==0&&k!==libNorm(a.name)}).slice(0,3).join('، ');
+    var can=libCan(a);
+    return '<div class="lcard" data-id="'+esc(a.id)+'"><div class="lprev'+(a.kind==='flag'?' flag':'')+'">'+prev+'</div><b title="'+esc(a.name)+'">'+esc(a.name)+'</b><small>'+(al?esc(al):'&nbsp;')+'</small>'
+      +(a.source==='web'?'<span class="pill">من الإنترنت</span>':'')
+      +'<div class="lact">'+(can?'<button type="button" data-lact="edit">تعديل</button><button type="button" data-lact="del" class="warn">حذف</button>':'')+'</div></div>';
+  }).join('');
+  $$('[data-li]',g).forEach(function(im){var a=LIB.list.filter(function(x){return x.id===im.dataset.li})[0];if(a)libBlob(a.path).then(function(b){im.src=URL.createObjectURL(b)},function(){im.alt='تعذّر التحميل'})});
+  $$('[data-lf]',g).forEach(function(sp){var a=LIB.list.filter(function(x){return x.id===sp.dataset.lf})[0];if(a)libFontFamily(a).then(function(f){sp.style.fontFamily=f},function(){})});
+}
+function libMsg(m,err){var e=$('#libMsg');e.textContent=m||'';e.className='dlg-msg'+(err?'':' ok')}
+async function libUploadMany(files){
+  var kind=LIB.tab,ok=0,fail=[];
+  for(var i=0;i<files.length;i++){
+    var f=files[i],name=f.name.replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' ').trim()||'ملف';
+    try{await libUpload(kind,f,name);ok++}catch(e){fail.push(f.name+': '+(e.msg||'فشل'))}
+  }
+  libPaint();
+  libMsg(ok?('تم رفع '+ok+' ملف. اضغط «تعديل» على أي بطاقة لتغيير اسمها أو إضافة أسماء بديلة.'):'',false);
+  if(fail.length){libMsg((ok?'تم رفع '+ok+'. ':'')+'تعذّر: '+fail.join(' | '),true)}
+}
+async function libAutoRun(){
+  var lines=$('#libNames').value.split(/\n+/).map(function(s){return s.trim()}).filter(Boolean).slice(0,30);
+  if(!lines.length){libMsg('اكتب اسماً واحداً على الأقل.',true);return}
+  var kind=LIB.tab,res=$('#libRes'),btn=$('#libAutoGo');btn.disabled=true;res.innerHTML='';libMsg('');
+  var rows=lines.map(function(n){var d=document.createElement('div');d.className='lr';d.innerHTML='<span class="lrn">'+esc(n)+'</span><span class="lrs">في الانتظار…</span>';res.appendChild(d);return d});
+  for(var i=0;i<lines.length;i++){
+    var st=$('.lrs',rows[i]);
+    var have=libFind(kind,lines[i]);
+    if(have){st.textContent='موجود في المكتبة';st.className='lrs ok';continue}
+    st.textContent='جارٍ الجلب…';
+    try{await libFetch(kind,lines[i]);st.textContent='تمت الإضافة';st.className='lrs ok'}
+    catch(e){
+      var c=e&&e.code;
+      st.textContent=c==='unknown_country'?'اسم الدولة غير معروف، ارفع العلم يدوياً':c==='not_found'?'لم يُعثر عليه في المصادر العامة، ارفعه يدوياً':errText(c);
+      st.className='lrs bad';
+    }
+  }
+  btn.disabled=false;libPaint();
+}
+function libEditOpen(id){
+  var a=LIB.list.filter(function(x){return x.id===id})[0];if(!a)return;
+  LIB.editId=id;$('#leName').value=a.name;
+  $('#leKeys').value=(a.keys||[]).filter(function(k){return k.indexOf('iso:')!==0}).join('، ');
+  $('#leMsg').textContent='';openDlg('#dlgLibEdit','#leName');
+}
+async function libEditSave(e){
+  e.preventDefault();
+  var a=LIB.list.filter(function(x){return x.id===LIB.editId})[0];if(!a)return;
+  var name=$('#leName').value.trim();if(!name){$('#leMsg').textContent='اكتب الاسم.';return}
+  var extra=$('#leKeys').value.split(/[,،\n]+/).map(libNorm).filter(Boolean);
+  var keys=libAliasKeys(a.kind,name);
+  (a.keys||[]).forEach(function(k){if(k.indexOf('iso:')===0&&keys.indexOf(k)<0)keys.push(k)});
+  extra.forEach(function(k){if(keys.indexOf(k)<0)keys.push(k)});
+  keys=keys.slice(0,12);
+  var r=await sb.from('library_assets').update({name:name.slice(0,80),keys:keys}).eq('id',a.id).select('id,kind,name,keys,path,source,created_by,created_at').maybeSingle();
+  if(r.error||!r.data){$('#leMsg').textContent='تعذّر الحفظ.';return}
+  Object.assign(a,r.data);libRebuild();libPaint();closeDlg('#dlgLibEdit');toast('تم تعديل «'+a.name+'».');
+}
+async function libDelete(id){
+  var a=LIB.list.filter(function(x){return x.id===id})[0];if(!a)return;
+  var r=await sb.from('library_assets').delete().eq('id',id);
+  if(r.error){toast('تعذّر الحذف.',true);return}
+  try{await sb.storage.from('library').remove([a.path])}catch(e){}
+  LIB.list=LIB.list.filter(function(x){return x.id!==id});libRebuild();libPaint();toast('تم حذف «'+a.name+'».');
+}
+function libInit(){
+  $('#libTabs').addEventListener('change',function(e){LIB.tab=e.target.value;libPaint()});
+  $('#libQ').addEventListener('input',function(){LIB.q=this.value;libPaint()});
+  $('#libFile').addEventListener('change',function(){var f=Array.prototype.slice.call(this.files||[]);this.value='';if(f.length)libUploadMany(f)});
+  $('#libAuto').addEventListener('click',function(){var b=$('#libAutoBox');b.hidden=!b.hidden;if(!b.hidden)$('#libNames').focus();
+    $('#libNames').placeholder=LIB.tab==='flag'?'اسم دولة في كل سطر، مثال:\nالهند\nتركيا\nسلطنة عمان':'اسم شركة في كل سطر، مثال:\nأدنوك\nجوجل\nأمازون'});
+  $('#libAutoGo').addEventListener('click',libAutoRun);
+  $('#libGrid').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-lact]');if(!b)return;var id=b.closest('.lcard').dataset.id;
+    if(b.dataset.lact==='edit')libEditOpen(id);
+    else{if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='تأكيد الحذف';return}libDelete(id)}
+  });
+  $('#libEditForm').addEventListener('submit',libEditSave);
 }
 
 /* ---------- client identity: profiles, switching, editor, saved colour sets ---------- */
@@ -2147,7 +2417,7 @@ function edHtml(){
   var photos='<div class="field"><div class="rl"><label for="edShade">قوة التظليل على الصور</label><output id="edShadeV">'+ph.shade+'</output></div><input type="range" id="edShade" min="0" max="100" step="5" value="'+ph.shade+'" data-k="photo.shade" data-num="1"><p class="hint">50 هي القيمة المعتادة. ارفعها لو الصور فاتحة والنص لا يظهر جيداً.</p></div>'
     +'<div class="field"><span class="lab">شكل صورة الشخص في الشريحة الأخيرة</span><div class="seg full"><label><input type="radio" name="edShape" data-k="photo.shape" value="circle"'+(ph.shape==='circle'?' checked':'')+'><span>دائرة</span></label><label><input type="radio" name="edShape" data-k="photo.shape" value="rect"'+(ph.shape==='rect'?' checked':'')+'><span>مستطيل</span></label></div></div>'
     +'<div class="field"><label for="edGrad">تدرج غلاف الكاروسيل</label><select id="edGrad" data-k="photo.grad"><option value="soft"'+(ph.grad==='soft'?' selected':'')+'>خفيف (يبدأ أدنى الصورة)</option><option value="standard"'+(ph.grad==='standard'?' selected':'')+'>معتاد</option><option value="strong"'+(ph.grad==='strong'?' selected':'')+'>قوي (يغطي مساحة أكبر)</option></select></div>';
-  var tone='<p class="hint">هذا النص يُرسل إلى Claude مع كل تحويل لهذا العميل. اكتبه كما تشرحه لمحرّر جديد.</p>'
+  var tone='<p class="hint">هذا النص يُرسل إلى النظام الذكي مع كل تحويل لهذا العميل. اكتبه كما تشرحه لمحرّر جديد.</p>'
     +'<div class="field"><label for="edVoice">نبرة الكتابة</label><textarea id="edVoice" data-k="tone.voice" maxlength="800" rows="4" placeholder="مثال: رسمية وهادئة، جمل قصيرة، بدون مبالغة، نخاطب القارئ بصيغة الغائب.">'+esc(tn.voice||'')+'</textarea></div>'
     +'<div class="field"><label for="edRules">تعليمات إضافية</label><textarea id="edRules" data-k="tone.rules" maxlength="700" rows="4" placeholder="مثال: نكتب «الإمارات» لا «دولة الإمارات العربية المتحدة». لا نستخدم علامات التعجب. العناوين لا تزيد عن أربع كلمات.">'+esc(tn.rules||'')+'</textarea></div>'
     +'<div class="field"><label for="edTl">لغة الكتابة</label><select id="edTl" data-k="tone.lang"><option value="">تلقائي حسب النص</option><option value="ar"'+(tn.lang==='ar'?' selected':'')+'>العربية دائماً</option><option value="en"'+(tn.lang==='en'?' selected':'')+'>الإنجليزية دائماً</option></select></div>';
@@ -2999,7 +3269,7 @@ function czDistribute(imgs){
   rest.forEach(function(im,j){if(cont[j]){cont[j].photo=im;cont[j].pa=side(im)}});
   var last=sl[sl.length-1];if(closeImg&&last&&last.type==='closing'){last.photo=closeImg;last.pa=side(closeImg)}
 }
-/* ----- smart photo selection: Claude looks at the pictures and the slides and assigns by meaning ----- */
+/* ----- smart photo selection: the AI looks at the pictures and the slides and assigns by meaning ----- */
 function pgThumb(im,max){
   var w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,max/Math.max(w,h)),c=document.createElement('canvas');
   c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));
@@ -3050,9 +3320,9 @@ function trSteps(){
   return [
     {t:'أهلاً بك في مصمم الإنفوجراف',b:'الأداة تحوّل أي نص إلى إنفوجراف أو كاروسيل بهوية جاهزة، وتوفّر عليك ساعات التنسيق. جولة قصيرة تعرّفك على كل قسم. تقدر تتخطاها الآن أو تعيدها لاحقاً من قائمة حسابك.'},
     {sel:'.modebar .seg',pre:function(){go('studio');trMode('ig')},t:'اختر نوع المنتج',b:'«إنفوجراف» صورة واحدة بمقاس 4:5. «كاروسيل» سلسلة شرائح تُمرَّر يميناً ويساراً. لكل منهما إعداداته ومعاينته.'},
-    {sel:'#cliPick',t:'اختر العميل',b:'كل عميل له هوية: ألوان وخطوط وشعار ونبرة كتابة. اخترته من هنا فتتبدّل الهوية كلها في الإنفوجراف والكاروسيل بنقرة واحدة، وتُطبَّق نبرته على كتابة Claude.'},
+    {sel:'#cliPick',t:'اختر العميل',b:'كل عميل له هوية: ألوان وخطوط وشعار ونبرة كتابة. اخترته من هنا فتتبدّل الهوية كلها في الإنفوجراف والكاروسيل بنقرة واحدة، وتُطبَّق نبرته على كتابة النظام الذكي.'},
     {sel:'#src',pre:function(){trMode('ig')},t:'الصق النص هنا',b:'الصق الخبر أو التقرير كما هو. تقدر تجرّب بزر «نص تجريبي» لو أردت أن ترى شكل النتيجة أولاً.'},
-    {sel:'#gen',t:'اضغط «حوّل»',b:'يقرأ Claude النص ويرتّبه في تصميم: عنوان وأرقام وعناصر. قبل البدء يسألك: هل عندك صور؟ ارفعها أو اختر «بدون صور».'},
+    {sel:'#gen',t:'اضغط «حوّل»',b:'يقرأ النظام الذكي النص ويرتّبه في تصميم: عنوان وأرقام وعناصر. قبل البدء يسألك: هل عندك صور؟ ارفعها أو اختر «بدون صور».'},
     {sel:'#plBtn',t:'وزّع كما هو',b:'لو تريد نصك بحروفه بدون أي تعديل، هذا الزر يوزّعه على خانات القالب ويقترح القالب الأنسب. كل كلمة تظهر كما كتبتها.'},
     {sel:'#pfBtn',t:'مراجعة لغوية',b:'تدقيق عربي وإنجليزي: إملاء وترقيم وأخطاء واضحة. تراجع كل اقتراح وتقبله أو ترفضه، ولا تتغيّر الأسماء ولا الأرقام.'},
     {sel:'#acc .ac-h',t:'عدّل أي صندوق',b:'العنوان والأرقام والسطر السفلي والقالب والخلفية، كلها صناديق تُفتح وتُغلق. لكل رقم لونه، وللعنوان لونه. وفي «تكويناتي اللونية» تحفظ ألوانك باسم لتستخدمها لاحقاً.'},
