@@ -3691,7 +3691,6 @@ function czShow(on){
   if(on){czInit();czFit();czFonts().then(function(){czRenderAll()})}else{fit();render()}
 }
 function czBoot(){
-  var vs=$('#viewStudio');vs.addEventListener('scroll',function(){if(!vs.classList.contains('cz-on')&&!vs.classList.contains('ch-on')&&vs.scrollTop)vs.scrollTop=0});
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)modeSwitch(r.value)})});
 }
 czBoot();
