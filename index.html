@@ -5919,7 +5919,7 @@ function fxBody(m,id){
   /* spacing */
   var sp='';
   if((T==='text'||T==='num')&&e.ic.on)sp+=fxRng('ic.gap','المسافة بين الأيقونة و'+(T==='num'?'الرقم':'النص'),e.ic.gap==null?Math.round(e.size*.3):e.ic.gap,0,160,1);
-  if(T==='num'&&e.sub)sp+=fxRng('cgap','المسافة بين الرقم والوصف',e.cgap==null?4:e.cgap,0,80,1);
+  if(T==='num'&&e.sub)sp+=fxRng('cgap','المسافة بين الرقم والوصف',e.cgap==null?4:e.cgap,-80,80,1);
   if(T==='text')sp+=fxRng('lsp','تباعد الأسطر',e.lsp||132,90,240,2,'%');
   if(e.box.on)sp+=fxRng('box.pad',T==='img'?'سُمك الإطار':'المسافة داخل البوكس',e.box.pad,0,120,1);
   if(sp)h+=fxSec('sp','المسافات',sp,true);
