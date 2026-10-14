@@ -447,6 +447,78 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
 .pfok{font-size:16px;font-weight:600;color:#14633A;margin:0}
 .dlg.wide .dlg-act{position:sticky;bottom:-26px;z-index:2;background:#fff;padding:14px 0 2px;margin-top:2px;border-top:1px solid rgba(60,30,100,.1);flex-wrap:wrap}
 @media (max-width:520px){.dlg.wide{padding:20px 16px}.dlg.wide .dlg-act{bottom:-20px}}
+
+/* ===== Control panel v2: one calm system. Equal-height buttons, collapsible boxes (one open at a time). ===== */
+.step{gap:14px}
+#status:empty,#czStatus:empty{display:none}
+#status,#czStatus{min-height:0}
+.cta{display:flex;gap:8px}
+.cta .primary.block{flex:1;width:100%;justify-content:center}
+.tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tool{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font:500 13px/1 sans-serif;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;min-width:0}
+.tool:hover{background:var(--soft);border-color:#D6C8F0}
+.tool.ghost{background:transparent}
+.tool.add{width:100%;border-style:dashed;border-color:#CDBDEB;color:var(--violet);background:transparent}
+.tool.add:hover{background:var(--soft)}
+.tool:disabled{opacity:.45;cursor:default}
+@media (max-width:420px){.tools{grid-template-columns:1fr 1fr}.tools .tool:last-child:nth-child(odd){grid-column:1/-1}}
+
+.acc{display:flex;flex-direction:column;gap:8px}
+.acc-label{margin:10px 2px 0;font:600 12px/1.4 sans-serif;font-family:inherit;color:var(--muted)}
+.acc-label:empty{display:none}
+.ac{border:1px solid var(--line);border-radius:16px;background:#fff;transition:border-color .18s,box-shadow .18s}
+.ac[hidden]{display:none}
+.ac.open{border-color:#D3C4EF;box-shadow:0 8px 22px rgba(43,15,77,.07)}
+.ac-h{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:0 16px;border:0;border-radius:16px;background:none;color:var(--ink);font:600 14px/1.2 sans-serif;font-family:inherit;text-align:start;cursor:pointer}
+.ac-h:hover{background:var(--soft)}
+.ac.open>.ac-h{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.ac-h:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.ac-t{flex:none}
+.ac-s{flex:1;min-width:0;margin-inline-start:4px;font-weight:400;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;text-align:start;transition:opacity .15s}
+.ac.open .ac-s{opacity:0}
+.chv{flex:none;width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .22s var(--ease)}
+.ac.open .chv{transform:rotate(180deg);stroke:var(--violet)}
+.ac-w{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .24s var(--ease),visibility 0s .24s}
+.ac.open>.ac-w{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .24s var(--ease),visibility 0s}
+.ac-b{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding:0 16px}
+.ac.open .ac-b{padding:6px 16px 18px;overflow:visible;animation:acin .24s var(--ease)}
+@keyframes acin{from{opacity:.4}}
+@media (prefers-reduced-motion:reduce){.ac-w,.chv,.ac{transition:none}.ac.open .ac-b{animation:none}}
+.ac-b .field{gap:7px}
+.ac-b .grp{border:0;padding:0;background:none}
+.ac-b .rowf{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+.ac-b .rowf.item,.ac-b .rowf.bar{padding:12px}
+.ac-b .x{border:0;background:none;color:#B3135F;font:500 12.5px/1 sans-serif;font-family:inherit;padding:8px 6px;border-radius:8px}
+.ac-b .x:hover{background:#FDE6EF}
+.ac-b .check{padding:2px 0}
+.ac-b .check input{accent-color:var(--violet);width:17px;height:17px}
+.ac-b #edTitle,.ac-b #edKick,.ac-b #edFoot,.ac-b #edHero,.ac-b #edList,.ac-b #edStats{display:flex;flex-direction:column;gap:12px}
+.seg.full{display:flex;width:100%}
+.seg.full label{flex:1}
+.seg.full span{text-align:center;padding:9px 8px}
+.rl{display:flex;justify-content:space-between;align-items:baseline}
+.rl output{font:600 12.5px/1 sans-serif;font-family:inherit;color:var(--violet);direction:ltr}
+.sws{gap:7px}
+.sw{width:24px;height:24px}
+.sw.auto{width:auto;height:26px;padding:0 11px;border-radius:999px;background:#fff;font:500 12px/1 sans-serif;font-family:inherit;color:var(--muted)}
+.sw.auto[aria-pressed=true]{color:var(--ink)}
+.ac-b input[type=range]{height:22px}
+.ac-b .colrow{padding:2px 0}
+
+/* carousel bars */
+.tgroup{display:inline-flex;align-items:center;gap:2px;padding:3px;background:var(--soft);border-radius:13px}
+.tb{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 13px;border:0;border-radius:10px;background:transparent;color:var(--ink);font:500 13px/1 sans-serif;font-family:inherit;white-space:nowrap}
+.tb:hover{background:#fff}
+.tb:disabled{opacity:.38;cursor:default}
+.tb:disabled:hover{background:transparent}
+.tb.danger{color:#B3135F}
+.tb.strong{background:#fff;box-shadow:0 1px 3px rgba(43,15,77,.12);font-weight:600}
+.czbar{gap:10px;justify-content:space-between}
+.czbar .czpos{min-width:54px}
+.bar2 button{height:46px;display:inline-flex;align-items:center;justify-content:center}
+.bar2 button:not(.primary){border-radius:999px;padding:0 22px;background:#fff;font-weight:600}
+.inrow .tool{height:44px;flex:none;padding:0 12px}
+.ac-b .inrow{gap:8px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -605,20 +677,70 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
           <div class="field"><label for="layoutSel">التخطيط</label>
             <select id="layoutSel"><option value="auto">اختيار تلقائي</option><option value="stats">أرقام وإحصائيات</option><option value="list">نقاط مرقمة</option><option value="bars">ترتيب بالأعمدة</option><option value="cards">بطاقات نصية</option></select></div>
         </div>
-        <div class="row">
-          <button class="primary" id="gen" type="button">حوّل النص إلى تصميم</button>
-          <button id="stopGen" type="button" hidden>إيقاف</button>
-          <button id="demo" type="button" class="mini">نص تجريبي</button>
-          <button id="plBtn" type="button">وزّع النص كما هو على القالب</button>
-          <button id="pfBtn" type="button" class="mini">مراجعة لغوية</button>
-        </div>
+        <div class="cta"><button class="primary block" id="gen" type="button">حوّل النص إلى تصميم</button><button id="stopGen" type="button" class="tool" hidden>إيقاف</button></div>
+        <div class="tools" id="tools"><button id="demo" type="button" class="tool">نص تجريبي</button>
+          <button id="plBtn" type="button" class="tool" title="يوزّع نصك على خانات القالب بدون تغيير أي كلمة ويقترح القالب الأنسب">وزّع كما هو</button>
+          <button id="pfBtn" type="button" class="tool">مراجعة لغوية</button></div>
         <div id="status" role="status" aria-live="polite"></div>
       </div>
 
       <div class="step">
-        <h2><i>2</i> الشكل</h2>
-        <div class="field"><label for="secSel">القالب</label>
-          <select id="secSel">
+        <h2><i>2</i> تعديل التصميم</h2>
+        <p class="hint" id="exampleNote">هذا مثال من موادك. الصق نصك واضغط التحويل، أو افتح أي صندوق وعدّل مباشرة.</p>
+        <div class="acc" id="acc">
+        <section class="ac open" data-ac="head">
+          <button type="button" class="ac-h" aria-expanded="true"><span class="ac-t">العنوان</span><span class="ac-s" data-sum="head"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div id="edTitle"></div>
+<div class="field"><span class="lab">لون العنوان الكبير</span><div class="sws" id="swTitle"></div></div>
+          </div></div>
+        </section>
+        <section class="ac" data-ac="kick">
+          <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">السترابة</span><span class="ac-s" data-sum="kick"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div id="edKick"></div>
+<div class="field"><span class="lab">لون السترابة</span><div class="sws" id="swStrap"></div></div>
+<div class="field"><span class="lab">موضعها</span><div class="seg full" id="segStrap"><label><input type="radio" name="strapPos" value="top"><span>فوق العنوان</span></label><label><input type="radio" name="strapPos" value="bottom"><span>تحته</span></label></div></div>
+          </div></div>
+        </section>
+        <section class="ac" data-ac="hero" data-lay="stats">
+          <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">الرقم الرئيسي</span><span class="ac-s" data-sum="hero"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div id="edHero"></div>
+          </div></div>
+        </section>
+        <section class="ac" data-ac="list" data-lay="list cards bars">
+          <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">النقاط</span><span class="ac-s" data-sum="list"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div id="edList"></div>
+          </div></div>
+        </section>
+        <section class="ac" data-ac="stats">
+          <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">الأرقام</span><span class="ac-s" data-sum="stats"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div id="edStats"></div>
+<div class="field"><span class="lab">لون الأرقام</span><div class="seg full" id="segNum"><label><input type="radio" name="numCol" value="main"><span>ملوّن</span></label><label><input type="radio" name="numCol" value="gray"><span>رمادي</span></label></div></div>
+<div class="field"><span class="lab">لون الأرقام العام (ولكل رقم لون مستقل من صفّه)</span><div class="sws" id="swMain"></div></div>
+<div class="field"><span class="lab">الكلمة المميزة مع الرقم</span><div class="seg full" id="segLabelPos"><label><input type="radio" name="labelPos" value="above"><span>فوقه</span></label><label><input type="radio" name="labelPos" value="below"><span>تحته</span></label></div></div>
+<label class="check"><input type="checkbox" id="band"> شريط خلفية خلف الأرقام السفلية</label>
+          </div></div>
+        </section>
+        <section class="ac" data-ac="foot">
+          <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">السطر السفلي</span><span class="ac-s" data-sum="foot"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div id="edFoot"></div>
+<div class="field"><span class="lab">اللون</span><div class="sws" id="swFoot"></div></div>
+<div class="field"><div class="rl"><label for="footSize">حجم الخط</label><output id="footSizeV"></output></div><input type="range" id="footSize" min="14" max="44" step="1"></div>
+<div class="field"><div class="rl"><label for="footY">الارتفاع عن الحافة السفلية</label><output id="footYV"></output></div><input type="range" id="footY" min="10" max="110" step="1"></div>
+<div class="field"><span class="lab">المحاذاة</span><div class="seg full" id="segFootAl"><label><input type="radio" name="footAl" value="right"><span>يمين</span></label><label><input type="radio" name="footAl" value="center"><span>وسط</span></label><label><input type="radio" name="footAl" value="left"><span>يسار</span></label></div></div>
+<button type="button" class="tool ghost" id="footReset">إعادة الضبط الافتراضي</button>
+          </div></div>
+        </section>
+        <section class="ac" data-ac="style">
+          <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">القالب والنمط</span><span class="ac-s" data-sum="style"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div class="field"><label for="secSel">القالب</label>
+<select id="secSel">
             <option value="news">قالب خبري</option>
             <option value="statement">قالب تصريح</option>
             <option value="eco">اقتصادي</option>
@@ -629,44 +751,26 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
             <option value="invite">دعوة</option>
             <option value="none">بدون شعار</option>
           </select></div>
-        <div class="two">
-          <div class="field"><span class="lab">النمط</span>
-            <div class="seg" id="segTheme"><label><input type="radio" name="theme" value="light"><span>فاتح</span></label><label><input type="radio" name="theme" value="dark"><span>داكن</span></label></div></div>
-          <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span>
-            <div class="seg" id="segLabelPos"><label><input type="radio" name="labelPos" value="above"><span>فوقه</span></label><label><input type="radio" name="labelPos" value="below"><span>تحته</span></label></div></div>
+<div class="field"><span class="lab">النمط</span><div class="seg full" id="segTheme"><label><input type="radio" name="theme" value="light"><span>فاتح</span></label><label><input type="radio" name="theme" value="dark"><span>داكن</span></label></div></div>
+          </div></div>
+        </section>
+        <section class="ac" data-ac="bg">
+          <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">الخلفية</span><span class="ac-s" data-sum="bg"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="ac-w"><div class="ac-b">
+<div class="chips" id="bgChips"></div>
+<div class="row">
+<button type="button" class="tool" id="bgUp">رفع صورة خلفية</button>
+<button type="button" class="tool ghost" id="bgClear" hidden>إزالة الصورة</button>
+<input type="file" id="bgFile" accept="image/*" hidden>
+</div>
+<div id="photoOpts" hidden class="two">
+<div class="field"><label for="anchor">موضع الصورة</label>
+<select id="anchor"><option value="bottom">محاذاة للأسفل</option><option value="center">وسط</option><option value="top">محاذاة للأعلى</option></select></div>
+<div class="field"><label for="veil">شفافية طبقة التغطية</label><input type="range" id="veil" min="0" max="90" value="35"></div>
+</div>
+          </div></div>
+        </section>
         </div>
-        <div class="field"><span class="lab">لون العنوان الكبير</span>
-          <div class="sws" id="swTitle"></div></div>
-        <div class="field"><span class="lab">لون الأرقام والعناصر (يمكن تغيير كل رقم على حدة من الخطوة 3)</span>
-          <div class="sws" id="swMain"></div></div>
-        <div class="field"><span class="lab">لون السترابة</span>
-          <div class="sws" id="swStrap"></div></div>
-        <div class="two">
-          <div class="field"><span class="lab">موضع السترابة</span>
-            <div class="seg" id="segStrap"><label><input type="radio" name="strapPos" value="top"><span>فوق العنوان</span></label><label><input type="radio" name="strapPos" value="bottom"><span>تحته</span></label></div></div>
-          <div class="field"><span class="lab">لون الأرقام</span>
-            <div class="seg" id="segNum"><label><input type="radio" name="numCol" value="main"><span>ملوّن</span></label><label><input type="radio" name="numCol" value="gray"><span>رمادي</span></label></div></div>
-        </div>
-        <div class="field"><span class="lab">الخلفية</span>
-          <div class="chips" id="bgChips"></div>
-          <div class="row">
-            <button type="button" class="mini" id="bgUp">رفع صورة خلفية</button>
-            <button type="button" class="mini" id="bgClear" hidden>إزالة الصورة</button>
-            <input type="file" id="bgFile" accept="image/*" hidden>
-          </div>
-        </div>
-        <div id="photoOpts" hidden class="two">
-          <div class="field"><label for="anchor">موضع الصورة</label>
-            <select id="anchor"><option value="bottom">محاذاة للأسفل</option><option value="center">وسط</option><option value="top">محاذاة للأعلى</option></select></div>
-          <div class="field"><label for="veil">شفافية طبقة التغطية</label><input type="range" id="veil" min="0" max="90" value="35"></div>
-        </div>
-        <label class="check"><input type="checkbox" id="band"> شريط خلفية خلف الأرقام السفلية</label>
-      </div>
-
-      <div class="step">
-        <h2><i>3</i> المحتوى</h2>
-        <p class="hint" id="exampleNote">هذا مثال من موادك. الصق نصك واضغط التحويل، أو عدّل أي حقل هنا مباشرة.</p>
-        <div id="editor"></div>
       </div>
 
     </section>
@@ -686,56 +790,65 @@ mark.good{background:#CFF1DB;color:#14633A;border-radius:4px;padding:0 3px}
         <textarea id="czSrc" dir="auto" placeholder="الصق هنا النص الكامل، وسيُقسّم إلى غلاف وشرائح وختام بنفس أسلوب الإنفوجراف."></textarea>
         <div class="field"><label for="czLang">لغة التصميم</label>
           <select id="czLang"><option value="auto">تلقائي حسب النص</option><option value="ar">العربية</option><option value="en">English</option></select></div>
-        <div class="row">
-          <button class="primary" id="czGen" type="button">حوّل النص إلى شرائح</button>
-          <button type="button" id="czPfBtn" class="mini">مراجعة لغوية</button>
-          <button id="czStop" type="button" hidden>إيقاف</button>
-          <button id="czDemo" type="button" class="mini">مثال جاهز</button>
-        </div>
+        <div class="cta"><button class="primary block" id="czGen" type="button">حوّل النص إلى شرائح</button><button id="czStop" type="button" class="tool" hidden>إيقاف</button></div>
+        <div class="tools two-t"><button type="button" id="czPfBtn" class="tool">مراجعة لغوية</button><button id="czDemo" type="button" class="tool">مثال جاهز</button></div>
         <div id="czStatus" role="status" aria-live="polite"></div>
       </div>
       <div class="step">
-        <h2><i>2</i> الشكل</h2>
-        <div class="field"><span class="lab">الألوان</span><div class="chips" id="czPal"></div></div>
-        <div class="two">
-          <div class="field"><label for="czMain">اللون الرئيسي</label><input type="color" id="czMain" class="wide"></div>
-          <div class="field"><label for="czAcc">لون التمييز</label><input type="color" id="czAcc" class="wide"></div>
+        <h2><i>2</i> تعديل التصميم</h2>
+        <p class="hint" id="czNote">هذا مثال جاهز من موادك. الصق نصك واضغط التحويل، أو افتح أي صندوق وعدّل مباشرة.</p>
+        <div class="acc" id="czAccordion">
+          <p class="acc-label" id="czWhich"></p>
+          <div id="czEditor" style="display:contents"></div>
+          <p class="acc-label">التصميم العام للشرائح</p>
+          <section class="ac" data-ac="pal">
+            <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">الألوان</span><span class="ac-s" data-csum="pal"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="ac-w"><div class="ac-b">
+<div class="chips" id="czPal"></div>
+<div class="two">
+  <div class="field"><label for="czMain">اللون الرئيسي</label><input type="color" id="czMain" class="wide"></div>
+  <div class="field"><label for="czAcc">لون التمييز</label><input type="color" id="czAcc" class="wide"></div>
+</div>
+            </div></div>
+          </section>
+          <section class="ac" data-ac="tpl">
+            <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">القالب والأرقام</span><span class="ac-s" data-csum="tpl"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="ac-w"><div class="ac-b">
+<div class="field"><label for="czSecSel">القالب</label>
+  <select id="czSecSel">
+    <option value="news">قالب خبري</option>
+    <option value="statement">قالب تصريح</option>
+    <option value="eco">اقتصادي</option>
+    <option value="dar">علوم الدار</option>
+    <option value="sports">رياضي</option>
+    <option value="world">عالمي</option>
+    <option value="ent">ترفيه</option>
+    <option value="invite">دعوة</option>
+    <option value="none">بدون شعار</option>
+  </select></div>
+<div class="field"><span class="lab">الكلمة المميزة مع الرقم</span>
+  <div class="seg full"><label><input type="radio" name="czlp" value="above"><span>فوقه</span></label><label><input type="radio" name="czlp" value="below"><span>تحته</span></label></div></div>
+            </div></div>
+          </section>
         </div>
-        <div class="field"><label for="czSecSel">القالب</label>
-          <select id="czSecSel">
-            <option value="news">قالب خبري</option>
-            <option value="statement">قالب تصريح</option>
-            <option value="eco">اقتصادي</option>
-            <option value="dar">علوم الدار</option>
-            <option value="sports">رياضي</option>
-            <option value="world">عالمي</option>
-            <option value="ent">ترفيه</option>
-            <option value="invite">دعوة</option>
-            <option value="none">بدون شعار</option>
-          </select></div>
-        <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span>
-          <div class="seg"><label><input type="radio" name="czlp" value="above"><span>فوقه</span></label><label><input type="radio" name="czlp" value="below"><span>تحته</span></label></div></div>
-      </div>
-      <div class="step">
-        <h2><i>3</i> الشريحة</h2>
-        <p class="hint" id="czNote">هذا مثال جاهز من موادك. الصق نصك واضغط التحويل، أو اختر شريحة من الأسفل وعدّلها.</p>
-        <p class="hint" id="czWhich"></p>
-        <div id="czEditor"></div>
         <input type="file" id="czFile" accept="image/*" hidden>
       </div>
     </section>
     <section class="stage" aria-label="معاينة الكاروسيل">
       <div class="czwrap" id="czWrap"><div class="czsheet" id="czSheet"><canvas id="czCv" role="img" aria-label="معاينة الشريحة"></canvas></div></div>
       <div class="czbar">
-        <button type="button" class="mini" id="czNext" aria-label="الشريحة التالية">التالية</button>
-        <span class="czpos" id="czPos"></span>
-        <button type="button" class="mini" id="czPrev" aria-label="الشريحة السابقة">السابقة</button>
-        <span class="sp"></span>
-        <button type="button" class="mini" id="czAdd">شريحة جديدة</button>
-        <button type="button" class="mini" id="czDup">نسخ</button>
-        <button type="button" class="mini" id="czRt" aria-label="تقديم الشريحة">تقديم</button>
-        <button type="button" class="mini" id="czL" aria-label="تأخير الشريحة">تأخير</button>
-        <button type="button" class="mini" id="czDel">حذف</button>
+        <div class="tgroup" role="group" aria-label="التنقل بين الشرائح">
+          <button type="button" class="tb" id="czNext" aria-label="الشريحة التالية">التالية</button>
+          <span class="czpos" id="czPos"></span>
+          <button type="button" class="tb" id="czPrev" aria-label="الشريحة السابقة">السابقة</button>
+        </div>
+        <div class="tgroup" role="group" aria-label="أدوات الشريحة">
+          <button type="button" class="tb strong" id="czAdd">+ شريحة</button>
+          <button type="button" class="tb" id="czDup">نسخ</button>
+          <button type="button" class="tb" id="czRt" aria-label="تقديم الشريحة">تقديم</button>
+          <button type="button" class="tb" id="czL" aria-label="تأخير الشريحة">تأخير</button>
+          <button type="button" class="tb danger" id="czDel">حذف</button>
+        </div>
       </div>
       <div class="czthumbs" id="czThumbs"></div>
       <div class="bar2">
@@ -844,7 +957,7 @@ var PRESETS={
 
 var S={
   lang:'ar',layout:'stats',sec:'eco',theme:'light',main:'#1B1F78',titleC:'#1B1F78',strap:'#D8560B',strapPos:'top',labelPos:'above',numGray:false,
-  kicker:'',title:'',subtitle:'',footer:'',
+  kicker:'',title:'',subtitle:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',
   hero:{value:'',label:'',text:''},stats:[],items:[],bars:[],legend:[],
   bgPreset:0,bgImg:null,anchor:'bottom',veil:.35,band:true
 };
@@ -1075,7 +1188,7 @@ function render(){
   var th=TH[S.theme],f=F();
   ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.setTransform(K,0,0,K,0,0);
   drawBackground();drawOverlay();
-  var y=titleBlock(150),footH=S.footer?46:0,stats=S.stats.filter(validStat).slice(0,6);
+  var y=titleBlock(150),footH=S.footer?Math.max(46,S.footY+S.footSize+2):0,stats=S.stats.filter(validStat).slice(0,6);
   var heroOn=S.layout==='stats'&&S.hero.value,bandStats=S.layout==='stats'?(heroOn?stats:[]):stats;
   var floor=H-30-footH,bandTop=floor+0,body={top:y+24,bottom:floor-10};
   if(bandStats.length){
@@ -1097,21 +1210,27 @@ function render(){
   }else if(S.layout==='list')drawList(body.top,body.bottom);
   else if(S.layout==='cards')drawCards(body.top,body.bottom);
   else if(S.layout==='bars')drawBars(body.top,body.bottom);
-  if(S.footer)put(fixPct(S.footer),W/2,H-22,f.body(22),th.mute,'center');
+  if(S.footer){
+    var fs=S.footSize,al=S.footAl,fx=al==='center'?W/2:al==='right'?W-60:60,txt=fixPct(S.footer),maxw=W-120;
+    ctx.font=f.body(fs);ctx.direction=dirOf();var mw=ctx.measureText(txt).width;if(mw>maxw)fs=Math.max(10,Math.floor(fs*maxw/mw));
+    put(txt,fx,H-S.footY,f.body(fs),S.footC||th.mute,al);
+  }
+  accSum();
 }
 function fit(){var w=$('.sheetwrap'),s=$('.sheet');if(!w||!s)return;var cs=getComputedStyle(w),aw=w.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),ah=w.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom),r=2250/2813,wd=Math.max(120,Math.min(aw,ah*r));s.style.width=Math.floor(wd)+'px';s.style.height=Math.floor(wd/r)+'px'}
 var raf=0;function schedule(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;render()})}
 
 /* ---------- controls ---------- */
-function buildSwatches(id,key){
+function buildSwatches(id,key,auto){
   var box=$(id);box.innerHTML='';
   SWATCHES.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='sw';b.style.background=s[0];b.title=s[1];b.setAttribute('aria-label',s[1]);b.dataset.c=s[0];b.addEventListener('click',function(){S[key]=s[0];syncSw();schedule()});box.appendChild(b)});
+  if(auto){var a=document.createElement('button');a.type='button';a.className='sw auto';a.title='تلقائي (يتبع النمط)';a.setAttribute('aria-label','تلقائي');a.dataset.c='';a.textContent='تلقائي';a.addEventListener('click',function(){S[key]='';syncSw();schedule()});box.insertBefore(a,box.firstChild)}
   var c=document.createElement('input');c.type='color';c.title='لون مخصص';c.setAttribute('aria-label','لون مخصص');c.id=id.slice(1)+'Custom';c.addEventListener('input',function(){S[key]=c.value.toUpperCase();syncSw();schedule()});box.appendChild(c);
 }
 function syncSw(){
-  [['#swTitle','titleC'],['#swMain','main'],['#swStrap','strap']].forEach(function(p){
+  [['#swTitle','titleC'],['#swMain','main'],['#swStrap','strap'],['#swFoot','footC']].forEach(function(p){
     $$(p[0]+' .sw').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.c.toLowerCase()===S[p[1]].toLowerCase()))});
-    var c=$(p[0]+' input[type=color]');if(c)c.value=S[p[1]].toLowerCase();
+    var c=$(p[0]+' input[type=color]');if(c)c.value=(S[p[1]]||'#6B6F7B').toLowerCase();
   });
 }
 function buildBgChips(){
@@ -1125,8 +1244,9 @@ function syncControls(){
   $('#secSel').value=S.sec;setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
   $('#band').checked=S.band;$('#veil').value=Math.round(S.veil*100);$('#anchor').value=S.anchor;
   if($('#layoutSel').value!=='auto')$('#layoutSel').value=S.layout;
-  syncSw();syncBg();
+  syncSw();syncBg();syncFoot();
 }
+function syncFoot(){$('#footSize').value=S.footSize;$('#footSizeV').textContent=S.footSize;$('#footY').value=S.footY;$('#footYV').textContent=S.footY;setRadio('footAl',S.footAl)}
 function bindControls(){
   $('#secSel').addEventListener('change',function(){S.sec=this.value;schedule()});
   $$('input[name="theme"]').forEach(function(r){r.addEventListener('change',function(){
@@ -1140,6 +1260,10 @@ function bindControls(){
   $$('input[name="strapPos"]').forEach(function(r){r.addEventListener('change',function(){S.strapPos=r.value;schedule()})});
   $$('input[name="numCol"]').forEach(function(r){r.addEventListener('change',function(){S.numGray=r.value==='gray';schedule()})});
   $('#band').addEventListener('change',function(){S.band=this.checked;schedule()});
+  $('#footSize').addEventListener('input',function(){S.footSize=+this.value;syncFoot();schedule()});
+  $('#footY').addEventListener('input',function(){S.footY=+this.value;syncFoot();schedule()});
+  $$('input[name="footAl"]').forEach(function(r){r.addEventListener('change',function(){S.footAl=r.value;schedule()})});
+  $('#footReset').addEventListener('click',function(){S.footC='';S.footSize=22;S.footY=22;S.footAl='center';syncFoot();syncSw();schedule()});
   $('#veil').addEventListener('input',function(){S.veil=this.value/100;schedule()});
   $('#anchor').addEventListener('change',function(){S.anchor=this.value;schedule()});
   $('#bgUp').addEventListener('click',function(){$('#bgFile').click()});
@@ -1169,31 +1293,58 @@ function colRow(path,o){
   var set=!!o.color;
   return '<div class="colrow"><label>لون هذا الرقم</label><input type="color" data-c="'+path+'.color" value="'+(o.color||numColor()).toLowerCase()+'" aria-label="لون الرقم">'+(set?'<button type="button" class="mini" data-cr="'+path+'.color">الافتراضي</button>':'<span class="hint">يتبع اللون العام</span>')+'</div>';
 }
+function addRow(k,label){return '<button type="button" class="tool add" data-add="'+k+'">+ '+label+'</button>'}
 function buildEditor(){
-  var h='';
-  h+='<div class="grp"><div class="two">'
-    +'<div class="field"><label>السترابة</label>'+inp('kicker',S.kicker,'السترابة')+'</div>'
-    +'<div class="field"><label>العنوان الكبير</label>'+inp('title',S.title,'العنوان الكبير')+'</div></div>'
-    +'<div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>'
-    +'<div class="field"><label>سطر الإعداد أو المصدر (اختياري)</label>'+inp('footer',S.footer,'إعداد: الاسم، تصميم: الاسم')+'</div></div>';
-  if(S.layout==='stats'){
-    h+='<div class="grp"><div class="head"><b>الرقم الرئيسي</b></div><div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero)+'</div>';
-  }
-  if(S.layout==='list'||S.layout==='cards'){
-    h+='<div class="grp"><div class="head"><b>'+(S.layout==='list'?'النقاط':'البطاقات')+'</b><button type="button" class="mini" data-add="items">إضافة</button></div>';
+  var L=S.layout,h;
+  $('#edTitle').innerHTML='<div class="field"><label>العنوان الكبير</label>'+inp('title',S.title,'العنوان الكبير')+'</div><div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>';
+  $('#edKick').innerHTML='<div class="field"><label>نص السترابة</label>'+inp('kicker',S.kicker,'السترابة')+'</div>';
+  $('#edFoot').innerHTML='<div class="field"><label>نص السطر (إعداد أو مصدر)</label>'+inp('footer',S.footer,'إعداد: الاسم، تصميم: الاسم')+'</div>';
+  $('#edHero').innerHTML='<div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero);
+  h='';
+  if(L==='list'||L==='cards'){
     S.items.forEach(function(it,i){h+='<div class="rowf item"><div class="field">'+inp('items.'+i+'.title',it.title,'العنوان الفرعي')+inp('items.'+i+'.text',it.text,'النص')+'</div><button type="button" class="x" data-rm="items.'+i+'" aria-label="حذف">حذف</button></div>'});
-    h+='</div>';
-  }
-  if(S.layout==='bars'){
-    h+='<div class="grp"><div class="head"><b>الأعمدة</b><button type="button" class="mini" data-add="bars">إضافة</button></div>'
-      +'<div class="two">'+inp('legend.0',S.legend[0]||'','مفتاح الأعمدة')+inp('legend.1',S.legend[1]||'','مفتاح النسبة')+'</div>';
+    h+=addRow('items',L==='list'?'إضافة نقطة':'إضافة بطاقة');
+  }else if(L==='bars'){
+    h+='<div class="two">'+inp('legend.0',S.legend[0]||'','مفتاح الأعمدة')+inp('legend.1',S.legend[1]||'','مفتاح النسبة')+'</div>';
     S.bars.forEach(function(b,i){h+='<div class="rowf bar">'+inp('bars.'+i+'.label',b.label,'الاسم')+inp('bars.'+i+'.value',b.value,'القيمة')+inp('bars.'+i+'.note',b.note,'النسبة')+'<button type="button" class="x" data-rm="bars.'+i+'" aria-label="حذف">حذف</button></div>'});
-    h+='</div>';
+    h+=addRow('bars','إضافة عمود');
   }
-  h+='<div class="grp"><div class="head"><b>'+(S.layout==='stats'?'الأرقام الداعمة':'شريط الأرقام السفلي')+'</b><button type="button" class="mini" data-add="stats">إضافة</button></div>';
+  $('#edList').innerHTML=h;
+  h='';
   S.stats.forEach(function(s,i){h+='<div class="rowf"><div class="field">'+inp('stats.'+i+'.value',s.value,'الرقم')+'</div>'+inp('stats.'+i+'.label',s.label,'الكلمة المميزة')+'<button type="button" class="x" data-rm="stats.'+i+'" aria-label="حذف">حذف</button><div class="full">'+inp('stats.'+i+'.text',s.text,'النص تحت الرقم')+'</div><div class="full">'+colRow('stats.'+i,s)+'</div></div>'});
-  h+='</div>';
-  $('#editor').innerHTML=h;
+  h+=addRow('stats','إضافة رقم');
+  $('#edStats').innerHTML=h;
+  $('[data-ac="list"] .ac-t').textContent=L==='list'?'النقاط':L==='cards'?'البطاقات':'الأعمدة';
+  $('[data-ac="stats"] .ac-t').textContent=L==='stats'?'الأرقام الداعمة':'شريط الأرقام السفلي';
+  $$('.ac[data-lay]').forEach(function(ac){
+    var off=ac.dataset.lay.split(' ').indexOf(L)<0;ac.hidden=off;
+    if(off&&ac.classList.contains('open')){ac.classList.remove('open');var f=$('[data-ac="head"]');f.classList.add('open');$('.ac-h',f).setAttribute('aria-expanded','true')}
+  });
+  accSum();
+}
+/* ----- collapsible boxes: one open at a time ----- */
+function scrollParent(el){var p=el.parentNode;while(p&&p!==document.body){var cs=getComputedStyle(p);if(/(auto|scroll)/.test(cs.overflowY)&&p.scrollHeight>p.clientHeight+2)return p;p=p.parentNode}return null}
+function accReveal(ac){
+  var sp=scrollParent(ac);if(!sp)return;var r=ac.getBoundingClientRect(),pr=sp.getBoundingClientRect();
+  if(r.top<pr.top+8)sp.scrollTop+=r.top-pr.top-8;else if(r.bottom>pr.bottom-8)sp.scrollTop+=Math.min(r.bottom-pr.bottom+8,r.top-pr.top-8);
+}
+function accBind(root,onOpen){
+  root.addEventListener('click',function(e){
+    var h=e.target.closest('.ac-h');if(!h||!root.contains(h))return;
+    var ac=h.parentNode,willOpen=!ac.classList.contains('open');
+    $$('.ac',root).forEach(function(o){if(o!==ac&&o.classList.contains('open')){o.classList.remove('open');$('.ac-h',o).setAttribute('aria-expanded','false')}});
+    ac.classList.toggle('open',willOpen);h.setAttribute('aria-expanded',String(willOpen));
+    if(onOpen&&ac.dataset.ac)onOpen(willOpen?ac.dataset.ac:'');
+    if(willOpen)setTimeout(function(){accReveal(ac)},250);
+  });
+}
+function accSum(){
+  var set=function(k,v){var e=$('[data-sum="'+k+'"]');if(e)e.textContent=v||''},se=$('#secSel');
+  set('head',S.title);set('kick',S.kicker);set('hero',[S.hero.value,S.hero.label].filter(Boolean).join(' '));
+  var n=S.layout==='bars'?S.bars.length:S.items.length;set('list',n?n+(S.layout==='bars'?' أعمدة':' عناصر'):'');
+  set('stats',S.stats.length?S.stats.length+' أرقام':'');set('foot',S.footer);
+  set('style',(se&&se.selectedOptions[0]?se.selectedOptions[0].textContent:'')+' · '+(S.theme==='dark'?'داكن':'فاتح'));
+  set('bg',S.bgImg?'صورتك':(PRESETS[S.theme][S.bgPreset]||{}).n||'');
 }
 function setPath(path,val){
   var p=path.split('.'),o=S;
@@ -1201,7 +1352,7 @@ function setPath(path,val){
   o[p[p.length-1]]=val;
 }
 function bindEditor(){
-  var ed=$('#editor');
+  var ed=$('#acc');accBind(ed);
   ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.p){setPath(t.dataset.p,t.value);$('#exampleNote').hidden=true;schedule()}
     else if(t.dataset&&t.dataset.c){setPath(t.dataset.c,t.value.toUpperCase());schedule();var b=t.parentNode.querySelector('.hint,button');if(b&&b.classList.contains('hint')){b.outerHTML='<button type="button" class="mini" data-cr="'+t.dataset.c+'">الافتراضي</button>'}}});
   ed.addEventListener('click',function(e){
@@ -1511,7 +1662,7 @@ function showLogin(open){
 }
 function showPending(email){$('#auth').hidden=false;$('#lpModal').hidden=false;$('#loginForm').hidden=true;$('#pending').hidden=false;$('#pendingEmail').textContent=email}
 function initUI(){
-  buildSwatches('#swTitle','titleC');buildSwatches('#swMain','main');buildSwatches('#swStrap','strap');
+  buildSwatches('#swTitle','titleC');buildSwatches('#swMain','main');buildSwatches('#swStrap','strap');buildSwatches('#swFoot','footC',true);
   Object.assign(S,JSON.parse(JSON.stringify({kicker:DEMO.kicker,title:DEMO.title,subtitle:DEMO.subtitle,hero:DEMO.hero,stats:DEMO.stats,items:DEMO.items,bars:DEMO.bars,legend:DEMO.legend,layout:DEMO.layout})));
   syncControls();buildEditor();bindControls();bindEditor();
   $('#gen').addEventListener('click',generate);
@@ -1940,29 +2091,38 @@ function czLoad(d,keepPhotos){
 }
 
 /* ----- editor ----- */
-function czIn(path,val,ph,color){return '<div class="inrow"><input type="text" dir="auto" data-cz="'+path+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+(color?'<button type="button" class="mini hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
+function czIn(path,val,ph,color){return '<div class="inrow"><input type="text" dir="auto" data-cz="'+path+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+(color?'<button type="button" class="tool hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
+var CHV='<svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+function czAc(key,title,sum,body,open){return '<section class="ac'+(open?' open':'')+'" data-ac="'+key+'"><button type="button" class="ac-h" aria-expanded="'+(open?'true':'false')+'"><span class="ac-t">'+title+'</span><span class="ac-s">'+esc(sum||'')+'</span>'+CHV+'</button><div class="ac-w"><div class="ac-b">'+body+'</div></div></section>'}
 function czBuildEditor(){
-  var s=CZ.slides[CZ.cur],i=CZ.cur,pre='slides.'+i+'.',h='';
+  var s=CZ.slides[CZ.cur],i=CZ.cur,pre='slides.'+i+'.',secs=[];
   var names={cover:'الغلاف',closing:'الختام',content:'شريحة'};
-  $('#czWhich').textContent=(names[s.type])+' '+(i+1)+' من '+CZ.slides.length+(s.type==='content'?'، يظهر رقمها داخل الدائرة.':'.');
-  if(s.type==='cover'){
-    h+='<div class="grp"><div class="field"><label>السترابة</label>'+czIn(pre+'kicker',s.kicker,'السترابة')+'</div><div class="field"><label>العنوان الكبير</label>'+czIn(pre+'title',s.title,'العنوان الكبير',1)+'</div><div class="field"><label>سطر الوصف</label>'+czIn(pre+'text',s.text,'وصف قصير',1)+'</div><div class="field"><label>نص زر السحب</label>'+czIn(pre+'cta',s.cta,'اسحب للمزيد')+'</div></div>';
-  }else if(s.type==='closing'){
-    h+='<div class="grp"><div class="field"><label>العنوان</label>'+czIn(pre+'title',s.title,'العنوان',1)+'</div><div class="field"><label>النص</label>'+czIn(pre+'text',s.text,'جملة قصيرة',1)+'</div><div class="two"><div class="field"><label>نص الزر</label>'+czIn(pre+'cta',s.cta,'تابعونا')+'</div><div class="field"><label>الحساب (اختياري)</label>'+czIn(pre+'handle',s.handle,'@aletihad')+'</div></div></div>';
-  }else{
-    h+='<div class="grp"><div class="field"><label>العنوان</label>'+czIn(pre+'title',s.title,'العنوان',1)+'</div><div class="field"><label>العنوان الثانوي</label>'+czIn(pre+'subtitle',s.subtitle,'سطر رمادي قصير')+'</div><div class="field"><label>نص داخل المربع الملون</label>'+czIn(pre+'text',s.text,'جملة أو جملتان',1)+'</div><div class="field"><label>وسوم أسفل الشريحة (افصل بفاصلة)</label>'+czIn(pre+'pills',s.pills,'مثال: التعليم، الإمارات')+'</div></div>';
-    h+='<div class="grp"><div class="head"><b>الأرقام</b><button type="button" class="mini" data-cadd="stats">إضافة</button></div>';
+  $('#czWhich').textContent='تعديل '+names[s.type]+' ('+(i+1)+' من '+CZ.slides.length+')';
+  var f=function(lab,inner){return '<div class="field"><label>'+lab+'</label>'+inner+'</div>'};
+  var txt,sum=(s.title||'').replace(/\*\*/g,'');
+  if(s.type==='cover')txt=f('السترابة',czIn(pre+'kicker',s.kicker,'السترابة'))+f('العنوان الكبير',czIn(pre+'title',s.title,'العنوان الكبير',1))+f('سطر الوصف',czIn(pre+'text',s.text,'وصف قصير',1))+f('نص زر السحب',czIn(pre+'cta',s.cta,'اسحب للمزيد'));
+  else if(s.type==='closing')txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('النص',czIn(pre+'text',s.text,'جملة قصيرة',1))+'<div class="two">'+f('نص الزر',czIn(pre+'cta',s.cta,'تابعونا'))+f('الحساب (اختياري)',czIn(pre+'handle',s.handle,'@aletihad'))+'</div>';
+  else txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('العنوان الثانوي',czIn(pre+'subtitle',s.subtitle,'سطر رمادي قصير'))+f('نص داخل المربع الملون',czIn(pre+'text',s.text,'جملة أو جملتان',1))+f('وسوم أسفل الشريحة (افصل بفاصلة)',czIn(pre+'pills',s.pills,'مثال: التعليم، الإمارات'));
+  secs.push(['txt','النصوص',sum,txt]);
+  if(s.type==='content'){
+    var h='';
     s.stats.forEach(function(t,j){h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div></div>'});
-    h+='</div><div class="grp"><div class="head"><b>نقاط</b><button type="button" class="mini" data-cadd="points">إضافة</button></div>';
+    h+='<button type="button" class="tool add" data-cadd="stats">+ إضافة رقم</button>';
+    secs.push(['num','الأرقام',s.stats.length?s.stats.length+' أرقام':'',h]);
+    h='';
     s.points.forEach(function(t,j){h+='<div class="rowf item"><div class="field">'+czIn(pre+'points.'+j+'.title',t.title,'العنوان الفرعي')+czIn(pre+'points.'+j+'.text',t.text,'النص')+'</div><button type="button" class="x" data-crm="points.'+j+'" aria-label="حذف">حذف</button></div>'});
-    h+='</div>';
+    h+='<button type="button" class="tool add" data-cadd="points">+ إضافة نقطة</button>';
+    secs.push(['pts','النقاط',s.points.length?s.points.length+' نقاط':'',h]);
   }
-  h+='<div class="grp"><div class="head"><b>الصورة</b></div><div class="row"><button type="button" class="mini" data-cphoto="1">'+(s.photo?'تغيير الصورة':'رفع صورة')+'</button>'+(s.photo?'<button type="button" class="mini" data-cphoto="0">إزالة</button>':'')+'</div>'+
-    (s.photo?'<div class="field"><label>موضع الصورة</label><select data-czsel="pa"><option value="center"'+(s.pa==='center'?' selected':'')+'>وسط</option><option value="top"'+(s.pa==='top'?' selected':'')+'>الأعلى</option><option value="bottom"'+(s.pa==='bottom'?' selected':'')+'>الأسفل</option></select></div>':'<p class="hint">بدون صورة يظهر تصميم زخرفي بألوان القالب.</p>')+'</div>';
-  $('#czEditor').innerHTML=h;
+  secs.push(['img','الصورة',s.photo?'مرفوعة':'بدون','<div class="row"><button type="button" class="tool" data-cphoto="1">'+(s.photo?'تغيير الصورة':'رفع صورة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-cphoto="0">إزالة</button>':'')+'</div>'+
+    (s.photo?'<div class="field"><label>موضع الصورة</label><select data-czsel="pa"><option value="center"'+(s.pa==='center'?' selected':'')+'>وسط</option><option value="top"'+(s.pa==='top'?' selected':'')+'>الأعلى</option><option value="bottom"'+(s.pa==='bottom'?' selected':'')+'>الأسفل</option></select></div>':'<p class="hint">بدون صورة يظهر تصميم زخرفي بألوان القالب.</p>')]);
+  // keep the box that was open; if a general-design box is open, leave it open
+  var root=$('#czAccordion'),staticOpen=!!$('.ac.open[data-ac="pal"],.ac.open[data-ac="tpl"]',root),want=CZ.openKey===undefined?'txt':CZ.openKey;
+  if(want&&!secs.some(function(x){return x[0]===want}))want='txt';
+  $('#czEditor').innerHTML=secs.map(function(x){return czAc(x[0],x[1],x[2],x[3],!staticOpen&&x[0]===want)}).join('');
 }
 function czSet(path,val){var p=path.split('.'),o=CZ;for(var i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=val}
-function czSelect(i){CZ.cur=Math.max(0,Math.min(CZ.slides.length-1,i));czBuildEditor();czBuildThumbs();czDrawSlide(CZ.cur);czThumb(CZ.cur);czNav()}
+function czSelect(i){CZ.cur=Math.max(0,Math.min(CZ.slides.length-1,i));czBuildEditor();czDrawSlide(CZ.cur);czThumb(CZ.cur);czNav()}
 function czNav(){
   $('#czPos').textContent=(CZ.cur+1)+' / '+CZ.slides.length;
   $('#czPrev').disabled=CZ.cur<=0;$('#czNext').disabled=CZ.cur>=CZ.slides.length-1;
@@ -1984,6 +2144,8 @@ function czSyncStyle(){
   $('#czMain').value=CZ.main.toLowerCase();$('#czAcc').value=CZ.accent.toLowerCase();
   $('#czSecSel').value=CZ.sec;
   $$('input[name="czlp"]').forEach(function(r){r.checked=r.value===CZ.labelPos});
+  var pn=CPAL.filter(function(P){return P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()})[0],se=$('#czSecSel');
+  var a=$('[data-csum="pal"]'),b=$('[data-csum="tpl"]');if(a)a.textContent=pn?pn.n:'ألوان مخصصة';if(b&&se.selectedOptions[0])b.textContent=se.selectedOptions[0].textContent;
 }
 function czStatus(msg,err,busy){var s=$('#czStatus');s.className=err?'err':'';s.innerHTML=(busy?'<span class="spin"></span>':'')+esc(msg||'')}
 
@@ -2041,7 +2203,7 @@ function czInit(){
   CPAL.forEach(function(P,k){var b=document.createElement('button');b.type='button';b.className='chip pal';b.innerHTML='<i style="background:'+P.main+'"></i><i style="background:'+P.accent+'"></i>'+P.n;b.addEventListener('click',function(){CZ.main=P.main;CZ.accent=P.accent;czSyncStyle();czRenderAll()});pal.appendChild(b)});
   $('#czMain').addEventListener('input',function(){CZ.main=this.value.toUpperCase();czSyncStyle();czRenderAll()});
   $('#czAcc').addEventListener('input',function(){CZ.accent=this.value.toUpperCase();czSyncStyle();czRenderAll()});
-  $('#czSecSel').addEventListener('change',function(){CZ.sec=this.value;czRenderAll()});
+  $('#czSecSel').addEventListener('change',function(){CZ.sec=this.value;czSyncStyle();czRenderAll()});
   $$('input[name="czlp"]').forEach(function(r){r.addEventListener('change',function(){CZ.labelPos=r.value;czRenderAll()})});
   $('#czLang').addEventListener('change',function(){if(this.value!=='auto'){CZ.lang=this.value;czRenderAll()}});
   $('#czGen').addEventListener('click',czGenerate);
@@ -2058,8 +2220,8 @@ function czInit(){
   $('#czL').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k-1];a[k-1]=t;czBuildThumbs();czRenderAll();czSelect(k-1)});
   $('#czRt').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k+1];a[k+1]=t;czBuildThumbs();czRenderAll();czSelect(k+1)});
   $('#czDl1').addEventListener('click',czDownloadOne);$('#czDlAll').addEventListener('click',czDownloadAll);
-  var ed=$('#czEditor');
-  ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.cz){czSet(t.dataset.cz,t.value);$('#czNote').hidden=true;czSchedule()}});
+  var ed=$('#czAccordion');accBind(ed,function(k){CZ.openKey=k});
+  ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.cz){czSet(t.dataset.cz,t.value);$('#czNote').hidden=true;czSchedule();if(/\.title$/.test(t.dataset.cz)){var sm=$('#czEditor [data-ac="txt"] .ac-s');if(sm)sm.textContent=t.value.replace(/\*\*/g,'')}}});
   ed.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.czsel){CZ.slides[CZ.cur][t.dataset.czsel]=t.value;czSchedule()}});
   ed.addEventListener('click',function(e){
     var t=e.target.closest('button');if(!t)return;var s=CZ.slides[CZ.cur];
