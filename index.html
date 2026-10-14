@@ -964,6 +964,12 @@ html.prv-lock{overflow:hidden}
         <section class="ac" data-ac="bg">
           <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">الخلفية</span><span class="ac-s" data-sum="bg"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
           <div class="ac-w"><div class="ac-b">
+<div class="field"><span class="lab">نوع الخلفية</span>
+<div class="seg full" id="bgModeSeg"><label><input type="radio" name="bgMode" value="preset" checked><span>جاهزة</span></label><label><input type="radio" name="bgMode" value="solid"><span>لون واحد</span></label><label><input type="radio" name="bgMode" value="grad"><span>تدرج</span></label></div></div>
+<div id="bgCustom" hidden>
+<div class="two"><div class="field"><label for="bgC1" id="bgC1L">اللون</label><input type="color" id="bgC1" class="wide"></div><div class="field" id="bgC2F"><label for="bgC2">اللون الثاني</label><input type="color" id="bgC2" class="wide"></div></div>
+<div class="field" id="bgAngF"><label for="bgAng">اتجاه التدرج</label><select id="bgAng"><option value="180">من الأعلى للأسفل</option><option value="0">من الأسفل للأعلى</option><option value="90">من اليسار لليمين</option><option value="270">من اليمين لليسار</option><option value="135">قطري ↘</option><option value="225">قطري ↙</option></select></div>
+</div>
 <div class="chips" id="bgChips"></div>
 <div class="row">
 <button type="button" class="tool" id="bgUp">رفع صورة خلفية</button>
@@ -1016,6 +1022,19 @@ html.prv-lock{overflow:hidden}
 <div class="two">
   <div class="field"><label for="czMain">اللون الرئيسي</label><input type="color" id="czMain" class="wide"></div>
   <div class="field"><label for="czAcc">لون التمييز</label><input type="color" id="czAcc" class="wide"></div>
+</div>
+            </div></div>
+          </section>
+          <section class="ac" data-ac="bgs">
+            <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">خلفية الشرائح</span><span class="ac-s" data-csum="bgs"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="ac-w"><div class="ac-b">
+<div class="field"><span class="lab">نوع الخلفية (للغلاف والختام وأعلى الشرائح)</span>
+  <div class="seg full"><label><input type="radio" name="czbg" value="auto" checked><span>تلقائية</span></label><label><input type="radio" name="czbg" value="solid"><span>لون واحد</span></label><label><input type="radio" name="czbg" value="grad"><span>تدرج</span></label></div></div>
+<div id="czBgCustom" hidden>
+<div class="two"><div class="field"><label for="czBg1">اللون</label><input type="color" id="czBg1" class="wide"></div><div class="field" id="czBg2F"><label for="czBg2">اللون الثاني</label><input type="color" id="czBg2" class="wide"></div></div>
+<div class="field" id="czBgAngF"><label for="czBgAng">اتجاه التدرج</label><select id="czBgAng"><option value="180">من الأعلى للأسفل</option><option value="0">من الأسفل للأعلى</option><option value="90">من اليسار لليمين</option><option value="270">من اليمين لليسار</option><option value="135">قطري ↘</option><option value="225">قطري ↙</option></select></div>
+<div class="field" id="czBgPlainF"><label class="check"><input type="checkbox" id="czBgPlain"> بدون خطوط وزخارف الخلفية</label></div>
+<p class="hint" id="czBgWarn" hidden>الخلفية الفاتحة قد تُضعف قراءة النص الأبيض على الغلاف والختام.</p>
 </div>
             </div></div>
           </section>
@@ -1265,7 +1284,7 @@ var S={
   lang:'ar',layout:'stats',sec:'eco',theme:'light',main:'#1B1F78',titleC:'#1B1F78',strap:'#D8560B',strapPos:'top',labelPos:'above',numGray:false,
   kicker:'',title:'',subtitle:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',titleFont:'',titleScale:100,
   hero:{value:'',label:'',text:''},stats:[],items:[],bars:[],legend:[],
-  bgPreset:0,bgImg:null,anchor:'bottom',veil:.35,band:true
+  bgMode:'preset',bgC1:'#1B1F78',bgC2:'#7B35C6',bgAngle:180,bgPreset:0,bgImg:null,anchor:'bottom',veil:.35,band:true
 };
 var DEMO={
   kicker:'في اليوم العالمي للعمال',title:'تمكين القوى العاملة الوطنية',subtitle:'',footer:'',layout:'stats',
@@ -1317,11 +1336,19 @@ function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,
 function numColor(){return S.numGray?TH[S.theme].numGray:S.main}
 
 /* ---------- background ---------- */
+/* linear gradient along a CSS-style angle (0 = to top, 90 = to right, 180 = to bottom) */
+function bgGrad(c,x,y,w,h,c1,c2,deg){
+  var a=(deg==null?180:deg)*Math.PI/180,sn=Math.sin(a),cs=Math.cos(a),L=(Math.abs(w*sn)+Math.abs(h*cs))/2,mx=x+w/2,my=y+h/2;
+  var g=c.createLinearGradient(mx-sn*L,my+cs*L,mx+sn*L,my-cs*L);g.addColorStop(0,c1);g.addColorStop(1,c2);return g;
+}
 function drawBackground(){
-  var th=TH[S.theme],list=PRESETS[S.theme],p=list[Math.min(S.bgPreset,list.length-1)];
-  var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,p.c[0]);g.addColorStop(1,p.c[1]);
+  var th=TH[S.theme],list=PRESETS[S.theme],p=list[Math.min(S.bgPreset,list.length-1)],custom=S.bgMode==='solid'||S.bgMode==='grad';
+  var g;
+  if(S.bgMode==='solid')g=S.bgC1;
+  else if(S.bgMode==='grad')g=bgGrad(ctx,0,0,W,H+2,S.bgC1,S.bgC2,S.bgAngle);
+  else{g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,p.c[0]);g.addColorStop(1,p.c[1])}
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H+2);
-  if(p.glow){var r=ctx.createRadialGradient(W*.9,H*.08,10,W*.9,H*.08,W*.9);r.addColorStop(0,'rgba(255,170,80,.30)');r.addColorStop(1,'rgba(255,170,80,0)');ctx.fillStyle=r;ctx.fillRect(0,0,W,H+2)}
+  if(p.glow&&!custom){var r=ctx.createRadialGradient(W*.9,H*.08,10,W*.9,H*.08,W*.9);r.addColorStop(0,'rgba(255,170,80,.30)');r.addColorStop(1,'rgba(255,170,80,0)');ctx.fillStyle=r;ctx.fillRect(0,0,W,H+2)}
   if(S.bgImg){
     var im=S.bgImg,iw=im.naturalWidth,ih=im.naturalHeight,s=Math.max(W/iw,(H+1)/ih),dw=iw*s,dh=ih*s;
     var dy=S.anchor==='top'?0:S.anchor==='center'?(H-dh)/2:H-dh;
@@ -1551,10 +1578,21 @@ function syncSw(){
 }
 function buildBgChips(){
   var box=$('#bgChips');box.innerHTML='';
-  PRESETS[S.theme].forEach(function(p,i){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p.n;b.setAttribute('aria-pressed',String(!S.bgImg&&S.bgPreset===i));b.addEventListener('click',function(){S.bgPreset=i;S.bgImg=null;syncBg();schedule()});box.appendChild(b)});
+  PRESETS[S.theme].forEach(function(p,i){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p.n;b.setAttribute('aria-pressed',String(!S.bgImg&&S.bgPreset===i));b.addEventListener('click',function(){S.bgPreset=i;S.bgImg=null;S.bgMode='preset';syncBg();schedule()});box.appendChild(b)});
   if(S.bgImg){var b2=document.createElement('button');b2.type='button';b2.className='chip';b2.textContent='صورتك';b2.setAttribute('aria-pressed','true');box.appendChild(b2)}
 }
-function syncBg(){buildBgChips();$('#bgClear').hidden=!S.bgImg;$('#photoOpts').hidden=!S.bgImg}
+function syncBg(){
+  buildBgChips();$('#bgClear').hidden=!S.bgImg;$('#photoOpts').hidden=!S.bgImg;
+  setRadio('bgMode',S.bgMode);var cu=S.bgMode!=='preset';$('#bgCustom').hidden=!cu;$('#bgChips').hidden=cu;
+  $('#bgC1').value=S.bgC1.toLowerCase();$('#bgC2').value=S.bgC2.toLowerCase();$('#bgC2F').hidden=S.bgMode!=='grad';$('#bgAngF').hidden=S.bgMode!=='grad';$('#bgC1L').textContent=S.bgMode==='grad'?'اللون الأول':'اللون';$('#bgAng').value=String(S.bgAngle);
+}
+/* a dark custom background needs the light text style and vice versa */
+function bgAuto(){
+  if(S.bgMode==='preset'||S.bgImg)return;
+  var c=S.bgMode==='grad'?[S.bgC1,S.bgC2]:[S.bgC1],l=c.reduce(function(a,x){return a+lum(x)},0)/c.length,want=l<.42?'dark':'light';
+  if(S.theme!==want){var r=$('input[name="theme"][value="'+want+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
+}
+function bgSetMode(m){S.bgMode=m;if(m!=='preset')S.bgImg=null;syncBg();bgAuto();syncBg();schedule()}
 function setRadio(name,val){$$('input[name="'+name+'"]').forEach(function(r){r.checked=r.value===val})}
 function syncControls(){
   $('#secSel').value=S.sec;setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
@@ -1582,11 +1620,15 @@ function bindControls(){
   $('#footReset').addEventListener('click',function(){S.footC='';S.footSize=22;S.footY=22;S.footAl='center';syncFoot();syncSw();schedule()});
   $('#veil').addEventListener('input',function(){S.veil=this.value/100;schedule()});
   $('#anchor').addEventListener('change',function(){S.anchor=this.value;schedule()});
+  $$('input[name="bgMode"]').forEach(function(r){r.addEventListener('change',function(){bgSetMode(r.value)})});
+  $('#bgC1').addEventListener('input',function(){S.bgC1=this.value.toUpperCase();bgAuto();schedule()});
+  $('#bgC2').addEventListener('input',function(){S.bgC2=this.value.toUpperCase();bgAuto();schedule()});
+  $('#bgAng').addEventListener('change',function(){S.bgAngle=+this.value;schedule()});
   $('#bgUp').addEventListener('click',function(){$('#bgFile').click()});
   $('#bgClear').addEventListener('click',function(){S.bgImg=null;syncBg();schedule()});
   $('#bgFile').addEventListener('change',function(){
     var file=this.files&&this.files[0];if(!file)return;
-    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){S.bgImg=im;syncBg();schedule()};im.src=fr.result};fr.readAsDataURL(file);this.value='';
+    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){S.bgImg=im;S.bgMode='preset';syncBg();schedule()};im.src=fr.result};fr.readAsDataURL(file);this.value='';
   });
   $('#layoutSel').addEventListener('change',function(){
     if(this.value==='auto')return;
@@ -1660,7 +1702,7 @@ function accSum(){
   var n=S.layout==='bars'?S.bars.length:S.items.length;set('list',n?n+(S.layout==='bars'?' أعمدة':' عناصر'):'');
   set('stats',S.stats.length?S.stats.length+' أرقام':'');set('foot',S.footer);
   set('style',(se&&se.selectedOptions[0]?se.selectedOptions[0].textContent:'')+' · '+(S.theme==='dark'?'داكن':'فاتح'));
-  set('bg',S.bgImg?'صورتك':(PRESETS[S.theme][S.bgPreset]||{}).n||'');
+  set('bg',S.bgImg?'صورتك':S.bgMode==='solid'?'لون واحد':S.bgMode==='grad'?'تدرج لوني':(PRESETS[S.theme][S.bgPreset]||{}).n||'');
 }
 function setPath(path,val){
   var p=path.split('.'),o=S;
@@ -2746,7 +2788,7 @@ var CPAL=[
   {n:'بنفسجي ونعناع',main:'#3E2A8C',accent:'#17B38C'},
   {n:'غابة وكورال',main:'#1B5E3B',accent:'#EE6A4D'}
 ];
-var CZ={lang:'ar',main:CPAL[0].main,accent:CPAL[0].accent,sec:'news',labelPos:'above',titleFont:'',titleScale:100,cur:0,slides:[]};
+var CZ={lang:'ar',main:CPAL[0].main,accent:CPAL[0].accent,sec:'news',labelPos:'above',titleFont:'',titleScale:100,bgMode:'auto',bgC1:'#0F5C4D',bgC2:'#0A3F37',bgAngle:135,bgPlain:false,cur:0,slides:[]};
 var czcv=null,cx=null,CZ_S=2,czInited=false,czCtl=null,czPhotoFor=-1,HC=mkHit(),czCurS=null;
 var CZ_DEMO={
   lang:'ar',
@@ -2834,8 +2876,12 @@ function czWaves(x,y,w,h,col,a,n,seed){
   cx.restore();
 }
 function czArt(h,seed){
-  var p=czP(),g=cx.createLinearGradient(0,0,W,h);g.addColorStop(0,mixc(p.main,'#ffffff',.1));g.addColorStop(.55,p.main);g.addColorStop(1,p.deep);
+  var p=czP(),g;
+  if(CZ.bgMode==='solid')g=CZ.bgC1;
+  else if(CZ.bgMode==='grad')g=bgGrad(cx,0,0,W,h+1,CZ.bgC1,CZ.bgC2,CZ.bgAngle);
+  else{g=cx.createLinearGradient(0,0,W,h);g.addColorStop(0,mixc(p.main,'#ffffff',.1));g.addColorStop(.55,p.main);g.addColorStop(1,p.deep)}
   cx.fillStyle=g;cx.fillRect(0,0,W,h+1);
+  if(CZ.bgPlain&&CZ.bgMode!=='auto')return;
   cx.fillStyle=rgba(p.accent,.12);cx.beginPath();cx.arc(W*.18,h*.22,h*.42,0,6.3);cx.fill();
   cx.fillStyle='rgba(255,255,255,.05)';cx.beginPath();cx.arc(W*.9,h*.9,h*.36,0,6.3);cx.fill();
   czWaves(0,0,W,h,'#ffffff',.2,18,seed||1);
@@ -3165,7 +3211,16 @@ function czBuildThumbs(){
     b.addEventListener('click',function(){czSelect(i)});box.appendChild(b);
   });
 }
+function czBgSet(){
+  var m=CZ.bgMode;$$('input[name="czbg"]').forEach(function(r){r.checked=r.value===m});
+  $('#czBgCustom').hidden=m==='auto';$('#czBg2F').hidden=m!=='grad';$('#czBgAngF').hidden=m!=='grad';$('#czBgPlainF').hidden=m==='auto';
+  $('#czBg1').value=CZ.bgC1.toLowerCase();$('#czBg2').value=CZ.bgC2.toLowerCase();$('#czBgAng').value=String(CZ.bgAngle);$('#czBgPlain').checked=!!CZ.bgPlain;
+  var l=m==='auto'?0:(m==='grad'?(lum(CZ.bgC1)+lum(CZ.bgC2))/2:lum(CZ.bgC1));$('#czBgWarn').hidden=!(m!=='auto'&&l>.62);
+  var a=$('[data-csum="bgs"]');if(a)a.textContent=m==='solid'?'لون واحد':m==='grad'?'تدرج لوني':'تلقائي';
+}
+function czBgMode(m){CZ.bgMode=m;czBgSet();czRenderAll()}
 function czSyncStyle(){
+  czBgSet();
   $$('#czPal .chip').forEach(function(b,k){var P=CPAL[k];b.setAttribute('aria-pressed',String(P&&P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()))});
   $('#czMain').value=CZ.main.toLowerCase();$('#czAcc').value=CZ.accent.toLowerCase();
   $('#czSecSel').value=CZ.sec;
@@ -3237,6 +3292,11 @@ function czInit(){
   $('#czMain').addEventListener('input',function(){CZ.main=this.value.toUpperCase();czSyncStyle();czRenderAll()});
   $('#czAcc').addEventListener('input',function(){CZ.accent=this.value.toUpperCase();czSyncStyle();czRenderAll()});
   $('#czSecSel').addEventListener('change',function(){CZ.sec=this.value;czSyncStyle();czRenderAll()});
+  $$('input[name="czbg"]').forEach(function(r){r.addEventListener('change',function(){czBgMode(r.value)})});
+  $('#czBg1').addEventListener('input',function(){CZ.bgC1=this.value.toUpperCase();czBgSet();czRenderAll()});
+  $('#czBg2').addEventListener('input',function(){CZ.bgC2=this.value.toUpperCase();czBgSet();czRenderAll()});
+  $('#czBgAng').addEventListener('change',function(){CZ.bgAngle=+this.value;czRenderAll()});
+  $('#czBgPlain').addEventListener('change',function(){CZ.bgPlain=this.checked;czRenderAll()});
   $$('input[name="czlp"]').forEach(function(r){r.addEventListener('change',function(){CZ.labelPos=r.value;czRenderAll()})});
   $('#czLang').addEventListener('change',function(){if(this.value!=='auto'){CZ.lang=this.value;czRenderAll()}});
   $('#czGen').addEventListener('click',function(){pgGate('cz',function(imgs,opt){czGenerate(imgs,opt)})});
@@ -3616,6 +3676,26 @@ function epCol(path,label){
 }
 function epDel(path,label){return '<div class="epf"><button type="button" class="tool danger" data-epdel="'+path+'">'+label+'</button></div>'}
 
+var EP_ANG=[[180,'من الأعلى للأسفل'],[0,'من الأسفل للأعلى'],[90,'من اليسار لليمين'],[270,'من اليمين لليسار'],[135,'قطري ↘'],[225,'قطري ↙']];
+function epAng(sel,val){return '<div class="epf"><label>اتجاه التدرج</label><select data-epsel="'+sel+'">'+EP_ANG.map(function(a){return '<option value="'+a[0]+'"'+(+val===a[0]?' selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></div>'}
+function epModeSeg(attr,cur,opts){return '<div class="epf"><label>نوع الخلفية</label><div class="seg full">'+opts.map(function(o){return '<label><input type="radio" name="ep_'+attr+'" data-'+attr+'="'+o[0]+'" value="'+o[0]+'"'+(cur===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div></div>'}
+function epBgIG(){
+  var m=S.bgMode,h=epRadio('theme','النمط',[['dark','داكن'],['light','فاتح']])+epModeSeg('epbgm',m,[['preset','جاهزة'],['solid','لون واحد'],['grad','تدرج']]);
+  if(m!=='preset'){
+    h+='<div class="two"><div class="epf"><label>'+(m==='grad'?'اللون الأول':'اللون')+'</label><input type="color" class="wide" data-epbgc="bgC1" value="'+S.bgC1.toLowerCase()+'"></div>'+(m==='grad'?'<div class="epf"><label>اللون الثاني</label><input type="color" class="wide" data-epbgc="bgC2" value="'+S.bgC2.toLowerCase()+'"></div>':'')+'</div>';
+    if(m==='grad')h+=epAng('bgang',S.bgAngle);
+  }
+  return h;
+}
+function epBgCZ(){
+  var m=CZ.bgMode,h=epModeSeg('epczbgm',m,[['auto','تلقائية'],['solid','لون واحد'],['grad','تدرج']]);
+  if(m!=='auto'){
+    h+='<div class="two"><div class="epf"><label>'+(m==='grad'?'اللون الأول':'اللون')+'</label><input type="color" class="wide" data-epczc="bgC1" value="'+CZ.bgC1.toLowerCase()+'"></div>'+(m==='grad'?'<div class="epf"><label>اللون الثاني</label><input type="color" class="wide" data-epczc="bgC2" value="'+CZ.bgC2.toLowerCase()+'"></div>':'')+'</div>';
+    if(m==='grad')h+=epAng('czbgang',CZ.bgAngle);
+    h+='<div class="epf"><label class="check"><input type="checkbox" data-epczplain'+(CZ.bgPlain?' checked':'')+'> بدون زخارف الخلفية</label></div>';
+  }
+  return h;
+}
 function epBodyIG(g,p){
   var k=g.split('.')[0],h='',t='';
   if(k==='title'){t='العنوان الكبير';h=epField('title','العنوان','العنوان الكبير')+epSwatches('titleC','لون العنوان')+ttHtml('ig')}
@@ -3638,8 +3718,8 @@ function epBodyIG(g,p){
   else if(k==='band'){t='شريط الأرقام';h='<div class="epf"><label class="check"><input type="checkbox" data-epchk="band"'+(S.band?' checked':'')+'> خلفية مميزة لشريط الأرقام</label></div>'}
   else{
     t='الخلفية';
-    h=epRadio('theme','النمط',[['dark','داكن'],['light','فاتح']]);
-    h+='<div class="epf"><label>الألوان الجاهزة</label><div class="chips">'+PRESETS[S.theme].map(function(pr,i){return '<button type="button" class="chip" data-epbg="'+i+'" aria-pressed="'+String(!S.bgImg&&S.bgPreset===i)+'">'+esc(pr.n)+'</button>'}).join('')+'</div></div>';
+    h=epBgIG();
+    if(S.bgMode==='preset')h+='<div class="epf"><label>الألوان الجاهزة</label><div class="chips">'+PRESETS[S.theme].map(function(pr,i){return '<button type="button" class="chip" data-epbg="'+i+'" aria-pressed="'+String(!S.bgImg&&S.bgPreset===i)+'">'+esc(pr.n)+'</button>'}).join('')+'</div></div>';
     h+='<div class="epf"><div class="row"><button type="button" class="tool" data-epact="bgup">'+(S.bgImg?'تغيير الصورة':'رفع صورة خلفية')+'</button>'+(S.bgImg?'<button type="button" class="tool ghost" data-epact="bgclr">إزالة</button>':'')+'</div></div>';
     if(S.bgImg)h+='<div class="epf"><label>قوة التعتيم <b data-eprv="veilp">'+Math.round(S.veil*100)+'</b></label><input type="range" data-eprng="veilp" min="0" max="90" value="'+Math.round(S.veil*100)+'"></div>';
   }
@@ -3676,7 +3756,7 @@ function epBodyCZ(g,p){
   }
   else{
     t='الخلفية والألوان';acc='pal';
-    h=epCzPalette('both')+'<div class="epf"><div class="row"><button type="button" class="tool" data-epact="photo">'+(s.photo?'تغيير الصورة':'رفع صورة للشريحة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-epact="nophoto">إزالة</button>':'')+'</div></div>';
+    h=epCzPalette('both')+epBgCZ()+'<div class="epf"><div class="row"><button type="button" class="tool" data-epact="photo">'+(s.photo?'تغيير الصورة':'رفع صورة للشريحة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-epact="nophoto">إزالة</button>':'')+'</div></div>';
   }
   return{t:t,h:h,acc:acc};
 }
@@ -3768,6 +3848,8 @@ function epInput(e){
   if(t.dataset.ep){epPut(t.dataset.ep,t.value);epMirror(t.dataset.ep,t.value);epAgain();return}
   if(t.dataset.epcol){S[t.dataset.epcol]=t.value.toUpperCase();syncSw();epRefreshSw(t.dataset.epcol);epAgain();return}
   if(t.dataset.epcp){epPut(t.dataset.epcp,t.value.toUpperCase());epAgain();var b=t.parentNode.querySelector('.hint');if(b)b.outerHTML='<button type="button" class="mini" data-epcr="'+t.dataset.epcp+'">الافتراضي</button>';return}
+  if(t.dataset.epbgc){S[t.dataset.epbgc]=t.value.toUpperCase();bgAuto();$$('[data-eprad="theme"]',EP.card).forEach(function(r){r.checked=r.value===S.theme});schedule();return}
+  if(t.dataset.epczc){CZ[t.dataset.epczc]=t.value.toUpperCase();czBgSet();czRenderAll();return}
   if(t.dataset.epcz){CZ[t.dataset.epcz]=t.value.toUpperCase();czSyncStyle();czRenderAll();$$('[data-epcpal]',EP.card).forEach(function(b){b.setAttribute('aria-pressed','false')});return}
   if(t.dataset.eprng){
     var k=t.dataset.eprng,v=+t.value;
@@ -3783,8 +3865,13 @@ function epChange(e){
     if(k==='czlp'){CZ.labelPos=t.value;czSyncStyle();czRenderAll();return}
     S[k]=t.value;setRadio(k,t.value);epAgain();return;
   }
+  if(t.dataset.epbgm){bgSetMode(t.value);epBuild();return}
+  if(t.dataset.epczbgm){czBgMode(t.value);epBuild();return}
+  if(t.hasAttribute&&t.hasAttribute('data-epczplain')){CZ.bgPlain=t.checked;czBgSet();czRenderAll();return}
   if(t.dataset.epsel){
     var q=t.dataset.epsel;
+    if(q==='bgang'){S.bgAngle=+t.value;schedule();return}
+    if(q==='czbgang'){CZ.bgAngle=+t.value;czRenderAll();return}
     if(q==='sec'){$('#secSel').value=t.value;S.sec=t.value;schedule()}
     else if(q==='czsec'){CZ.sec=t.value;czSyncStyle();czRenderAll()}
     else if(q==='pa'){var s=CZ.slides[CZ.cur];s.pa=t.value;delete s.pf;czSchedule();czBuildEditor()}
