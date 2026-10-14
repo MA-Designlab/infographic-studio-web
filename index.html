@@ -872,6 +872,12 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .flagctl{display:flex;flex-direction:column;gap:8px;margin-top:2px}
 .flagctl select{width:100%}
 .flagctl .row{display:flex;gap:8px;flex-wrap:wrap}
+/* recent custom colours */
+.rcs{display:inline-flex;flex-wrap:wrap;gap:5px;align-items:center;vertical-align:middle;margin:4px 0}
+.rcs[hidden]{display:none}
+.rcb{width:20px;height:20px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;flex:none}
+.rcb:hover{box-shadow:0 0 0 2px var(--ink)}
+.field>.rcs,.epf>.rcs{display:flex;margin-top:6px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -8128,6 +8134,51 @@ function desInit(){
     }
   });
 }
+
+/* ===== recent custom colours: every colour picker remembers what was picked, so it can be reused or edited later ===== */
+var RC_KEY='ig_recent_colors',RC_MAX=12,RC_LIST=[],RC_T=0,RC_SCAN=0;
+function rcLoad(){try{var a=JSON.parse(localStorage.getItem(RC_KEY)||'[]');RC_LIST=Array.isArray(a)?a.filter(function(c){return /^#[0-9a-f]{6}$/i.test(c)}).slice(0,RC_MAX):[]}catch(e){RC_LIST=[]}}
+function rcSave(){try{localStorage.setItem(RC_KEY,JSON.stringify(RC_LIST))}catch(e){}}
+function rcAdd(c){
+  c=String(c||'').toLowerCase();if(!/^#[0-9a-f]{6}$/.test(c))return;
+  RC_LIST=[c].concat(RC_LIST.filter(function(x){return x!==c})).slice(0,RC_MAX);rcSave();rcPaintAll();
+}
+function rcPaint(box){
+  box.innerHTML='';box.hidden=!RC_LIST.length;
+  RC_LIST.forEach(function(c){var b=document.createElement('button');b.type='button';b.className='rcb';b.style.background=c;b.dataset.rc=c;b.title='لون سابق '+c.toUpperCase();b.setAttribute('aria-label','لون سابق '+c);box.appendChild(b)});
+}
+function rcPaintAll(){document.querySelectorAll('.rcs').forEach(rcPaint)}
+function rcScan(){
+  RC_SCAN=0;
+  document.querySelectorAll('input[type=color]:not([data-rc])').forEach(function(inp){
+    inp.dataset.rc='1';
+    var box=document.createElement('span');box.className='rcs';box.title='ألوانك السابقة';
+    inp.insertAdjacentElement('afterend',box);rcPaint(box);
+  });
+}
+function rcSchedule(){if(!RC_SCAN)RC_SCAN=setTimeout(rcScan,60)}
+function rcInit(){
+  rcLoad();rcScan();
+  try{new MutationObserver(rcSchedule).observe(document.body,{childList:true,subtree:true})}catch(e){}
+  document.addEventListener('input',function(e){
+    var t=e.target;if(!t||t.type!=='color'||!e.isTrusted)return;
+    clearTimeout(RC_T);RC_T=setTimeout(function(){rcAdd(t.value)},700);
+  });
+  document.addEventListener('change',function(e){
+    var t=e.target;if(!t||t.type!=='color'||!e.isTrusted)return;
+    clearTimeout(RC_T);rcAdd(t.value);
+  });
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('button[data-rc]');if(!b||!b.classList.contains('rcb'))return;
+    var box=b.parentNode,inp=box.previousElementSibling;
+    if(!inp||inp.type!=='color')return;
+    e.preventDefault();e.stopPropagation();
+    inp.value=b.dataset.rc;
+    inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));
+    RC_LIST=[b.dataset.rc].concat(RC_LIST.filter(function(x){return x!==b.dataset.rc}));rcSave();rcPaintAll();
+  },true);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',rcInit);else rcInit();
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
