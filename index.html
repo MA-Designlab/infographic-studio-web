@@ -5271,9 +5271,11 @@ function chCurve(pts){
 }
 
 /* ----- background ----- */
+var CH_TR=false;
 function chBackground(H){
   var c=chx,m=CH.bgMode,st=chSt(),g;
   HK.tag('bg','','الخلفية');HK.box(0,0,W,H,-5);HK.tag();
+  if(CH_TR)return;
   if(m==='solid')c.fillStyle=CH.bgC1;
   else if(m==='grad')c.fillStyle=bgGrad(c,0,0,W,H,CH.bgC1,CH.bgC2,CH.bgAngle);
   else{g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,st.bg[0]);g.addColorStop(1,st.bg[1]);c.fillStyle=g}
@@ -5796,7 +5798,7 @@ function chRender(){
   c.setTransform(CH_S,0,0,CH_S,0,0);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
   HK.reset();
   var ovb=[];
-  chBackground(H);chOvDraw('back',ovb);chMarkShift();
+  chBackground(H);chOvDraw('back',ovb);if(!CH_TR)chMarkShift();
   var y=186+chDy(),maxW=W-2*CHPAD,picW=0;
   if(D.headPic&&chPicImg(chDark())){picW=210;chPicDraw(chR()?CHPAD:W-CHPAD-picW,y-8,picW,150,chR()?'start':'end')}
   y=chTitle(y,maxW-(picW?picW+30:0));if(picW)y=Math.max(y,y)+0;
@@ -5815,9 +5817,31 @@ function chRender(){
   if(lb)chLegendDraw(lb,lpos.x,lpos.y);
   chNoteDraw(H,P);
   chOvDraw('front',ovb);
-  fxDraw('ch',c,null);
+  if(!CH_TR)fxDraw('ch',c,null);
   CH.geo={P:P,ov:ovb,lb:lb&&{x:lpos.x,y:lpos.y,w:lb.w,h:lb.h}};
-  if(window.__epAfter)window.__epAfter();
+  if(window.__epAfter&&!CH_TR)window.__epAfter();
+}
+/* the current chart as a transparent, trimmed canvas (for placing inside an infographic) */
+function chSnapshot(){
+  try{if(!chInited)chInit()}catch(e){}
+  if(!chcv||!chInited)return null;
+  var rows=[];try{rows=chRows()}catch(e){}
+  if(!rows.length)return null;
+  var out=null;
+  CH_TR=true;
+  try{
+    chRender();
+    var w=chcv.width,h=chcv.height,k=4,sm=document.createElement('canvas');sm.width=Math.ceil(w/k);sm.height=Math.ceil(h/k);
+    var sg=sm.getContext('2d');sg.drawImage(chcv,0,0,sm.width,sm.height);
+    var d=sg.getImageData(0,0,sm.width,sm.height).data,x0=sm.width,y0=sm.height,x1=-1,y1=-1;
+    for(var y=0;y<sm.height;y++)for(var x=0;x<sm.width;x++){if(d[(y*sm.width+x)*4+3]>6){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
+    if(x1>=0){
+      var m=3,sx=Math.max(0,(x0-m)*k),sy=Math.max(0,(y0-m)*k),ex=Math.min(w,(x1+m+1)*k),ey=Math.min(h,(y1+m+1)*k);
+      out=document.createElement('canvas');out.width=ex-sx;out.height=ey-sy;out.getContext('2d').drawImage(chcv,sx,sy,out.width,out.height,0,0,out.width,out.height);
+    }
+  }catch(e){out=null}
+  finally{CH_TR=false;chRender()}
+  return out;
 }
 
 /* ===== charts: editor, wiring, demo data ===== */
@@ -7200,7 +7224,7 @@ var FX_URL='https://api.iconify.design/ph/';
 var FX_AR={'مستشفي':'hospital','طبيب':'stethoscope','دواء':'pill','مدرس':'graduation-cap','كتاب':'book','قلب':'heart','سيار':'car','قطار':'train','طائر':'airplane','طيار':'airplane','سفين':'boat','بيت':'house','منزل':'house','مبني':'building','شرك':'buildings','فلوس':'money','نقود':'money','ذهب':'coin','نفط':'gas-pump','بترول':'gas-pump','بنزين':'gas-pump','كهرب':'lightning','شمس':'sun','ماء':'drop','مياه':'drop','مطر':'cloud-rain','ثلج':'snowflake','نار':'fire','علم':'flag','خريط':'map-trifold','موقع':'map-pin','هاتف':'phone','موبايل':'phone','كمبيوتر':'desktop','انترنت':'wifi-high','كاميرا':'camera','فيديو':'video-camera','صوت':'speaker-high','موسيق':'music-note','كره':'soccer-ball','جائز':'trophy','كاس':'trophy','تاج':'crown','نجم':'star','عين':'eye','يد':'hand','شخص':'user','عائل':'users-three','اسر':'users-three','طفل':'baby','سهم':'arrow-right','ساع':'clock','تقويم':'calendar','بريد':'envelope','رسال':'chat-circle','تحذير':'warning','امان':'shield-check','حماي':'shield-check','قفل':'lock','مفتاح':'key','اداه':'wrench','صيان':'wrench','مصنع':'factory','زراع':'plant','شجر':'tree','حيوان':'paw-print','سمك':'fish','قهو':'coffee','طعام':'fork-knife','اكل':'fork-knife','عمل':'briefcase','وظيف':'briefcase','تقرير':'file-text','رسم':'chart-bar','نمو':'trend-up','ربح':'trend-up','ارتفاع':'trend-up','خسار':'trend-down','انخفاض':'trend-down','تامين':'umbrella','قانون':'scales','حكوم':'bank','بنك':'bank','انتخاب':'check-square','صح':'heartbeat','رياض':'barbell','سباق':'flag-checkered','فن':'palette','ميكروفون':'microphone','خبر':'newspaper','عالم':'globe-hemisphere-east','فكر':'lightbulb','صاروخ':'rocket-launch','اتفاق':'handshake','شراك':'handshake','هدف':'target','اعداد':'gear','علوم':'flask','تقني':'cpu','بيئ':'leaf','جبل':'mountains','حافل':'bus','شاحن':'truck','دراج':'bicycle','تاكسي':'taxi','سله':'basketball','تنس':'tennis-ball','اسعاف':'first-aid-kit','اسنان':'tooth','وراث':'dna','ذره':'atom'};
 var FX_SHAPES=[['orig','كما هي'],['wide','مستطيل أفقي'],['tall','مستطيل رأسي'],['square','مربع'],['circle','دائرة'],['hexagon','سداسي'],['octagon','ثماني'],['pentagon','خماسي'],['diamond','معين'],['triangle','مثلث'],['star','نجمة'],['arch','قوس']];
 var FX_POS=[['top','فوق'],['bottom','تحت'],['right','يمين'],['left','شمال'],['center','منتصف']];
-var FX_TYPE={text:'جملة نصية',num:'رقم',icon:'أيقونة',img:'صورة'};
+var FX_TYPE={text:'جملة نصية',num:'رقم',icon:'أيقونة',img:'صورة',chart:'تشارت'};
 
 /* ---------- state access ---------- */
 function fxRoot(m){return m==='cz'?CZ.slides[CZ.cur]:m==='ch'?CH:S}
@@ -7593,8 +7617,9 @@ function fxSearch(q){
 
 /* ---------- popup for a new element ---------- */
 function fxAddBody(){
-  var ic={text:'<path d="M5 7h14M12 7v11M9 18h6"/>',num:'<path d="M8 4L6 20M16 4l-2 16M4 9h16M3 15h16"/>',icon:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',img:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/>'};
-  return{t:'إضافة عنصر هنا',h:'<div class="fxadd">'+['text','num','icon','img'].map(function(k){return '<button type="button" class="fxnew" data-fxnew="'+k+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic[k]+'</svg><span>'+FX_TYPE[k]+'</span></button>'}).join('')+'</div><div class="epf"><button type="button" class="mini" data-fxact="bgopt">خيارات الخلفية</button></div>'};
+  var ic={text:'<path d="M5 7h14M12 7v11M9 18h6"/>',num:'<path d="M8 4L6 20M16 4l-2 16M4 9h16M3 15h16"/>',icon:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',img:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/>',chart:'<path d="M4 20V4M4 20h16"/><rect x="7.5" y="11" width="3" height="6" rx=".8"/><rect x="12.5" y="7" width="3" height="10" rx=".8"/><rect x="17.5" y="13" width="2.5" height="4" rx=".8"/>'};
+  var am=FX.at&&FX.at.m;
+  return{t:'إضافة عنصر هنا',h:'<div class="fxadd">'+['text','num','icon','img'].concat(am&&am!=='ch'?['chart']:[]).map(function(k){return '<button type="button" class="fxnew" data-fxnew="'+k+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic[k]+'</svg><span>'+FX_TYPE[k]+'</span></button>'}).join('')+'</div><div class="epf"><button type="button" class="mini" data-fxact="bgopt">خيارات الخلفية</button></div>'};
 }
 function fxAdd(m,pt,ev,hit){
   FX.at={m:m,x:pt.x,y:pt.y};FX.pick=null;FX.bgR=hit||null;
@@ -7602,7 +7627,17 @@ function fxAdd(m,pt,ev,hit){
   epFrame(epSheet(m),'ep-hl',null);epOpen(m,r,ev);
 }
 function fxCreate(type){
-  var a=FX.at;if(!a)return;var m=a.m,Hh=fxHeight(m),e=fxMake(type,a.x);
+  var a=FX.at;if(!a)return;var m=a.m,Hh=fxHeight(m),chCv=null;
+  if(type==='chart'){
+    chCv=chSnapshot();
+    if(!chCv){toast('ابنِ التشارت أولاً من وضع «تشارت»: الصق بياناتك واضغط «قراءة»، ثم عُد وأدرجه هنا.',true);return}
+    type='img';
+  }
+  var e=fxMake(type,a.x);
+  if(chCv){
+    e.w=Math.min(W-100,Math.max(300,Math.round(chCv.width/CH_S)));e.fit='contain';e.shape='orig';e.chart=true;e.box.pad=0;
+    var cim=new Image();cim.onload=function(){fxRedraw(m);if(EP.on&&EP.g==='fx:'+e.id)epBuild()};cim.src=chCv.toDataURL('image/png');e.pimg=cim;
+  }
   e.y=Math.round(a.y/Hh*1000)/10;
   try{ /* keep the new element inside the design */
     var c0=m==='cz'?cx:m==='ch'?chx:ctx,env0=fxEnv(m,fxRoot(m)),L0=fxLayout(e,env0,c0),B0=fxBounds(e,L0,env0,Hh),hx=B0.bw/2+18,hy=B0.bh/2+18;
@@ -7611,7 +7646,7 @@ function fxCreate(type){
   }catch(x){}
   fxSnap(m);
   fxList(m,true).push(e);
-  if(type==='img'){var f=fxFileInput();f.dataset.id=e.id;f.dataset.m=m;f.value='';f.click()}
+  if(type==='img'&&!chCv){var f=fxFileInput();f.dataset.id=e.id;f.dataset.m=m;f.value='';f.click()}
   fxRedraw(m);
   epOpen(m,{g:'fx:'+e.id,p:'',l:FX_TYPE[type],x1:a.x-30,y1:a.y-30,x2:a.x+30,y2:a.y+30,pri:9},null);
 }
