@@ -1312,6 +1312,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <button id="igPostBtn" type="button" class="tool" data-post="ig">نص المنشور</button>
         <button type="button" class="tool" data-rev="ig">إرسال للمراجعة</button>
         <button type="button" class="tool" data-xl-open="ig">ترجمة التصميم</button>
+        <button type="button" class="tool" data-ln-open="ig">ما تعلّمه Claude</button>
         <button type="button" class="tool" data-qa="ig">فحص الجودة</button>
         <span class="note" id="igNote">المقاس 2250 × 2813 بكسل، نسبة 4:5</span>
       </div>
@@ -1420,6 +1421,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <button id="czPostBtn" type="button" class="tool" data-post="cz">نص المنشور</button>
         <button type="button" class="tool" data-rev="cz">إرسال للمراجعة</button>
         <button type="button" class="tool" data-xl-open="cz">ترجمة التصميم</button>
+        <button type="button" class="tool" data-ln-open="cz">ما تعلّمه Claude</button>
         <button type="button" class="tool" data-qa="cz">فحص الجودة</button>
         <span class="note" id="czDimNote"></span>
       </div>
@@ -1626,6 +1628,18 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
       <div id="xlList"></div>
       <div class="dlg-msg" id="xlMsg" role="status" aria-live="polite"></div>
       <div class="dlg-act"><button type="button" class="btn pink" id="xlApply" hidden>تطبيق الترجمة</button><button type="button" class="btn ghost" id="xlBack" data-close>إغلاق</button></div>
+    </div>
+  </div>
+  <div class="dlg-wrap" id="dlgLn" hidden>
+    <div class="dlg wide" role="dialog" aria-modal="true" aria-labelledby="lnTitle">
+      <h3 id="lnTitle">ما تعلّمه Claude من تعديلاتك</h3>
+      <p class="hint">كل مرة تنزّل تصميماً أو تحفظه، أسجّل ما غيّرته في كلمات Claude وترتيبه (بدون الأرقام والمعلومات). في التحويلات القادمة يرى Claude آخر تعديلاتك ويتبع القواعد أدناه.</p>
+      <p class="hint" id="lnScope"></p><p><b id="lnCount"></b></p>
+      <label for="lnRules">القواعد المتعلَّمة (يمكنك تعديلها بحرية)</label>
+      <textarea id="lnRules" rows="8" dir="auto" placeholder="مثال: - العناوين لا تتجاوز 4 كلمات&#10;- نكتب «ألف» بدل 000"></textarea>
+      <label class="check"><input type="checkbox" id="lnOn"> استخدم ما تعلّمته في التحويل</label>
+      <div class="dlg-msg" id="lnMsg" role="status" aria-live="polite"></div>
+      <div class="dlg-act"><button type="button" class="btn pink" id="lnLearn">حدّث القواعد من تعديلاتي</button><button type="button" class="btn" id="lnSave">حفظ</button><button type="button" class="btn ghost" id="lnClear">مسح التعديلات</button><button type="button" class="btn ghost" id="lnClose" data-close>إغلاق</button></div>
     </div>
   </div>
   <div class="dlg-wrap" id="dlgPost" hidden>
@@ -2334,6 +2348,7 @@ var sb=window.supabase&&window.supabase.createClient(SB_URL,SB_KEY,{auth:{persis
 var me={email:'',role:'member'},ctl=null,inited=false;
 function status(msg,err,busy){var s=$('#status');s.className=err?'err':'';s.innerHTML=(busy?'<span class="spin"></span>':'')+esc(msg||'')}
 function applyData(d){
+  if(window.__lnApplied)setTimeout(function(){window.__lnApplied('ig')},0);
   var lay=['stats','list','bars','cards'];
   S.layout=lay.indexOf(d.layout)>-1?d.layout:'stats';
   S.kicker=clean(d.kicker,60);S.title=clean(d.title,60);S.subtitle=clean(d.subtitle,90);S.lede=typeof d.lede==='string'?d.lede.slice(0,220):'';S.footer='';
@@ -2350,6 +2365,7 @@ function applyData(d){
 }
 
 var ERR={
+  no_samples:'لسّا ما فيه تعديلات كافية. نزّل أو احفظ بعض التصاميم بعد تعديلها وارجع.',
   not_signed_in:'انتهت جلسة الدخول. سجّل الدخول من جديد.',not_approved:'حسابك غير معتمد.',email_not_confirmed:'الإيميل غير مؤكد.',
   daily_limit:'وصلت للحد اليومي من التحويلات. جرّب غداً أو كمّل بالتعبئة اليدوية.',ai_not_configured:'الخدمة الذكية غير متاحة حالياً. كمّل بالتعبئة اليدوية وتواصل مع المسؤول.',ai_no_credit:'الخدمة الذكية غير متاحة حالياً. كمّل بالتعبئة اليدوية وتواصل مع المسؤول.',ai_bad_key:'الخدمة الذكية غير متاحة حالياً. كمّل بالتعبئة اليدوية وتواصل مع المسؤول.',ai_bad_model:'الخدمة الذكية غير متاحة حالياً. كمّل بالتعبئة اليدوية وتواصل مع المسؤول.',ai_rate_limited:'الخدمة مشغولة الآن. أعد المحاولة بعد دقيقة.',stock_not_configured:'الصور من الإنترنت غير مفعّلة حالياً. تواصل مع المسؤول.',stock_rate_limited:'وصلنا لحد البحث المؤقت. جرّب بعد قليل.',stock_timeout:'تأخر تحميل الصور. أعد المحاولة.',stock_failed:'تعذّر تحميل الصور الآن. أعد المحاولة.',stock_too_big:'الصورة كبيرة جداً. اختر صورة أخرى.',
   ai_timeout:'تأخر الرد. أعد المحاولة أو قصّر النص.',ai_failed:'تعذر الوصول للذكاء الاصطناعي الآن. أعد المحاولة بعد قليل.',invalid_json:'لم أستطع قراءة الرد. أعد المحاولة أو قصّر النص.',
@@ -2487,7 +2503,7 @@ function openDlg(id,focusSel){
   setTimeout(function(){var f=w.querySelector(focusSel||'input:not([type=radio])');if(f)f.focus()},30);
 }
 function closeDlg(id){var w=$(id);w.hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus()}
-function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl'].filter(function(i){return !$(i).hidden})[0]}
+function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].filter(function(i){return !$(i).hidden})[0]}
 
 /* user dialog (add / new password) */
 var udMode='add';
@@ -2628,7 +2644,7 @@ async function loadStats(){
 
 /* ---------- sign-in flow ---------- */
 function showLogin(open){
-  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl'].forEach(function(i){$(i).hidden=true});
+  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].forEach(function(i){$(i).hidden=true});
   $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
   if(open)setTimeout(function(){$('#email').focus()},30);
 }
@@ -3982,6 +3998,7 @@ function czLoad(d,keepPhotos){
   CZ.slides=arr;CZ.cur=0;
   if(d.look==='sky'||d.look==='classic')CZ.look=d.look;
   if(d.lang==='en'||d.lang==='ar'){var sel=$('#czLang').value;CZ.lang=sel==='auto'?d.lang:sel}
+  if(window.__lnApplied)window.__lnApplied('cz');
 }
 
 /* ----- editor ----- */
@@ -6386,6 +6403,7 @@ function rvScroll(fn){var b=$('#plBody'),sc=b?b.scrollTop:0;fn();if(b)b.scrollTo
 
 /* ---------- infographic ---------- */
 function rvIg(data){
+  if(window.__lnRaw)window.__lnRaw('ig',data||{});
   var d=JSON.parse(JSON.stringify(data||{}));
   d.layout=['stats','list','bars','cards'].indexOf(d.layout)>-1?d.layout:'stats';
   d.hero=d.hero&&typeof d.hero==='object'?{value:d.hero.value||'',label:d.hero.label||'',text:d.hero.text||''}:{value:'',label:'',text:''};
@@ -6478,6 +6496,7 @@ function rvApplyCh(){
 /* ---------- carousel ---------- */
 function rvGet(o,path){var p=String(path).split('.');for(var i=0;i<p.length&&o!=null;i++)o=o[p[i]];return o}
 function rvCz(data){
+  if(window.__lnRaw)window.__lnRaw('cz',data||{});
   return new Promise(function(res,rej){
     var d=JSON.parse(JSON.stringify(data||{}));
     d.cover=Object.assign({kicker:'',title:'',text:'',cta:''},d.cover||{});
@@ -8588,6 +8607,7 @@ async function desSave(kind,name){
   var saved=res.data[0];
   DES.list=DES.list.filter(function(d){return d.id!==id});DES.list.unshift(saved);DES.cur[kind]=id;
   if(typeof drClear==='function')drClear(kind);
+  if(window.__lnCapture)window.__lnCapture(kind);
 }
 
 /* ----- open ----- */
@@ -8612,6 +8632,7 @@ async function desOpen(id){
 }
 /* opens a stored row (a design, or an older version of it); own=false opens a colleague's design as a copy */
 async function desOpenRow(d,own,note){
+  if(window.__lnReset&&d&&d.kind)window.__lnReset(d.kind);
   var st=d.state||{},map=st.__map||{},imgs={};
   var keys=Object.keys(map);
   await Promise.all(keys.map(async function(k){
@@ -9866,6 +9887,129 @@ window.__auto={
     return{title:(CZ.slides[0]&&CZ.slides[0].title)||'',images:out};
   }
 };
+
+/* ===== learning from corrections: the draft Claude made vs the design the person downloaded or saved ===== */
+var LN={pend:{},base:{},busy:false};
+function lnN(v){return String(v==null?'':v).replace(/\s+/g,' ').trim()}
+function lnLoose(v){return lnN(v).replace(/\*\*/g,'').replace(/[\s،؛.,:;!?"'«»()\-–—_]/g,'')}
+/* flat {field: text} maps. Numbers and values are never learned (they are facts), only words and structure */
+function lnFlat(kind,o){
+  var f={};
+  if(kind==='ig'){
+    ['kicker','title','subtitle'].forEach(function(k){f[k]=lnN(o[k])});
+    if(o.hero){f['hero.label']=lnN(o.hero.label);f['hero.text']=lnN(o.hero.text)}
+    [['stats',['label','text']],['items',['title','text']],['bars',['label','note']]].forEach(function(g){
+      var a=Array.isArray(o[g[0]])?o[g[0]]:[];f['count.'+g[0]]=String(a.length);
+      a.forEach(function(x,i){g[1].forEach(function(p){f[g[0]+'.'+i+'.'+p]=lnN(x&&x[p])})});
+    });
+    f.layout=lnN(o.layout);f.template=lnN(o.template!=null?o.template:o.tpl);
+  }else{
+    var sl=o.slides||[],cov=o.cover||sl[0]||{},cl=o.closing||null;
+    ['kicker','title','text','cta'].forEach(function(k){f['cover.'+k]=lnN(cov[k])});
+    var body=o.content||[];f['count.slides']=String(body.length);
+    body.forEach(function(s,i){['title','subtitle','text','foot'].forEach(function(p){f['s'+(i+1)+'.'+p]=lnN(s&&s[p])})});
+    if(cl&&typeof cl==='object')['title','text','cta'].forEach(function(p){f['closing.'+p]=lnN(cl[p])});
+  }
+  return f;
+}
+function lnFromState(kind){
+  if(kind==='ig'){var o=JSON.parse(JSON.stringify(S,function(k,v){return k==='pimg'||k==='bgImg'||k==='fx'?undefined:v}));o.template=S.tpl;return lnFlat('ig',o)}
+  var sl=CZ.slides||[],cover=sl.filter(function(s){return s.type==='cover'})[0]||sl[0]||{},closing=sl.filter(function(s){return s.type==='closing'})[0],content=sl.filter(function(s){return s.type!=='cover'&&s.type!=='closing'});
+  return lnFlat('cz',{cover:cover,content:content,closing:closing||null});
+}
+function lnFromRaw(kind,d){
+  if(kind==='ig')return lnFlat('ig',d);
+  return lnFlat('cz',{cover:d.cover||{},content:d.slides||[],closing:d.closing&&typeof d.closing==='object'?d.closing:null});
+}
+window.__lnRaw=function(kind,d){try{LN.pend[kind]=lnFromRaw(kind,d)}catch(e){LN.pend[kind]=null}};
+window.__lnApplied=function(kind){
+  try{var raw=LN.pend[kind];LN.pend[kind]=null;LN.base[kind]=raw?{raw:raw,app:lnFromState(kind),sent:{}}:null}catch(e){LN.base[kind]=null}
+};
+window.__lnReset=function(kind){LN.pend[kind]=null;LN.base[kind]=null};
+function lnLabel(kind,field){
+  var m={kicker:'السترابة',title:'العنوان',subtitle:'العنوان الثانوي',layout:'القالب العام',template:'التصميم الفرعي'};
+  if(m[field])return m[field];
+  if(/^count\./.test(field))return 'عدد '+({stats:'الأرقام',items:'النقاط',bars:'الأعمدة',slides:'الشرائح'}[field.slice(6)]||field);
+  var p=field.split('.');if(p.length===3)return ({stats:'رقم',items:'نقطة',bars:'عمود'}[p[0]]||p[0])+' · '+({label:'الكلمة المميزة',text:'النص',title:'العنوان',note:'الملاحظة'}[p[2]]||p[2]);
+  if(p[0]==='hero')return 'الرقم الرئيسي · '+(p[1]==='label'?'الكلمة المميزة':'النص');
+  if(p[0]==='cover'||p[0]==='closing')return (p[0]==='cover'?'الغلاف':'الختام')+' · '+({kicker:'السترابة',title:'العنوان',text:'النص',cta:'الزر'}[p[1]]||p[1]);
+  if(/^s\d+$/.test(p[0]))return 'شريحة '+p[0].slice(1)+' · '+({title:'العنوان',subtitle:'العنوان الثانوي',text:'النص',foot:'السطر الختامي'}[p[1]]||p[1]);
+  return field;
+}
+/* compare the final design with the draft and keep only real changes of wording or structure */
+function lnDiffs(kind){
+  var b=LN.base[kind];if(!b)return[];
+  var now=lnFromState(kind),out=[];
+  Object.keys(now).forEach(function(k){
+    var raw=b.raw[k],fin=now[k];if(raw==null)return;
+    if(/^(layout|template|count\.)/.test(k)){if(raw===fin||b.sent[k]===fin)return;out.push({field:lnLabel(kind,k),before:raw||'—',after:fin||'—',k:k});return}
+    if(!fin||raw===fin||b.sent[k]===fin)return;
+    var edited=fin!==lnN(b.app[k]),review=lnLoose(b.app[k])!==lnLoose(raw);
+    if(!edited&&!review)return;
+    if(lnLoose(fin)===lnLoose(raw))return;
+    out.push({field:lnLabel(kind,k),before:raw,after:fin,k:k});
+  });
+  return out.slice(0,25);
+}
+async function lnCapture(kind){
+  try{
+    var rows=lnDiffs(kind);if(!rows.length||typeof sb==='undefined'||!sb)return;
+    var cid=(typeof CLI!=='undefined'&&CLI.cur)||null;
+    var r=await sb.from('edit_samples').insert(rows.map(function(x){return{kind:kind,client_id:cid,field:x.field.slice(0,60),before:String(x.before).slice(0,400),after:String(x.after).slice(0,400)}}));
+    if(!r.error){var b=LN.base[kind];rows.forEach(function(x){b.sent[x.k]=lnN(lnFromState(kind)[x.k])})}
+  }catch(e){}
+}
+window.__lnCapture=lnCapture;
+/* capture when a design is downloaded (the moment the person accepted it) */
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('#dl,#czDlAll,#czDl1');if(!b)return;
+  lnCapture(b.id==='dl'?'ig':'cz');
+},true);
+
+/* ----- the "what Claude learned" dialog ----- */
+var LNU={kind:'ig',rules:'',enabled:true,n:0};
+function lnCid(){return(typeof CLI!=='undefined'&&CLI.cur)||null}
+function lnMsg(t,cls){var m=$('#lnMsg');if(m){m.textContent=t||'';m.className='dlg-msg'+(cls?' '+cls:'')}}
+async function lnOpen(kind){
+  LNU.kind=kind;openDlg('#dlgLn','#lnClose');lnMsg('جارٍ التحميل…');
+  var cid=lnCid(),q=sb.from('edit_samples').select('id',{count:'exact',head:true});
+  q=cid?q.eq('client_id',cid):q.is('client_id',null);
+  var c=await q,rq=await sb.from('learned_rules').select('rules,enabled').eq('client_id',cid||'00000000-0000-0000-0000-000000000000').maybeSingle();
+  LNU.n=c.count||0;LNU.rules=(rq.data&&rq.data.rules)||'';LNU.enabled=!rq.data||rq.data.enabled!==false;
+  lnPaint();lnMsg('');
+}
+function lnPaint(){
+  var nm=(typeof CLI!=='undefined'&&CLI.cur&&CLI.list&&CLI.list.filter(function(x){return x.id===CLI.cur})[0])||null;
+  $('#lnScope').textContent=nm?'يخص عميل «'+(nm.name||'')+'». لكل عميل قواعده.':'يخص التصميم بلا عميل محدد. لكل عميل قواعده عند اختياره.';
+  $('#lnCount').textContent=NF.format(LNU.n)+' تعديل مسجَّل';
+  $('#lnRules').value=LNU.rules;$('#lnOn').checked=LNU.enabled;
+}
+async function lnLearn(){
+  if(LN.busy)return;LN.busy=true;var b=$('#lnLearn');b.disabled=true;lnMsg('جارٍ دراسة تعديلاتك…');
+  try{
+    var j=await callFn('generate',{mode:'learn'});
+    var d=j&&j.data;if(!d||typeof d.rules!=='string')throw{code:'invalid_json'};
+    $('#lnRules').value=d.rules;lnMsg(d.rules?'هذه القواعد المقترحة. عدّلها كما تريد ثم اضغط «حفظ».':'ما ظهرت أنماط متكررة بعد. كمّل تعديل التصاميم وجرّب لاحقاً.','ok');
+  }catch(x){var c=x&&x.code;lnMsg(c==='no_samples'?'لسّا ما فيه تعديلات كافية. نزّل أو احفظ بعض التصاميم بعد تعديلها وارجع.':errText(c),'err')}
+  finally{LN.busy=false;b.disabled=false}
+}
+async function lnSave(){
+  var cid=lnCid(),r=await sb.from('learned_rules').upsert({client_id:cid||'00000000-0000-0000-0000-000000000000',rules:$('#lnRules').value.trim().slice(0,1500),enabled:$('#lnOn').checked,updated_at:new Date().toISOString()},{onConflict:'user_id,client_id'});
+  if(r.error)lnMsg('تعذّر الحفظ. أعد المحاولة.','err');else{lnMsg('تم الحفظ. ستُطبَّق القواعد في التحويلات القادمة.','ok')}
+}
+async function lnClear(){
+  if(!confirm('تمسح كل التعديلات المسجَّلة والقواعد لهذا الاختيار؟ لا يمكن التراجع.'))return;
+  var cid=lnCid(),q=sb.from('edit_samples').delete();q=cid?q.eq('client_id',cid):q.is('client_id',null);
+  var r=await q;await sb.from('learned_rules').delete().eq('client_id',cid||'00000000-0000-0000-0000-000000000000');
+  if(r.error){lnMsg('تعذّر المسح.','err');return}
+  LNU.n=0;LNU.rules='';LNU.enabled=true;lnPaint();lnMsg('تم المسح.','ok');
+}
+function lnInit(){
+  $$('[data-ln-open]').forEach(function(b){b.addEventListener('click',function(){lnOpen(b.dataset.lnOpen)})});
+  var a=$('#lnLearn');if(!a)return;
+  a.addEventListener('click',lnLearn);$('#lnSave').addEventListener('click',lnSave);$('#lnClear').addEventListener('click',lnClear);
+}
+lnInit();
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
