@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>مراجعة التصميم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300..700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F3FC;--surface:#fff;--ink:#24103F;--muted:#6E6190;--line:#E7E0F4;--soft:#F1ECFA;--brand:#F32D7E;--violet:#6D2FBF;--ok:#127A4B;--okbg:#E4F6EC;--warn:#8A5A00;--warnbg:#FFF6DD;--err:#B3261E}
+@media (prefers-color-scheme:dark){:root{--bg:#171024;--surface:#221736;--ink:#F1EBFF;--muted:#B5A8D6;--line:#3A2C57;--soft:#2C2044;--ok:#7FE0AE;--okbg:#10382A;--warn:#F2CE7A;--warnbg:#3B2E10}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Alexandria',system-ui,sans-serif;font-size:15px;line-height:1.6}
+header{background:#2B0F4D;color:#fff;padding:14px 16px}
+header b{font-weight:600}
+main{max-width:1040px;margin:0 auto;padding:16px;display:grid;gap:18px;grid-template-columns:1fr}
+@media(min-width:880px){main{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:start}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+h1{font-size:19px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 12px}
+.stage{background:var(--soft);border-radius:12px;padding:10px;display:flex;justify-content:center}
+.stage img{max-width:100%;max-height:72vh;height:auto;border-radius:4px;box-shadow:0 8px 28px rgba(20,6,40,.25);background:#fff}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0;justify-content:center}
+.nav button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;min-width:38px;height:38px;font:inherit;cursor:pointer}
+.nav button[aria-pressed=true]{background:var(--violet);border-color:var(--violet);color:#fff}
+.badge{display:inline-block;border-radius:999px;padding:3px 12px;font-size:12.5px;font-weight:600}
+.b-pending{background:var(--warnbg);color:var(--warn)}.b-approved{background:var(--okbg);color:var(--ok)}.b-changes{background:#FDE7EE;color:#B3135F}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{min-height:84px;resize:vertical}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+.btn{border:0;border-radius:12px;padding:11px 18px;font:inherit;font-weight:600;cursor:pointer;background:var(--violet);color:#fff}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn:disabled{opacity:.55;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cm{border-top:1px solid var(--line);padding:10px 0}
+.cm:first-child{border-top:0}
+.cm small{color:var(--muted)}
+.cm .own{color:var(--violet);font-weight:600}
+.cm p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.tag{display:inline-block;background:var(--soft);border-radius:8px;padding:0 8px;font-size:12px;margin-inline-start:6px}
+.msg{min-height:20px;font-size:13px;margin-top:8px}.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+.empty{color:var(--muted);text-align:center;padding:30px 8px}
+</style>
+</head>
+<body>
+<header><b>مراجعة التصميم</b></header>
+<main id="app" hidden>
+  <section class="card">
+    <h1 id="ttl"></h1>
+    <p class="sub"><span class="badge" id="badge"></span> <span id="decBy"></span></p>
+    <div class="stage"><img id="img" alt="التصميم المعروض للمراجعة"></div>
+    <div class="nav" id="nav" role="group" aria-label="الشرائح"></div>
+  </section>
+  <section class="card">
+    <h1>ملاحظاتك</h1>
+    <p class="sub">اكتب ما تريد تعديله. كل ملاحظة تُربط بالصورة أو الشريحة المعروضة الآن.</p>
+    <div id="cms"></div>
+    <label for="nm">اسمك</label>
+    <input id="nm" maxlength="60" autocomplete="name">
+    <label for="tx">ملاحظة جديدة</label>
+    <textarea id="tx" maxlength="1000"></textarea>
+    <div class="row"><button class="btn" id="send" type="button">إرسال الملاحظة</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <h1 style="font-size:16px">قرارك</h1>
+    <div class="row"><button class="btn ok" id="ok" type="button">اعتماد التصميم</button><button class="btn ghost" id="chg" type="button">أحتاج تعديلات</button></div>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </section>
+</main>
+<div class="empty" id="state">جارٍ التحميل…</div>
+<script>
+var API='https://hafjrathfujaojgrkass.supabase.co/functions/v1/review',KEY='sb_publishable_7cb81MaaYUNsZ0YZSWOkzQ_BnzZ0Xdt';
+var TOKEN=(new URLSearchParams(location.search).get('t')||'').toLowerCase(),R=null,cur=0;
+var $=function(s){return document.querySelector(s)};
+var ERR={not_found:'هذا الرابط غير صحيح.',closed:'أغلق صاحب التصميم هذا الرابط.',expired:'انتهت صلاحية هذا الرابط.',name_required:'اكتب اسمك أولاً.',empty_comment:'اكتب الملاحظة أولاً.',too_many_comments:'وصلت الملاحظات للحد الأقصى.',slow_down:'مهلاً، أرسلت ملاحظات كثيرة بسرعة. أعد المحاولة بعد دقيقة.',save_failed:'تعذّر الحفظ. أعد المحاولة.'};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function say(t,k){var m=$('#msg');m.textContent=t||'';m.className='msg'+(k?' '+k:'')}
+async function call(p){
+  var res;try{res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY},body:JSON.stringify(Object.assign({token:TOKEN},p))})}catch(e){throw{code:'network'}}
+  var j={};try{j=await res.json()}catch(e){}
+  if(!res.ok)throw{code:j.error||'failed'};return j.data;
+}
+function fail(e){var c=e&&e.code;if(c==='not_found'||c==='closed'||c==='expired'){$('#app').hidden=true;$('#state').hidden=false;$('#state').textContent=ERR[c];return}say(ERR[c]||'تعذّر الاتصال. أعد المحاولة.','err')}
+function ago(iso){var s=Math.round((Date.now()-new Date(iso).getTime())/60000);if(s<1)return 'الآن';if(s<60)return 'قبل '+s+' دقيقة';if(s<1440)return 'قبل '+Math.round(s/60)+' ساعة';return new Date(iso).toLocaleDateString('ar')}
+function paint(){
+  if(!R)return;
+  $('#state').hidden=true;$('#app').hidden=false;
+  document.title='مراجعة: '+R.title;$('#ttl').textContent=R.title||'التصميم';
+  var b=$('#badge');b.className='badge b-'+R.decision;b.textContent=R.decision==='approved'?'معتمد':R.decision==='changes'?'مطلوب تعديلات':'بانتظار قرارك';
+  $('#decBy').textContent=R.decided_by?'بواسطة '+R.decided_by:'';
+  var n=R.images.length;if(cur>=n)cur=0;
+  var im=$('#img');if(im.dataset.u!==R.images[cur]){im.dataset.u=R.images[cur];im.src=R.images[cur]}
+  var nav=$('#nav');nav.innerHTML=n>1?R.images.map(function(_,i){return '<button type="button" data-i="'+i+'" aria-pressed="'+(i===cur)+'" aria-label="'+(R.kind==='cz'?'الشريحة ':'الصورة ')+(i+1)+'">'+(i+1)+'</button>'}).join(''):'';
+  var L=R.comments;$('#cms').innerHTML=L.length?L.map(function(c){return '<div class="cm"><small><span class="'+(c.from_owner?'own':'')+'">'+esc(c.author)+(c.from_owner?' (صاحب التصميم)':'')+'</span>'+(n>1?'<span class="tag">'+(R.kind==='cz'?'شريحة ':'صورة ')+(c.slide+1)+'</span>':'')+' · '+ago(c.created_at)+'</small><p>'+esc(c.body)+'</p></div>'}).join(''):'<p class="empty">لا توجد ملاحظات بعد.</p>';
+}
+async function load(){try{R=await call({action:'get'});paint()}catch(e){fail(e)}}
+$('#nav').addEventListener('click',function(e){var b=e.target.closest('button[data-i]');if(!b)return;cur=+b.dataset.i;paint()});
+$('#send').addEventListener('click',async function(){
+  var name=$('#nm').value.trim(),text=$('#tx').value.trim();
+  if(!name){say(ERR.name_required,'err');$('#nm').focus();return}
+  if(!text){say(ERR.empty_comment,'err');$('#tx').focus();return}
+  try{localStorage.setItem('rv_name',name)}catch(e){}
+  this.disabled=true;say('جارٍ الإرسال…');
+  try{R=await call({action:'comment',name:name,text:text,slide:cur});$('#tx').value='';say('وصلت ملاحظتك. شكراً.','ok');paint()}catch(e){fail(e)}
+  this.disabled=false;
+});
+async function decide(d){
+  var name=$('#nm').value.trim();if(!name){say(ERR.name_required,'err');$('#nm').focus();return}
+  if(d==='approved'&&!confirm('تأكيد اعتماد التصميم؟'))return;
+  try{localStorage.setItem('rv_name',name)}catch(e){}
+  say('جارٍ الحفظ…');
+  try{R=await call({action:'decide',decision:d,name:name});say(d==='approved'?'تم اعتماد التصميم. شكراً لك.':'وصل طلب التعديلات لصاحب التصميم.','ok');paint()}catch(e){fail(e)}
+}
+$('#ok').addEventListener('click',function(){decide('approved')});
+$('#chg').addEventListener('click',function(){decide('changes')});
+try{$('#nm').value=localStorage.getItem('rv_name')||''}catch(e){}
+if(!/^[0-9a-f]{40,80}$/.test(TOKEN)){$('#state').textContent=ERR.not_found}else{load();setInterval(function(){if(document.visibilityState==='visible'&&!$('#tx').value)load()},30000)}
+</script>
+</body>
+</html>
