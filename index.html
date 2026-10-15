@@ -1003,6 +1003,9 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 /* ===== stock picker: photo / vector tabs ===== */
 .pgsk{margin-bottom:8px}
 .stth.vec img{object-fit:contain;background:#fff}
+
+.ldrow{flex-wrap:wrap}
+.ldrow .tool{height:38px;flex:1 1 auto;padding:0 10px;font-size:13px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1775,7 +1778,7 @@ var PRESETS={
 
 var S={
   size:'4:5',lang:'ar',layout:'stats',sec:'eco',theme:'light',main:'#1B1F78',titleC:'#1B1F78',strap:'#D8560B',strapPos:'top',labelPos:'above',numGray:false,
-  kicker:'',title:'',subtitle:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',titleFont:'',titleScale:100,
+  kicker:'',title:'',subtitle:'',lede:'',ledeSize:100,ledeHi:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',titleFont:'',titleScale:100,
   hero:{value:'',label:'',text:''},stats:[],items:[],bars:[],legend:[],fx:[],tpl:'',ticons:true,tpanel:false,
   bgMode:'preset',bgC1:'#1B1F78',bgC2:'#7B35C6',bgAngle:180,bgPreset:0,bgImg:null,anchor:'bottom',photoH:100,photoFade:'auto',photoFadeAmt:45,veil:.35,band:true,bandCol:'',bandTr:null,bandSize:100,bandShape:'full'
 };
@@ -1913,6 +1916,7 @@ function titleBlock(y0){
     HI.tag('subtitle','','العنوان الثانوي');sl.forEach(function(l,i){put(l,W/2,y+ss*.95+i*ss*1.4,f.sub(ss),th.sub,'center')});HI.tag();
     y+=sl.length*ss*1.4+6;
   }
+  if(S.lede&&ldPlain(S.lede))y=ledeBlock(y);
   return y;
 }
 
@@ -2197,7 +2201,7 @@ function colRow(path,o){
 function addRow(k,label){return '<button type="button" class="tool add" data-add="'+k+'">+ '+label+'</button>'}
 function buildEditor(){
   var L=S.layout,h;
-  $('#edTitle').innerHTML='<div class="field"><label>العنوان الكبير</label>'+inp('title',S.title,'العنوان الكبير')+'</div><div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>'+(window.__ttHtml?window.__ttHtml('ig'):'');
+  $('#edTitle').innerHTML='<div class="field"><label>العنوان الكبير</label>'+inp('title',S.title,'العنوان الكبير')+'</div><div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>'+(window.__ldHtml?window.__ldHtml():'')+(window.__ttHtml?window.__ttHtml('ig'):'');
   $('#edKick').innerHTML='<div class="field"><label>نص السترابة</label>'+inp('kicker',S.kicker,'السترابة')+'</div>';
   $('#edFoot').innerHTML='<div class="field"><label>نص السطر (إعداد أو مصدر)</label>'+inp('footer',S.footer,'إعداد: الاسم، تصميم: الاسم')+'</div>';
   $('#edHero').innerHTML=tplHeroHtml()||('<div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero));
@@ -2317,7 +2321,7 @@ function status(msg,err,busy){var s=$('#status');s.className=err?'err':'';s.inne
 function applyData(d){
   var lay=['stats','list','bars','cards'];
   S.layout=lay.indexOf(d.layout)>-1?d.layout:'stats';
-  S.kicker=clean(d.kicker,60);S.title=clean(d.title,60);S.subtitle=clean(d.subtitle,90);S.footer='';
+  S.kicker=clean(d.kicker,60);S.title=clean(d.title,60);S.subtitle=clean(d.subtitle,90);S.lede=typeof d.lede==='string'?d.lede.slice(0,220):'';S.footer='';
   var hv=d.hero&&(d.hero.value||d.hero.label)?d.hero:null;
   S.hero=hv?{value:clean(hv.value,12),label:clean(hv.label,40),text:clean(hv.text,110)}:{value:'',label:'',text:''};
   S.tpl=tplValid(d.template,S.layout)?d.template:'';
@@ -7829,7 +7833,7 @@ function fxInit(){
 
 /* ===== click any element in the design to edit it live ===== */
 var EP={on:false,mode:'',g:'',p:'',box:null,down:null,card:null};
-var EP_ACC={title:'head',subtitle:'head',kicker:'kick',hero:'hero',stats:'stats',bars:'list',items:'list',legend:'list',footer:'foot',sec:'style',band:'style',bg:'bg'};
+var EP_ACC={title:'head',subtitle:'head',lede:'head',kicker:'kick',hero:'hero',stats:'stats',bars:'list',items:'list',legend:'list',footer:'foot',sec:'style',band:'style',bg:'bg'};
 function epMobile(){return window.innerWidth<=920}
 function epSheet(m){return m==='cz'?$('#czSheet'):m==='ch'?$('#chSheet'):$('.sheet')}
 function epH(m){return m==='ch'?chH():m==='cz'?czH():H}
@@ -7952,6 +7956,7 @@ function epBodyIG(g,p){
   var k=g.split('.')[0],h='',t='';
   if(k==='title'){t='العنوان الكبير';h=epField('title','العنوان','العنوان الكبير')+epSwatches('titleC','لون العنوان')+ttHtml('ig')}
   else if(k==='subtitle'){t='العنوان الثانوي';h=epField('subtitle','العنوان الثانوي','العنوان الثانوي')}
+  else if(k==='lede'){t='الجملة تحت العنوان';h=epField('lede','الجملة','جملة تعريفية قصيرة',{hl:1})+'<div class="epf"><button type="button" class="tool hl" data-ldai>تمييز ذكي ✨</button><p class="hint">يلوّن الأرقام والتواريخ والكلمات الأهم.</p></div>'+epSwatches('ledeHi','لون التمييز',true)+epRange('ledeSize','حجم الجملة',70,140)}
   else if(k==='kicker'){t='السترابة';h=epField('kicker','النص','السترابة')+epSwatches('strap','لون الشريط')+epRadio('strapPos','موضع الشريط',[['top','فوق العنوان'],['bottom','تحته']])}
   else if(k==='hero'||k==='stats'){
     t=k==='hero'?'الرقم المميز':'رقم';
@@ -9098,7 +9103,7 @@ function poDesign(m){
   var o=[];
   if(m==='ig'){
     o.push('Infographic.');
-    ['kicker','title','subtitle'].forEach(function(k){if(S[k])o.push(k+': '+S[k])});
+    ['kicker','title','subtitle','lede'].forEach(function(k){if(S[k])o.push(k+': '+String(S[k]).replace(/\*\*/g,''))});
     if(S.hero&&(S.hero.value||S.hero.label))o.push('Main figure: '+poStat(S.hero));
     (S.stats||[]).forEach(function(t){var l=poStat(t);if(l)o.push('Figure: '+l)});
     (S.items||[]).forEach(function(t){var l=poLine([t.value,t.title,t.text]);if(l)o.push('Point: '+l)});
@@ -9363,7 +9368,7 @@ function qaDesignText(m){
   var o=[];
   var st=function(t){if(t)o.push(t.value,t.label,t.text)};
   if(m==='ig'){
-    o.push(S.kicker,S.title,S.subtitle);st(S.hero);(S.stats||[]).forEach(st);
+    o.push(S.kicker,S.title,S.subtitle,String(S.lede||'').replace(/\*\*/g,''));st(S.hero);(S.stats||[]).forEach(st);
     (S.items||[]).forEach(function(t){o.push(t.value,t.title,t.text)});(S.bars||[]).forEach(function(t){o.push(t.label,t.value,t.note)});
   }else if(m==='cz'){
     CZ.slides.forEach(function(s){o.push(s.kicker,s.title,s.subtitle,s.text,s.foot,s.pills);(s.stats||[]).forEach(st);(s.points||[]).forEach(function(t){o.push(t.title,t.text)})});
@@ -9516,7 +9521,7 @@ function flAdd(g,root,path,label){var v=flGet(root,path);if(v===''&&!/value|titl
 function flCollect(kind){
   FL.fields=[];FL.tsv=false;
   if(kind==='ig'){
-    flAdd('العنوان',S,'kicker','السترابة');flAdd('العنوان',S,'title','العنوان الكبير');flAdd('العنوان',S,'subtitle','العنوان الثانوي');
+    flAdd('العنوان',S,'kicker','السترابة');flAdd('العنوان',S,'title','العنوان الكبير');flAdd('العنوان',S,'subtitle','العنوان الثانوي');flAdd('العنوان',S,'lede','الجملة تحت العنوان');
     if(S.hero&&(S.hero.value||S.hero.label)){['value','label','text'].forEach(function(k,i){flAdd('الرقم الرئيسي',S,'hero.'+k,['الرقم','الكلمة المميزة','النص'][i])})}
     (S.stats||[]).forEach(function(t,i){['value','label','text'].forEach(function(k,j){flAdd('رقم '+(i+1),S,'stats.'+i+'.'+k,['الرقم','الكلمة المميزة','النص'][j])})});
     (S.items||[]).forEach(function(t,i){['title','text','value'].forEach(function(k,j){flAdd('نقطة '+(i+1),S,'items.'+i+'.'+k,['العنوان','النص','الرقم'][j])})});
@@ -9649,6 +9654,90 @@ function shInit(){
   $('#chSheetUrl').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();shGet()}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',shInit);else shInit();
+
+/* ===== the sentence under the title: words wrapped in ** are highlighted; "smart highlight" asks Claude which words deserve it ===== */
+var LD={busy:false,prev:null};
+function ldPlain(t){return String(t==null?'':t).replace(/\*\*/g,'').replace(/\s+/g,' ').trim()}
+function ldFonts(f,size){return function(b){return b?f.head(size):f.body(size)}}
+function ldWrap(text,fontOf,maxW){
+  var rt=dirOf()==='rtl',toks=czTok(text);ctx.direction=dirOf();
+  ctx.font=fontOf(false);var sp=ctx.measureText(' ').width,lines=[],cur=[],cw=0;
+  toks.forEach(function(t){
+    ctx.font=fontOf(t.b);t.mw=ctx.measureText(t.w).width;
+    var gp=t.g?0:sp;if(cur.length&&cw+gp+t.mw>maxW){lines.push({t:cur,w:cw});cur=[t];cw=t.mw}else{cw+=(cur.length?gp:0)+t.mw;cur.push(t)}
+  });
+  if(cur.length)lines.push({t:cur,w:cw});
+  lines.sp=sp;return lines;
+}
+function ldBal(text,fontOf,maxW){
+  var base=ldWrap(text,fontOf,maxW);if(base.length<2)return base;
+  var lo=maxW*.45,hi=maxW;
+  for(var i=0;i<12;i++){var mid=(lo+hi)/2;if(ldWrap(text,fontOf,mid).length<=base.length)hi=mid;else lo=mid}
+  return ldWrap(text,fontOf,hi);
+}
+function ldCut(lines,n){
+  if(lines.length<=n)return lines;qaFlag('cut');var o=lines.slice(0,n),l=o[n-1];o.sp=lines.sp;
+  l.t=l.t.slice();var last=l.t[l.t.length-1];l.t[l.t.length-1]={w:last.w+'…',b:last.b,mw:last.mw+12};l.w+=12;return o;
+}
+/* draws the sentence centred under the title and returns the new y */
+function ledeBlock(y){
+  var f=F(),th=TH[S.theme],k=Math.max(.7,Math.min(1.4,(S.ledeSize||100)/100)),size=Math.round((S.lang==='en'?36:40)*k),lh=Math.round(size*1.5),rt=dirOf()==='rtl';
+  var fo=ldFonts(f,size),lines=ldCut(ldBal(S.lede,fo,W-2*M-80),3),hi=S.ledeHi||S.strap,sp=lines.sp;
+  y+=12;
+  HI.tag('lede','','الجملة تحت العنوان');
+  lines.forEach(function(L,i){
+    var yb=y+size*.9+i*lh,x=rt?W/2+L.w/2:W/2-L.w/2;
+    HI.box(W/2-L.w/2,yb-size*.88,W/2+L.w/2,yb+size*.32);
+    L.t.forEach(function(t,ti){
+      ctx.font=fo(t.b);ctx.fillStyle=t.b?hi:th.body;ctx.direction=dirOf();ctx.textAlign=rt?'right':'left';ctx.textBaseline='alphabetic';
+      ctx.fillText(t.w,x,yb);var nx=L.t[ti+1];x+=(rt?-1:1)*(t.mw+(nx&&nx.g?0:sp));
+    });
+  });
+  HI.tag();
+  return y+lines.length*lh+2;
+}
+/* the field in the side editor */
+function ldHtml(){
+  return '<div class="field"><label>الجملة تحت العنوان</label>'+inp('lede',S.lede,'جملة تعريفية قصيرة')
+    +'<div class="inrow ldrow"><button type="button" class="tool hl" data-ldai>تمييز ذكي ✨</button><button type="button" class="tool" data-ldsel>تلوين المحدد</button><button type="button" class="tool ghost" data-ldclr'+(/\*\*/.test(S.lede||'')?'':' disabled')+'>إزالة التمييز</button></div>'
+    +'<p class="hint">يقرأ Claude الجملة ويلوّن الأرقام والتواريخ والكلمات الأهم. يمكنك أيضاً تحديد كلمات بنفسك ثم الضغط على «تلوين المحدد».</p></div>';
+}
+window.__ldHtml=ldHtml;
+function ldField(){return $('#acc [data-p="lede"]')}
+function ldSet(v){
+  S.lede=v;var e=ldField();if(e)e.value=v;
+  $('#exampleNote').hidden=true;schedule();
+  var c=$$('[data-ldclr]');c.forEach(function(b){b.disabled=!/\*\*/.test(v)});
+  if(window.EP&&EP.on&&EP.mode==='ig'&&EP.g==='lede'&&typeof epBuild==='function')epBuild();
+}
+function ldBusy(on){LD.busy=on;$$('[data-ldai]').forEach(function(b){b.disabled=on;b.textContent=on?'جارٍ القراءة…':'تمييز ذكي ✨'})}
+async function ldSmart(){
+  if(LD.busy)return;
+  var plain=ldPlain(S.lede);
+  if(plain.length<4){toast('اكتب الجملة أولاً ثم اضغط «تمييز ذكي».',true);return}
+  ldBusy(true);
+  try{
+    var j=await callFn('generate',{mode:'highlight',text:plain,lang:S.lang==='en'?'en':'ar'});
+    var d=j&&j.data;if(!d||typeof d.text!=='string')throw{code:'invalid_json'};
+    if(ldPlain(d.text)!==plain)throw{code:'invalid_json'};
+    LD.prev=S.lede;ldSet(d.text);
+    toast(/\*\*/.test(d.text)?'تم تمييز '+NF.format((d.spans||[]).length)+' من الكلمات. يمكنك تعديلها بالتحديد.':'لم أجد كلمات تستحق التمييز في هذه الجملة.');
+  }catch(x){var c=x&&x.code;toast(errText(c),true);if(c==='not_signed_in')showLogin(true)}
+  finally{ldBusy(false)}
+}
+function ldSelection(){
+  var inp=ldField();if(!inp){toast('حدّد الكلمات داخل حقل الجملة أولاً.',true);return}
+  var a=inp.selectionStart,z=inp.selectionEnd,v=inp.value;
+  if(a==null||a===z){toast('حدّد الكلمات داخل الحقل أولاً ثم اضغط «تلوين المحدد».',true);inp.focus();return}
+  var sw=v.slice(a,z).replace(/^\s+|\s+$/g,'');
+  ldSet(/^\*\*.*\*\*$/.test(sw)?v.slice(0,a)+sw.slice(2,-2)+v.slice(z):v.slice(0,a)+'**'+sw+'**'+v.slice(z));
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-ldai],[data-ldsel],[data-ldclr]');if(!b)return;
+  if(b.hasAttribute('data-ldai'))ldSmart();
+  else if(b.hasAttribute('data-ldsel'))ldSelection();
+  else if(!b.disabled){LD.prev=S.lede;ldSet(ldPlain(S.lede))}
+});
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
