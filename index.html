@@ -895,6 +895,8 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .stth:hover .stby{opacity:1}
 .stth.busy{opacity:.55;pointer-events:none}
 .pgst-ph{color:var(--muted);font-size:13px;padding:6px 2px}
+
+.tools .tool.wide{grid-column:1/-1}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1194,8 +1196,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <div class="field"><label for="czLang">لغة التصميم</label>
           <select id="czLang"><option value="auto">تلقائي حسب النص</option><option value="ar">العربية</option><option value="en">English</option></select></div>
         <div class="cta"><button class="primary block" id="czGen" type="button">حوّل النص إلى شرائح</button><button id="czStop" type="button" class="tool" hidden>إيقاف</button></div>
-        <div class="tools two-t"><button type="button" id="czPfBtn" class="tool">مراجعة لغوية</button><button id="czDemo" type="button" class="tool">مثال جاهز</button></div>
-        <div class="tools"><button type="button" id="czBrics" class="tool">مثال بستايل «سماء» (قمة بريكس)</button></div>
+        <div class="tools two-t"><button type="button" id="czPfBtn" class="tool">مراجعة لغوية</button><button id="czDemo" type="button" class="tool">مثال جاهز</button><button type="button" id="czBrics" class="tool wide">مثال بستايل «سماء» (قمة بريكس)</button></div>
         <div id="czStatus" role="status" aria-live="polite"></div>
         <div id="czPhNotes" class="phnotes" hidden></div>
       </div>
