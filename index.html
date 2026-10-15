@@ -9834,6 +9834,39 @@ document.addEventListener('click',function(e){
   schedule();tyRefresh();
 });
 
+/* ===== entry points for the local worker (worker/): text in, finished PNG images out. They run the same steps as the buttons, without the review dialogs ===== */
+function auReady(){return Promise.all([typeof ttReady==='function'?ttReady().catch(function(){}):0,document.fonts&&document.fonts.ready])}
+function auMode(v){var r=document.querySelector('input[name="mode"][value="'+v+'"]');if(r&&!r.checked){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
+function auPng(c){return c.toDataURL('image/png').split(',')[1]}
+window.__auto={
+  version:1,
+  ig:async function(text,o){
+    o=o||{};auMode('ig');
+    var j=await callFn('generate',{text:String(text||''),lang:o.lang==='en'||o.lang==='ar'?o.lang:'auto',layout:o.layout||'auto'});
+    if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
+    var d=JSON.parse(JSON.stringify(j.data));
+    d.layout=['stats','list','bars','cards'].indexOf(d.layout)>-1?d.layout:'stats';
+    d.hero=d.layout==='stats'&&d.hero&&typeof d.hero==='object'&&(d.hero.value||d.hero.label)?d.hero:null;
+    ['stats','items','bars'].forEach(function(k){d[k]=(Array.isArray(d[k])?d[k]:[]).filter(function(x){return x&&Object.keys(x).some(function(q){return String(x[q]==null?'':x[q]).trim()!==''})})});
+    d.legend=d.layout==='bars'&&Array.isArray(d.legend)?d.legend:[];
+    applyData(d);$('#exampleNote').hidden=true;buildEditor();syncControls();render();
+    await auReady();render();
+    return{title:S.title||'',images:[auPng(cv)]};
+  },
+  cz:async function(text,o){
+    o=o||{};auMode('cz');
+    var j=await callFn('generate',{text:String(text||''),lang:o.lang==='en'||o.lang==='ar'?o.lang:'auto',mode:'carousel',look:'classic'});
+    if(!j||!j.data||typeof j.data!=='object'||!j.data.cover)throw{code:'invalid_json'};
+    var d=JSON.parse(JSON.stringify(j.data));
+    d.closing=d.closing===false?false:d.closing||{};
+    d.slides=(Array.isArray(d.slides)?d.slides:[]).map(function(sl){return Object.assign({},sl,{pills:Array.isArray(sl.pills)?sl.pills.join('، '):(sl.pills||'')})});
+    czLoad(d,true);czBuildThumbs();czRenderAll();czBuildEditor();czNav();
+    await auReady();czRenderAll();
+    var out=[];for(var i=0;i<CZ.slides.length;i++){czDrawSlide(i);out.push(auPng(czcv))}czDrawSlide(CZ.cur);
+    return{title:(CZ.slides[0]&&CZ.slides[0].title)||'',images:out};
+  }
+};
+
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
 var TEMPLATES=[
