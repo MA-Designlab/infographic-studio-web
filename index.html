@@ -4270,18 +4270,20 @@ function pgGate(mode,next){
   PG.choice='upload';pgPaint();openDlg('#dlgPhotos','#pgPick');
 }
 function pgPaint(){
-  var ch=PG.choice,up=ch==='upload',stk=ch==='stock',n=PG.files.length;
+  var pick=PG.mode==='pick',ch=PG.choice,up=ch==='upload'&&!pick,stk=ch==='stock',n=PG.files.length;
   $$('#dlgPhotos .pgopt').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.pgo===ch))});
   $('#pgUp').hidden=!up;$('#pgStock').hidden=!stk;
   var h='';
   PG.files.forEach(function(f,i){
-    h+='<figure class="pgth"><img src="'+(f.thumb||f.url)+'" alt=""><span class="pgn">'+(PG.mode==='cz'?(i===0?'الغلاف':i):'الخلفية')+'</span><button type="button" class="pgx" data-pgrm="'+i+'" aria-label="حذف الصورة">×</button>'+(PG.mode==='cz'&&i>0?'<button type="button" class="pgup" data-pgup="'+i+'" aria-label="تقديم الصورة">قدّم</button>':'')+'</figure>';
+    h+='<figure class="pgth"><img src="'+(f.thumb||f.url)+'" alt=""><span class="pgn">'+(PG.mode==='cz'?(i===0?'الغلاف':i):PG.mode==='pick'?(i+1):'الخلفية')+'</span><button type="button" class="pgx" data-pgrm="'+i+'" aria-label="حذف الصورة">×</button>'+(PG.mode==='cz'&&i>0?'<button type="button" class="pgup" data-pgup="'+i+'" aria-label="تقديم الصورة">قدّم</button>':'')+'</figure>';
   });
   $('#pgGrid').innerHTML=h;$('#pgGrid2').innerHTML=h;
   $('#pgPick').textContent=n?'+ إضافة صور أخرى':(PG.mode==='ig'?'+ اختر صورة':'+ اختر صور');
   $('#pgSmartW').hidden=PG.mode!=='cz'||ch==='none';
+  $('#dlgPhotos [data-pgo=none]').hidden=pick;
+  $('#pgTitle').textContent=pick?'اختر صورة':'هل عندك صور للتصميم؟';
   var go=$('#pgGo');go.disabled=PG.busy>0||((up||stk)&&!n);
-  go.textContent=(up||stk)?(n?'كمّل بالصور':(stk?'اختر صورة أولاً':'ارفع صورة أولاً')):'كمّل بدون صور';
+  go.textContent=pick?(n?'استخدم الصورة':'اختر صورة أولاً'):(up||stk)?(n?'كمّل بالصور':(stk?'اختر صورة أولاً':'ارفع صورة أولاً')):'كمّل بدون صور';
   $('#pgMsg').textContent=PG.busy?'جارٍ تجهيز الصور…':'';
   if(stk)pgStPaintSel();
 }
@@ -4298,13 +4300,16 @@ async function pgAdd(list){
   if(files.length&&!got.length)$('#pgMsg').textContent='تعذّر قراءة الصور. جرّب JPG أو PNG.';
 }
 function pgGo(){
+  if(PG.mode==='pick'){pgPickDone();return}
   var imgs=PG.choice!=='none'?PG.files.map(function(f){return f.im}):[],mode=PG.mode,next=PG.next;
   closeDlg('#dlgPhotos');
   if(mode==='ig'&&imgs.length){S.bgImg=imgs[0];S.bgPreset=0;syncBg();schedule()}
   if(next)next(imgs,{smart:mode==='cz'&&imgs.length>0&&$('#pgSmart').checked});
 }
 function pgBoot(){
-  $$('#dlgPhotos .pgopt').forEach(function(b){b.addEventListener('click',function(){PG.choice=b.dataset.pgo;pgPaint();if(PG.choice==='stock')pgStOpen()})});
+  $$('#dlgPhotos .pgopt').forEach(function(b){b.addEventListener('click',function(){
+    if(PG.mode==='pick'&&b.dataset.pgo==='upload'){var inp=PG.input;closeDlg('#dlgPhotos');if(inp)pgNativeClick(inp);return}
+    PG.choice=b.dataset.pgo;pgPaint();if(PG.choice==='stock')pgStOpen()})});
   pgStBoot();
   $('#pgPick').addEventListener('click',function(){$('#pgFile').click()});
   $('#pgFile').addEventListener('change',function(){pgAdd(this.files);this.value=''});
@@ -4330,10 +4335,44 @@ function pgStErr(e){
   if(c==='stock_timeout'||c==='stock_failed'||c==='stock_too_big')return 'تعذّر تحميل الصور الآن. أعد المحاولة.';
   return errText(c);
 }
-function pgStText(){return $(PG.mode==='ig'?'#src':'#czSrc').value.trim()}
+function pgStText(){
+  if(PG.mode==='pick')return PG.text||'';
+  return $(PG.mode==='ig'?'#src':'#czSrc').value.trim()
+}
+function pgPickText(){
+  var m=(document.querySelector('input[name=mode]:checked')||{}).value,t='';
+  var clean=function(x){return String(x||'').replace(/\*\*/g,'').replace(/\s+/g,' ').trim()};
+  if(m==='cz'){var sl=CZ.slides[CZ.cur];t=sl?czBrief(sl):'';if(!t)t=$('#czSrc').value}
+  else if(m==='ch'){t=clean(CH.title)+' '+clean(CH.subtitle)+' '+clean(CH.note)}
+  else{t=clean(S.title)+' '+clean(S.subtitle)+' '+clean(S.kicker);if(clean(t).length<8)t=$('#src').value}
+  return clean(t).slice(0,1500);
+}
+var PG_NATIVE=HTMLInputElement.prototype.click;
+function pgNativeClick(inp){PG_NATIVE.call(inp)}
+var PG_PICK_IDS={bgFile:1,czFile:1,chPicFile:1,chOvFile:1,fxFile:1,tpFile:1};
+/* every "add a photo" button offers the stock library first: the chosen picture is handed to the same input as if it was uploaded */
+HTMLInputElement.prototype.click=function(){
+  if(this.type==='file'&&PG_PICK_IDS[this.id]&&!window.__noStockPick){pgPick(this);return}
+  return PG_NATIVE.apply(this,arguments);
+};
+function pgPick(inp){
+  PG.mode='pick';PG.files=[];PG.next=null;PG.input=inp;PG.text=pgPickText();PG.choice='stock';
+  $('#pgSub').textContent='اختر صورة من مكتبات الصور المجانية، أو ارفع صورة من جهازك.';
+  pgPaint();openDlg('#dlgPhotos','#pgStIn');pgStOpen();
+}
+function pgPickDone(){
+  var inp=PG.input,fs=PG.files.slice();closeDlg('#dlgPhotos');
+  if(!inp||!fs.length)return;
+  try{
+    var dt=new DataTransfer();
+    fs.forEach(function(f){dt.items.add(new File([f.blob],f.name+(/png/.test(f.type)?'.png':/webp/.test(f.type)?'.webp':'.jpg'),{type:f.type}))});
+    inp.files=dt.files;inp.dispatchEvent(new Event('change',{bubbles:true}));
+  }catch(e){toast('تعذّر إدراج الصورة.',true)}
+}
 async function pgStOpen(){
   var t=pgStText();
-  if(PGS.text===t&&(PGS.queries.length||PGS.photos.length)){pgStPaintGrid();return}
+  if(PGS.text===t&&(PGS.queries.length||PGS.photos.length)){pgStPaintGrid();pgStPaintQ();return}
+  if(!t){PGS.text=t;PGS.queries=[];PGS.photos=[];PGS.q='';pgStPaintQ();pgStPaintGrid();$('#pgMsg').textContent='اكتب كلمات البحث (بالإنجليزية أدق) واضغط بحث.';return}
   PGS.text=t;PGS.queries=[];PGS.photos=[];PGS.q='';PGS.page=1;PGS.err='';pgStPaintGrid();
   $('#pgMsg').textContent='جارٍ اقتراح كلمات البحث…';
   try{
@@ -4372,7 +4411,7 @@ async function pgStPick(id){
   var p=PGS.photos.filter(function(x){return x.id===id})[0];if(!p)return;
   var at=PG.files.findIndex(function(f){return f.stockId===id});
   if(at>-1){PG.files.splice(at,1);pgPaint();return}
-  if(PG.mode==='ig')PG.files=[];
+  if(PG.mode==='ig'||(PG.mode==='pick'&&!(PG.input&&PG.input.multiple)))PG.files=[];
   else if(PG.files.length>=12){$('#pgMsg').textContent='الحد الأقصى 12 صورة.';return}
   PGS.busyIds[id]=1;PG.busy++;pgStPaintGrid();pgPaint();
   try{
@@ -4380,8 +4419,9 @@ async function pgStPick(id){
     var d=j&&j.data;if(!d||!d.b64)throw{code:'stock_failed'};
     var url='data:'+d.type+';base64,'+d.b64;
     var im=await new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i)};i.onerror=function(){rej({code:'stock_failed'})};i.src=url});
-    PG.files.push({im:im,name:'pexels-'+id,url:url,thumb:p.thumb,stockId:id,by:p.by});
-    if(PG.mode==='ig')PG.files=PG.files.slice(-1);
+    var bin=atob(d.b64),u8=new Uint8Array(bin.length);for(var k=0;k<bin.length;k++)u8[k]=bin.charCodeAt(k);
+    PG.files.push({im:im,name:'stock-'+id,url:url,thumb:p.thumb,stockId:id,by:p.by,blob:new Blob([u8],{type:d.type}),type:d.type});
+    if(PG.mode==='ig'||(PG.mode==='pick'&&!(PG.input&&PG.input.multiple)))PG.files=PG.files.slice(-1);
   }catch(e){PGS.err=pgStErr(e)}
   finally{delete PGS.busyIds[id];PG.busy--;pgStPaintGrid();pgPaint();if(PGS.err)$('#pgMsg').textContent=PGS.err}
 }
@@ -6492,7 +6532,7 @@ function tplItemExtra(i,it){
 var TP_PH=null;
 function tplPhotoInit(){
   var ed=$('#acc');if(!ed||ed.__tp)return;ed.__tp=1;
-  var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.hidden=true;document.body.appendChild(fi);
+  var fi=document.createElement('input');fi.id='tpFile';fi.type='file';fi.accept='image/*';fi.hidden=true;document.body.appendChild(fi);
   ed.addEventListener('click',function(e){
     var b=e.target.closest&&e.target.closest('[data-tphoto],[data-tphoto-rm]');if(!b)return;
     if(b.dataset.tphotoRm){var o=b.dataset.tphotoRm==='hero'?S.hero:S.items[+b.dataset.tphotoRm];if(o)delete o.pimg;buildEditor();schedule();return}
