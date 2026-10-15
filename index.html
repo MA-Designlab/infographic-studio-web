@@ -1006,6 +1006,16 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 
 .ldrow{flex-wrap:wrap}
 .ldrow .tool{height:38px;flex:1 1 auto;padding:0 10px;font-size:13px}
+.tybox{display:flex;flex-direction:column;gap:6px}
+.tyg{border:1px solid var(--line,#e3e0f0);border-radius:12px;padding:0 10px;background:rgba(255,255,255,.5)}
+.tyg>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:6px;font-weight:700;list-style:none}
+.tyg>summary::-webkit-details-marker{display:none}
+.tyg[open]{padding-bottom:10px}
+.tyg .tyrow{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+.tyg .tyrow label{font-size:13px;display:flex;justify-content:space-between}
+.tyg select{width:100%;min-height:40px}
+.tyg input[type=color]{width:56px;height:36px;padding:0}
+.tyset{color:#D8560B;font-style:normal;font-size:11px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1221,6 +1231,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">الأرقام</span><span class="ac-s" data-sum="stats"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
           <div class="ac-w"><div class="ac-b">
 <div id="edStats"></div>
+<div id="edTy"></div>
 <div class="field"><span class="lab">لون الأرقام</span><div class="seg full" id="segNum"><label><input type="radio" name="numCol" value="main"><span>ملوّن</span></label><label><input type="radio" name="numCol" value="gray"><span>رمادي</span></label></div></div>
 <div class="field"><span class="lab">لون الأرقام العام (ولكل رقم لون مستقل من صفّه)</span><div class="sws" id="swMain"></div></div>
 <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span><div class="seg full" id="segLabelPos"><label><input type="radio" name="labelPos" value="above"><span>فوقه</span></label><label><input type="radio" name="labelPos" value="below"><span>تحته</span></label></div></div>
@@ -1923,15 +1934,18 @@ function titleBlock(y0){
 /* ---------- stat cell / grid ---------- */
 function statCell(st,cx,y,cw,sz,draw){
   var f=F(),th=TH[S.theme],nc=st.color||numColor(),numTxt=fmtVal(st.value),hg=st===S.hero?'hero':(S.stats.indexOf(st)>-1?'stats.'+S.stats.indexOf(st):null);
-  var ns=sz.num;ctx.font=f.num(ns);ctx.direction='ltr';
-  while(ns>40&&ctx.measureText(numTxt).width>cw-20){ns-=4;ctx.font=f.num(ns)}
-  var dh=digitH(f.num(ns));
-  var ll=st.label?limit(wrapBal(fixPct(st.label),f.label(sz.label),cw-24),2):[];
-  var tl=st.text?limit(wrapBal(fixPct(st.text),f.body(sz.text),cw-28),4):[];
-  var lS=sz.label*1.32,tS=sz.text*1.42,lH=ll.length*lS,tH=tl.length*tS,yy=y,steps=[];
-  function lab(){if(hg)HI.tag(hg,'label','الكلمة المميزة');ll.forEach(function(l,i){put(l,cx,yy+sz.label*.92+i*lS,f.label(sz.label),nc,'center')});HI.tag();yy+=lH}
-  function num(){if(hg)HI.tag(hg,'value','الرقم');put(numTxt,cx,yy+dh,f.num(ns),nc,'center','ltr');HI.tag();yy+=dh}
-  function txt(){if(hg)HI.tag(hg,'text','النص');tl.forEach(function(l,i){put(l,cx,yy+sz.text*.95+i*tS,f.body(sz.text),th.body,'center')});HI.tag();yy+=tH}
+  var eV=tyEff(st,'value'),eL=tyEff(st,'label'),eT=tyEff(st,'text');
+  var fnum=function(s){return tyFont(eV.f,s)||f.num(s)},flab=function(s){return tyFont(eL.f,s)||f.label(s)},fbod=function(s){return tyFont(eT.f,s)||f.body(s)};
+  var cV=eV.c||nc,cL=eL.c||nc,cT=eT.c||th.body,lsz=Math.max(12,Math.round(sz.label*eL.s/100)),tsz=Math.max(12,Math.round(sz.text*eT.s/100));
+  var ns=Math.round(sz.num*eV.s/100),lim=(cw-20)*Math.max(1,Math.min(1.5,eV.s/100));ctx.font=fnum(ns);ctx.direction='ltr';
+  while(ns>40&&ctx.measureText(numTxt).width>lim){ns-=4;ctx.font=fnum(ns)}
+  var dh=digitH(fnum(ns));
+  var ll=st.label?limit(wrapBal(fixPct(st.label),flab(lsz),cw-24),2):[];
+  var tl=st.text?limit(wrapBal(fixPct(st.text),fbod(tsz),cw-28),4):[];
+  var lS=lsz*1.32,tS=tsz*1.42,lH=ll.length*lS,tH=tl.length*tS,yy=y,steps=[];
+  function lab(){if(hg)HI.tag(hg,'label','الكلمة المميزة');ll.forEach(function(l,i){put(l,cx+eL.dx,yy+lsz*.92+i*lS+eL.dy,flab(lsz),cL,'center')});HI.tag();yy+=lH}
+  function num(){if(hg)HI.tag(hg,'value','الرقم');put(numTxt,cx+eV.dx,yy+dh+eV.dy,fnum(ns),cV,'center','ltr');HI.tag();yy+=dh}
+  function txt(){if(hg)HI.tag(hg,'text','النص');tl.forEach(function(l,i){put(l,cx+eT.dx,yy+tsz*.95+i*tS+eT.dy,fbod(tsz),cT,'center')});HI.tag();yy+=tH}
   var gap=sz.gap||12;
   if(S.labelPos==='above'){if(ll.length)steps.push({h:lH,d:lab,g:gap*.6});steps.push({h:dh,d:num,g:gap});}
   else{steps.push({h:dh,d:num,g:gap});if(ll.length)steps.push({h:lH,d:lab,g:gap*.4});}
@@ -2219,6 +2233,7 @@ function buildEditor(){
   S.stats.forEach(function(s,i){h+='<div class="rowf" data-arr="stats" data-i="'+i+'">'+GRIP+'<div class="field">'+inp('stats.'+i+'.value',s.value,'الرقم')+'</div>'+inp('stats.'+i+'.label',s.label,'الكلمة المميزة')+'<button type="button" class="x" data-rm="stats.'+i+'" aria-label="حذف" title="حذف"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg></button><div class="full">'+inp('stats.'+i+'.text',s.text,'النص تحت الرقم')+'</div><div class="full">'+colRow('stats.'+i,s)+'</div></div>'});
   h+=addRow('stats','إضافة رقم');
   $('#edStats').innerHTML=h;
+  if(window.__tyPaint)window.__tyPaint();
   $('[data-ac="list"] .ac-t').textContent=L==='list'?'النقاط':L==='cards'?'البطاقات':'الأعمدة';
   $('[data-ac="stats"] .ac-t').textContent=L==='stats'?'الأرقام الداعمة':'شريط الأرقام السفلي';
   $$('.ac[data-lay]').forEach(function(ac){
@@ -3074,11 +3089,9 @@ function ttLoad(id){
 }
 function ttRepaint(){schedule();if(czInited)czRenderAll();if(chInited)chSchedule()}
 function ttEnsure(){
-  [S.titleFont,CZ.titleFont,CH.titleFont,CH.textFont,CH.numFont].forEach(function(k){if(!k)return;if(k.indexOf('lib:')===0)ttLoad(k.slice(4));else if(k.indexOf('g:')===0)ttGLoad(k.slice(2))});
+  [S.titleFont,CZ.titleFont,CH.titleFont,CH.textFont,CH.numFont].concat(window.__tyKeys?window.__tyKeys():[]).forEach(function(k){if(!k)return;if(k.indexOf('lib:')===0)ttLoad(k.slice(4));else if(k.indexOf('g:')===0)ttGLoad(k.slice(2))});
 }
-function ttHtml(mode,fk,sk,label){
-  fk=fk||'titleFont';sk=sk||'titleScale';label=label||'العنوان';
-  var o=ttObj(mode),cur=o[fk]||'',sc=o[sk]||100;
+function ttOptions(cur){
   var opts=TF_HOUSE.map(function(x){return '<option value="'+x[0]+'"'+(cur===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('');
   var fonts=LIB.list.filter(function(a){return a.kind==='font'});
   if(fonts.length)opts+='<optgroup label="من المكتبة">'+fonts.map(function(a){return '<option value="lib:'+esc(a.id)+'"'+(cur==='lib:'+a.id?' selected':'')+'>'+esc(a.name)+'</option>'}).join('')+'</optgroup>';
@@ -3086,6 +3099,12 @@ function ttHtml(mode,fk,sk,label){
   var gopt=function(n){return '<option value="g:'+n+'"'+(cur==='g:'+n?' selected':'')+'>'+n+'</option>'};
   opts+='<optgroup label="Google Fonts — عربي">'+TF_GAR.map(gopt).join('')+'</optgroup><optgroup label="Google Fonts — لاتيني">'+TF_GEN.map(gopt).join('')+'</optgroup>';
   if(cur.indexOf('g:')===0&&TF_GAR.concat(TF_GEN).indexOf(cur.slice(2))<0)opts+='<option value="'+esc(cur)+'" selected>'+esc(cur.slice(2))+'</option>';
+  return opts;
+}
+function ttHtml(mode,fk,sk,label){
+  fk=fk||'titleFont';sk=sk||'titleScale';label=label||'العنوان';
+  var o=ttObj(mode),cur=o[fk]||'',sc=o[sk]||100;
+  var opts=ttOptions(cur);
   return '<div class="field tt" data-ttm="'+mode+'" data-ttf="'+fk+'" data-tts="'+sk+'"><label>خط '+label+'</label><select data-ttfont aria-label="خط '+label+'">'+opts+'</select>'
     +'<div class="inrow"><input type="text" data-ttg dir="ltr" placeholder="أو اكتب اسم أي خط من Google Fonts" aria-label="اسم خط من Google Fonts"><button type="button" class="mini" data-ttgo>تحميل</button></div>'
     +'<label>حجم '+label+' <b data-ttv>'+sc+'%</b></label><input type="range" data-ttscale min="50" max="160" step="5" value="'+sc+'" aria-label="حجم '+label+'">'
@@ -7139,7 +7158,7 @@ tplReg({id:'duo',name:'علاقات ثنائية: الإمارات و… (اسم
       sp.right.concat([]);statsH=Math.max(tColH(sp.right,sz,cw,im),tColH(sp.left,sz,cw,im));
     }
     var heroB=S.hero.value?bottom-statsH-(statsH?18:0):by;
-    if(S.hero.value){var keep=S.hero;S.hero={value:keep.value,label:'',text:keep.text,color:keep.color};try{drawHero(by,heroB,W/2,W-2*M)}finally{S.hero=keep}}
+    if(S.hero.value){var keep=S.hero;S.hero={value:keep.value,label:'',text:keep.text,color:keep.color,sty:keep.sty};try{drawHero(by,heroB,W/2,W-2*M)}finally{S.hero=keep}}
     if(list.length){
       var y0=bottom-statsH-((S.hero.value)?0:0);if(!S.hero.value)y0=by+(rest-statsH)/2;
       var cxR=W-M-cw/2,cxL=M+cw/2;
@@ -7178,7 +7197,7 @@ tplReg({id:'club-card',name:'بطاقة نادٍ/لاعب (شعار + شخصان
     /* headline value */
     if(hv){
       var pad=14;if(S.tpanel){rrect(M-6,by-pad,W-2*M+12,heroH+pad,30);ctx.fillStyle=dark?'rgba(7,12,42,.55)':'rgba(255,255,255,.82)';ctx.fill();ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.stroke()}
-      var keep=S.hero;S.hero={value:keep.value,label:'',text:keep.text,color:keep.color};try{drawHero(by,bottom,W/2,W-2*M-40)}finally{S.hero=keep}
+      var keep=S.hero;S.hero={value:keep.value,label:'',text:keep.text,color:keep.color,sty:keep.sty};try{drawHero(by,bottom,W/2,W-2*M-40)}finally{S.hero=keep}
     }
   }});
 
@@ -7961,7 +7980,7 @@ function epBodyIG(g,p){
   else if(k==='hero'||k==='stats'){
     t=k==='hero'?'الرقم المميز':'رقم';
     h=epField(g+'.value','الرقم','الرقم',{part:'value'})+epField(g+'.label','الكلمة المميزة','الكلمة المميزة',{part:'label'})+epField(g+'.text','النص تحت الرقم','جملة قصيرة',{part:'text'})
-      +epCol(g+'.color','لون هذا الرقم')+epSwatches('main','اللون العام للأرقام')+epRadio('labelPos','الكلمة المميزة مع الرقم',[['above','فوقه'],['below','تحته']]);
+      +epCol(g+'.color','لون هذا الرقم')+epSwatches('main','اللون العام للأرقام')+epRadio('labelPos','الكلمة المميزة مع الرقم',[['above','فوقه'],['below','تحته']])+(window.__tyPanelHtml?window.__tyPanelHtml(g,p):'');
     if(k==='stats')h+=epDel(g,'حذف هذا الرقم');
   }
   else if(k==='bars'){t='عمود';h=epField(g+'.label','الاسم','الاسم',{part:'label'})+epField(g+'.value','القيمة','القيمة',{part:'value'})+epField(g+'.note','النسبة','النسبة',{part:'note'})+epSwatches('main','لون الأعمدة')+epDel(g,'حذف هذا العمود')}
@@ -9737,6 +9756,82 @@ document.addEventListener('click',function(e){
   if(b.hasAttribute('data-ldai'))ldSmart();
   else if(b.hasAttribute('data-ldsel'))ldSelection();
   else if(!b.disabled){LD.prev=S.lede;ldSet(ldPlain(S.lede))}
+});
+
+/* ===== independent control of the number, the highlighted word and the caption of every stat: size, colour, font, position ===== */
+var TY={open:{},roles:[['value','الرقم'],['label','الكلمة المميزة'],['text','السطر التوضيحي']]};
+function tyObj(scope,create){
+  if(scope==='all'){if(!S.sty&&create)S.sty={};return S.sty||null}
+  var o=S,p=scope.split('.');for(var i=0;i<p.length&&o!=null;i++)o=o[p[i]];
+  if(!o||typeof o!=='object')return null;
+  if(!o.sty&&create)o.sty={};return o.sty||null;
+}
+/* the style of one part of one stat: the all-numbers style first, then the personal one on top (size multiplies, position adds, colour and font replace) */
+function tyEff(st,role){
+  var g=(S.sty&&S.sty[role])||{},o=(st&&st.sty&&st.sty[role])||{};
+  return{s:(g.s==null?100:g.s)*(o.s==null?100:o.s)/100,c:o.c||g.c||'',f:o.f||g.f||'',dx:(+g.dx||0)+(+o.dx||0),dy:(+g.dy||0)+(+o.dy||0)};
+}
+function tyFont(key,size){return key?ttFont(key,size):''}
+function tyKeys(){
+  var o=[];function add(s){if(!s)return;TY.roles.forEach(function(r){if(s[r[0]]&&s[r[0]].f)o.push(s[r[0]].f)})}
+  add(S.sty);(S.stats||[]).forEach(function(t){add(t.sty)});if(S.hero)add(S.hero.sty);return o;
+}
+window.__tyKeys=tyKeys;
+function tyDefCol(role,scope){
+  var th=TH[S.theme],st=scope==='all'?null:tyObjOwner(scope);
+  if(role==='text')return S.theme==='dark'?'#ffffff':'#58595b';
+  return String((st&&st.color)||numColor()).toLowerCase();
+}
+function tyObjOwner(scope){var o=S,p=scope.split('.');for(var i=0;i<p.length&&o!=null;i++)o=o[p[i]];return o&&typeof o==='object'?o:null}
+function tyHtml(scope,openRole){
+  var st=tyObj(scope,false)||{},h='';
+  TY.roles.forEach(function(r){
+    var role=r[0],v=st[role]||{},key=scope+'|'+role,isOpen=openRole===role||TY.open[key],
+        set=v.s!=null||v.c||v.f||v.dx||v.dy,
+        k=function(p){return 'data-ty="'+key+'|'+p+'"'};
+    h+='<details class="tyg" data-tyk="'+key+'"'+(isOpen?' open':'')+'><summary>'+r[1]+(set?' <i class="tyset" aria-label="معدَّل">●</i>':'')+'</summary>'
+      +'<div class="tyrow"><label>الحجم <b>'+(v.s==null?100:v.s)+'%</b></label><input type="range" '+k('s')+' min="40" max="220" step="5" value="'+(v.s==null?100:v.s)+'" aria-label="حجم '+r[1]+'"></div>'
+      +'<div class="tyrow"><label>اللون</label><div class="inrow"><input type="color" '+k('c')+' value="'+(v.c||tyDefCol(role,scope))+'" aria-label="لون '+r[1]+'">'+(v.c?'<button type="button" class="mini" data-tyclr="'+key+'|c">تلقائي</button>':'<span class="hint">تلقائي</span>')+'</div></div>'
+      +'<div class="tyrow"><label>الخط</label><select '+k('f')+' aria-label="خط '+r[1]+'">'+ttOptions(v.f||'')+'</select></div>'
+      +'<div class="tyrow"><label>أفقياً <b>'+(v.dx||0)+'</b></label><input type="range" '+k('dx')+' min="-300" max="300" step="2" value="'+(v.dx||0)+'" aria-label="الموضع الأفقي"></div>'
+      +'<div class="tyrow"><label>رأسياً <b>'+(v.dy||0)+'</b></label><input type="range" '+k('dy')+' min="-200" max="200" step="2" value="'+(v.dy||0)+'" aria-label="الموضع الرأسي"></div>'
+      +(set?'<button type="button" class="mini" data-tyreset="'+key+'">إعادة ضبط «'+r[1]+'»</button>':'')+'</details>';
+  });
+  return '<div class="tybox" data-tyscope="'+scope+'">'+h+'</div>';
+}
+function tyPanelHtml(g,p){
+  return '<div class="epf"><label>تنسيق عناصر هذا الرقم (مستقل عن باقي الأرقام)</label>'+tyHtml(g,p)+'</div>';
+}
+window.__tyPanelHtml=tyPanelHtml;
+function tySideHtml(){
+  if(S.layout!=='stats'&&!(S.hero&&S.hero.value))return '';
+  return '<div class="field"><span class="lab">تنسيق عناصر كل الأرقام: الحجم واللون والخط والموضع</span>'+tyHtml('all','')+'<p class="hint">لكل رقم تنسيق مستقل يُضبط من نافذته على التصميم (اضغط على الرقم). تنسيق الرقم يُضاف فوق التنسيق العام.</p></div>';
+}
+function tyPaint(){var e=$('#edTy');if(e)e.innerHTML=tySideHtml()}
+window.__tyPaint=tyPaint;
+function tyRefresh(){
+  tyPaint();
+  if(window.EP&&EP.on&&EP.mode==='ig'&&typeof epBuild==='function'&&(EP.g==='hero'||/^stats\./.test(EP.g)))epBuild();
+}
+function tyOn(e){
+  var t=e.target;if(!t||!t.dataset||!t.dataset.ty)return;
+  var a=t.dataset.ty.split('|'),scope=a[0],role=a[1],prop=a[2],o=tyObj(scope,true);if(!o)return;
+  var v=t.value;if(prop==='s'||prop==='dx'||prop==='dy')v=+v;else if(prop==='c')v=String(v).toLowerCase();
+  var r=o[role]=o[role]||{};
+  if((prop==='s'&&v===100)||((prop==='dx'||prop==='dy')&&!v)||(prop==='f'&&!v))delete r[prop];else r[prop]=v;
+  var b=t.closest('.tyrow')&&t.closest('.tyrow').querySelector('b');if(b)b.textContent=(prop==='s'?v+'%':v);
+  $('#exampleNote')&&($('#exampleNote').hidden=true);
+  schedule();
+  if(e.type==='change'&&(prop==='c'||prop==='f'||prop==='s'||prop==='dx'||prop==='dy'))tyRefresh();
+}
+document.addEventListener('input',tyOn);
+document.addEventListener('change',tyOn);
+document.addEventListener('toggle',function(e){var d=e.target;if(d&&d.classList&&d.classList.contains('tyg'))TY.open[d.dataset.tyk]=d.open},true);
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-tyreset],[data-tyclr]');if(!b)return;
+  var a=(b.dataset.tyreset||b.dataset.tyclr).split('|'),o=tyObj(a[0],false);if(!o||!o[a[1]])return;
+  if(b.dataset.tyclr)delete o[a[1]][a[2]];else delete o[a[1]];
+  schedule();tyRefresh();
 });
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
