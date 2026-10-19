@@ -1396,8 +1396,11 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
   </select></div>
 <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span>
   <div class="seg full"><label><input type="radio" name="czlp" value="above"><span>فوقه</span></label><label><input type="radio" name="czlp" value="below"><span>تحته</span></label></div></div>
+<div class="field"><span class="lab">تخطيط الأرقام (لكل الأرقام)</span>
+  <div class="seg full"><label><input type="radio" name="czsl" value="stack"><span>النص تحت الرقم</span></label><label><input type="radio" name="czsl" value="side"><span>الرقم يمين والنص يسار</span></label></div></div>
 <div class="field"><span class="lab">مؤشر الشرائح في التذييل</span>
   <div class="seg full"><label><input type="radio" name="czpg" value="num"><span>أرقام (2 / 6)</span></label><label><input type="radio" name="czpg" value="dots"><span>دوائر صغيرة</span></label></div></div>
+<div class="field"><label class="check"><input type="checkbox" id="czTags" checked> إظهار الوسوم أسفل الشرائح</label></div>
             </div></div>
           </section>
         </div>
@@ -1862,6 +1865,8 @@ function wrapBal(t,font,maxW){
 var QA_BUF=null;
 function qaFlag(k){if(QA_BUF)QA_BUF.push(k)}
 function limit(lines,n){if(lines.length<=n)return lines;qaFlag('cut');var o=lines.slice(0,n);o[n-1]=o[n-1].replace(/\s*\S*$/,'')+'…';return o}
+/* label above/below its number: a per-number value wins over the general setting */
+function lpOf(st){return st&&(st.lp==='above'||st.lp==='below')?st.lp:S.labelPos}
 function digitH(font){ctx.font=font;ctx.direction='ltr';var m=ctx.measureText('0');return m.actualBoundingBoxAscent||parseFloat(font)*.72}
 function sizeOf(font){return parseFloat(font.replace(/^\d+\s/,''))}
 function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
@@ -1979,7 +1984,7 @@ function statCell(st,cx,y,cw,sz,draw){
   function num(){if(hg)HI.tag(hg,'value','الرقم');put(numTxt,cx+eV.dx,yy+dh+eV.dy,fnum(ns),cV,'center','ltr');HI.tag();yy+=dh}
   function txt(){if(hg)HI.tag(hg,'text','النص');tl.forEach(function(l,i){put(l,cx+eT.dx,yy+tsz*.95+i*tS+eT.dy,fbod(tsz),cT,'center')});HI.tag();yy+=tH}
   var gap=sz.gap||12;
-  if(S.labelPos==='above'){if(ll.length)steps.push({h:lH,d:lab,g:gap*.6});steps.push({h:dh,d:num,g:gap});}
+  if(lpOf(st)==='above'){if(ll.length)steps.push({h:lH,d:lab,g:gap*.6});steps.push({h:dh,d:num,g:gap});}
   else{steps.push({h:dh,d:num,g:gap});if(ll.length)steps.push({h:lH,d:lab,g:gap*.4});}
   if(tl.length)steps.push({h:tH,d:txt,g:0});
   var tot=0;steps.forEach(function(s,i){tot+=s.h+(i<steps.length-1?s.g:0)});
@@ -2199,7 +2204,7 @@ function bindControls(){
     if(S.theme==='dark'&&lum(S.titleC)<.2)S.titleC='#FFFFFF';
     if(S.theme==='light'&&lum(S.titleC)>.8)S.titleC='#1B1F78';
     syncSw();syncBg();schedule()})});
-  $$('input[name="labelPos"]').forEach(function(r){r.addEventListener('change',function(){S.labelPos=r.value;schedule()})});
+  $$('input[name="labelPos"]').forEach(function(r){r.addEventListener('change',function(){S.labelPos=r.value;[S.hero].concat(S.stats||[]).forEach(function(x){if(x)delete x.lp});schedule()})});
   $$('input[name="strapPos"]').forEach(function(r){r.addEventListener('change',function(){S.strapPos=r.value;schedule()})});
   $$('input[name="numCol"]').forEach(function(r){r.addEventListener('change',function(){S.numGray=r.value==='gray';schedule()})});
   $('#band').addEventListener('change',function(){S.band=this.checked;bandOptsPaint();schedule()});
@@ -3860,11 +3865,12 @@ function czStrap(txt,y,align){
 
 /* ----- slide types ----- */
 function czCover(s,i,n){
-  var p=czP(),R=czR();
-  if(s.photo){czPhoto(s.photo,ZH,s.pa,s.pf,.36);var o=czGradOff(),g=cx.createLinearGradient(0,0,0,ZH);g.addColorStop(0,rgba(p.deep,czA(.5)));g.addColorStop(.2,rgba(p.deep,czA(.04)));g.addColorStop(Math.max(.3,.4+o),rgba(p.deep,czA(.1)));g.addColorStop(Math.max(.45,.58+o),rgba(p.deep,czA(.82)));g.addColorStop(Math.min(.9,.72+o),rgba(p.deep,czA(.95)));g.addColorStop(1,rgba(p.deep,.98));cx.fillStyle=g;cx.fillRect(0,0,W,ZH+1)}
+  var p=czP(),R=czR(),pm=czPmOf(s);
+  if(pm)czArt(ZH,2.2);
+  else if(s.photo){czPhoto(s.photo,ZH,s.pa,s.pf,.36);var o=czGradOff(),g=cx.createLinearGradient(0,0,0,ZH);g.addColorStop(0,rgba(p.deep,czA(.5)));g.addColorStop(.2,rgba(p.deep,czA(.04)));g.addColorStop(Math.max(.3,.4+o),rgba(p.deep,czA(.1)));g.addColorStop(Math.max(.45,.58+o),rgba(p.deep,czA(.82)));g.addColorStop(Math.min(.9,.72+o),rgba(p.deep,czA(.95)));g.addColorStop(1,rgba(p.deep,.98));cx.fillStyle=g;cx.fillRect(0,0,W,ZH+1)}
   else czArt(ZH,2.2);
   HC.tag('photo','','الصورة');HC.box(0,0,W,ZH,-4);HC.tag();
-  czLogo();
+  if(!pm)czLogo();
   var xs=czEdge(),al=czAl(),colT=function(b){return b?p.accent:'#FFFFFF'},cw=W-2*M-30;
   var tf=function(sz){return function(){return czFont('title',sz)}},size=ttMax(122),tl;
   for(;size>=ttMin(70);size-=4){tl=czBal(s.title,tf(size),cw);if(tl.length<=3)break}
@@ -3872,6 +3878,7 @@ function czCover(s,i,n){
   var df=function(){return czFont('body',36)},dl=s.text?czCut(czWrap(s.text,df,cw-40),3):[];
   var strapH=s.kicker?62:0,blockH=(strapH?strapH+38:0)+tl.length*lh+(dl.length?30+dl.length*56:0);
   var y0=Math.max(300,ZH-295-czDb()-blockH);
+  if(pm){if(pm==='box')czPhotoBox(s,y0-26);else czPhotoCut(s,y0-26,true);czLogo()}
   if(strapH){czStrap(s.kicker,y0,'start');y0+=strapH+38}
   HC.tag('title','','العنوان');czDraw(tl,xs,y0+size*.92,lh,tf(size),colT,al);HC.tag();y0+=tl.length*lh;
   if(dl.length){y0+=30;HC.tag('text','','سطر الوصف');czDraw(dl,xs,y0+34,56,df,function(b){return b?p.accent:'rgba(255,255,255,.9)'},al);HC.tag()}
@@ -3885,20 +3892,43 @@ function czCover(s,i,n){
   cx.fillStyle=p.accent;cx.fillRect(R?W-M-84:M,py+ph/2-3,84,6);
 }
 
+/* label above/below the number, and the stacked / side-by-side layout: one number or all (a per-number value wins over the general one) */
+/* a choice for ALL numbers: set the general value and drop every per-number override */
+function czAllStats(k,v){
+  if(k==='lp')CZ.labelPos=v;else CZ.statLay=v==='side'?'side':'';
+  CZ.slides.forEach(function(s){(s.stats||[]).forEach(function(x){delete x[k]})});
+  czBuildEditor();czRenderAll();
+}
+function czLp(st){return st&&(st.lp==='above'||st.lp==='below')?st.lp:CZ.labelPos}
+function czSideOf(st){return !!st&&(st.ly==='side'||(st.ly!=='stack'&&CZ.statLay==='side'))}
 function czStats(list,tier,w){
   var p=czP(),n=list.length,cols=n<=3?n:2,cw=w/cols,base={1:230,2:170,3:132,4:112}[n]||112,num=Math.round(base*[1,.88,.76,.66,.56][tier]),pd=[40,36,32,28,22][tier];
   var lab=Math.max(26,Math.min(44,Math.round(num*.2))),txt=Math.max(24,Math.min(32,Math.round(num*.16)));
-  var rows=[];for(var i=0;i<n;i+=cols)rows.push(list.slice(i,i+cols));
-  var cells=list.map(function(st){
-    var nt=czVal(st.value),ns=num;cx.font=czFont('num',ns);cx.direction='ltr';
-    while(ns>46&&cx.measureText(nt).width>cw-30){ns-=4;cx.font=czFont('num',ns)}
-    var ll=st.label?czCut(czBal(fixPct(st.label),function(){return czFont('head',lab)},cw-34),2):[];
-    var tl=st.text?czCut(czWrap(st.text,function(){return czFont('body',txt)},cw-40),3):[];
-    var dh=czDigitH(czFont('num',ns)),lH=ll.length*lab*1.3,tH=tl.length*txt*1.45;
-    var h=(CZ.labelPos==='above'?lH+(lH?14:0)+dh:dh+(lH?14:0)+lH)+16+6+(tl.length?16+tH:0);
-    return{nt:nt,ns:ns,ll:ll,tl:tl,dh:dh,lH:lH,tH:tH,h:h,lab:lab,txt:txt};
-  });
-  var rowGap=[34,30,26,22,18][tier],rh=rows.map(function(r,ri){var m=0;r.forEach(function(_,ci){m=Math.max(m,cells[ri*cols+ci].h)});return m});
+  var rows=[],cur=[];
+  list.forEach(function(st){if(czSideOf(st)){if(cur.length){rows.push(cur);cur=[]}rows.push([st])}else{cur.push(st);if(cur.length===cols){rows.push(cur);cur=[]}}});
+  if(cur.length)rows.push(cur);
+  function mk(st,side){
+    var nt=czVal(st.value),lp=czLp(st);
+    if(side){
+      /* number + highlighted word on the start side, the explanatory text on the other side, both centred on the same height */
+      var pad=26,inner=w-2*pad,aw=Math.round(inner*.46),bw=inner-aw-44,ns=Math.round(num*.8);
+      cx.font=czFont('num',ns);cx.direction='ltr';
+      while(ns>46&&cx.measureText(nt).width>aw-10){ns-=4;cx.font=czFont('num',ns)}
+      var ts=txt+2,ll=st.label?czCut(czBal(fixPct(st.label),function(){return czFont('head',lab)},aw-10),2):[];
+      var tl=st.text?czCut(czWrap(st.text,function(){return czFont('body',ts)},bw),5):[];
+      var dh=czDigitH(czFont('num',ns)),lH=ll.length*lab*1.3,tH=tl.length*ts*1.45,Ah=lH+(lH?14:0)+dh;
+      return{side:1,nt:nt,ns:ns,ll:ll,tl:tl,dh:dh,lH:lH,tH:tH,Ah:Ah,h:Math.max(Ah,tH),lab:lab,txt:ts,lp:lp,aw:aw,bw:bw,pad:pad};
+    }
+    var ns2=num;cx.font=czFont('num',ns2);cx.direction='ltr';
+    while(ns2>46&&cx.measureText(nt).width>cw-30){ns2-=4;cx.font=czFont('num',ns2)}
+    var ll2=st.label?czCut(czBal(fixPct(st.label),function(){return czFont('head',lab)},cw-34),2):[];
+    var tl2=st.text?czCut(czWrap(st.text,function(){return czFont('body',txt)},cw-40),3):[];
+    var dh2=czDigitH(czFont('num',ns2)),lH2=ll2.length*lab*1.3,tH2=tl2.length*txt*1.45;
+    var h=(lp==='above'?lH2+(lH2?14:0)+dh2:dh2+(lH2?14:0)+lH2)+16+6+(tl2.length?16+tH2:0);
+    return{nt:nt,ns:ns2,ll:ll2,tl:tl2,dh:dh2,lH:lH2,tH:tH2,h:h,lab:lab,txt:txt,lp:lp};
+  }
+  var rcells=rows.map(function(r){var sd=r.length===1&&czSideOf(r[0]);return r.map(function(st){return mk(st,sd)})});
+  var rowGap=[34,30,26,22,18][tier],rh=rcells.map(function(r){var m=0;r.forEach(function(c){m=Math.max(m,c.h)});return m});
   var total=rh.reduce(function(a,b){return a+b},0)+(rows.length-1)*rowGap+2*pd;
   return{h:total,draw:function(y,x0){
     var R=czR(),yy=y+pd;
@@ -3906,13 +3936,24 @@ function czStats(list,tier,w){
     rows.forEach(function(r,ri){
       var off=(cols-r.length)/2;
       r.forEach(function(_,ci){
-        var c=cells[ri*cols+ci],idx=ci+off,cxm=R?x0+w-(idx+.5)*cw:x0+(idx+.5)*cw,yc=yy,sg='stats.'+((czCurS&&czCurS.stats||[]).indexOf(_));
+        var c=rcells[ri][ci],idx=ci+off,sg='stats.'+((czCurS&&czCurS.stats||[]).indexOf(_));
+        if(c.side){
+          var ax=R?x0+w-c.pad-c.aw/2:x0+c.pad+c.aw/2,bx=R?x0+c.pad+c.bw/2:x0+w-c.pad-c.bw/2,dvx=R?x0+c.pad+c.bw+22:x0+c.pad+c.aw+22,yc=yy+(rh[ri]-c.Ah)/2;
+          HC.tag(sg,'','الرقم');HC.box(x0+8,yy-6,x0+w-8,yy+rh[ri]+6,-1);HC.tag();
+          if(c.lp==='above'&&c.ll.length){HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],ax,yc+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag();yc+=c.lH+14}
+          HC.tag(sg,'value','الرقم');czPut(c.nt,ax,yc+c.dh,czFont('num',c.ns),p.main,'center','ltr');HC.tag();yc+=c.dh;
+          if(c.lp!=='above'&&c.ll.length){yc+=14;HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],ax,yc+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag()}
+          if(c.tl.length){var yb=yy+(rh[ri]-c.tH)/2;HC.tag(sg,'text','النص');c.tl.forEach(function(l,k){czDraw([l],bx,yb+c.txt*.95+k*c.txt*1.45,0,function(){return czFont('body',c.txt)},function(){return p.gray},'center')});HC.tag()}
+          cx.fillStyle=p.accent;cx.fillRect(dvx-2,yy+Math.max(0,(rh[ri]-Math.max(c.Ah,c.tH))/2),4,Math.max(c.Ah,c.tH));
+          return;
+        }
+        var cxm=R?x0+w-(idx+.5)*cw:x0+(idx+.5)*cw,yc2=yy;
         HC.tag(sg,'','الرقم');HC.box(cxm-cw/2+6,yy-6,cxm+cw/2-6,yy+rh[ri]+6,-1);HC.tag();
-        function lb(){HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],cxm,yc+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag();yc+=c.lH+(c.lH?14:0)}
-        function nm(){HC.tag(sg,'value','الرقم');czPut(c.nt,cxm,yc+c.dh,czFont('num',c.ns),p.main,'center','ltr');HC.tag();yc+=c.dh}
-        if(CZ.labelPos==='above'){if(c.ll.length)lb();nm()}else{nm();if(c.ll.length){yc+=14;lb();yc-=14}}
-        yc+=16;czRR(cxm-28,yc,56,6,3);cx.fillStyle=p.accent;cx.fill();yc+=6;
-        if(c.tl.length){yc+=16;HC.tag(sg,'text','النص');c.tl.forEach(function(l,k){czDraw([l],cxm,yc+c.txt*.95+k*c.txt*1.45,0,function(){return czFont('body',c.txt)},function(){return p.gray},'center')});HC.tag()}
+        function lb(){HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],cxm,yc2+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag();yc2+=c.lH+(c.lH?14:0)}
+        function nm(){HC.tag(sg,'value','الرقم');czPut(c.nt,cxm,yc2+c.dh,czFont('num',c.ns),p.main,'center','ltr');HC.tag();yc2+=c.dh}
+        if(c.lp==='above'){if(c.ll.length)lb();nm()}else{nm();if(c.ll.length){yc2+=14;lb();yc2-=14}}
+        yc2+=16;czRR(cxm-28,yc2,56,6,3);cx.fillStyle=p.accent;cx.fill();yc2+=6;
+        if(c.tl.length){yc2+=16;HC.tag(sg,'text','النص');c.tl.forEach(function(l,k){czDraw([l],cxm,yc2+c.txt*.95+k*c.txt*1.45,0,function(){return czFont('body',c.txt)},function(){return p.gray},'center')});HC.tag()}
         if(ci<r.length-1){var lx=R?x0+w-(idx+1)*cw:x0+(idx+1)*cw;cx.strokeStyle=p.line;cx.lineWidth=1.6;cx.beginPath();cx.moveTo(lx,yy+10);cx.lineTo(lx,yy+rh[ri]-6);cx.stroke()}
       });
       yy+=rh[ri]+rowGap;
@@ -3969,9 +4010,10 @@ function czCutRect(im,bx,by,bw,bh,s){
   var px=s.px==null?50:s.px,py=s.py==null?100:s.py;
   return{x:bx+(bw-dw)*px/100,y:by+(bh-dh)*py/100,w:dw,h:dh};
 }
-function czPhotoCut(s,ab){
-  cx.save();czRR(0,-80,W,ab+80,48);cx.clip();
-  czArt(ab,2.4);
+function czPhotoCut(s,ab,keepBg){
+  cx.save();
+  if(!keepBg){czRR(0,-80,W,ab+80,48);cx.clip();czArt(ab,2.4)}
+  else{cx.beginPath();cx.rect(0,0,W,ab);cx.clip()}
   var by=czDy()+100,r=czCutRect(s.cut,20,by,W-40,Math.max(120,ab-by),s);
   cx.drawImage(s.cut,r.x,r.y,r.w,r.h);
   cx.restore();
@@ -4012,7 +4054,7 @@ function czSetPm(v){
   if(v==='cut'&&!czCutOk(s))czRmBg(CZ.cur);
 }
 function czPmHtml(s,cls,attr){
-  if(skyOn()||s.type!=='content'||!s.photo)return '';
+  if(skyOn()||!s.photo)return '';
   var v=s.pm==='box'||s.pm==='cut'?s.pm:'',busy=czRbBusy>=0,opts=[['','بتلاشي أبيض (الافتراضي)'],['box','بوكس صريح بدون تلاشي'],['cut','مفرّغة الخلفية (ديكوبيه)']];
   return '<div class="'+cls+'"><label>شكل الصورة</label><select '+attr+'="pm">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(v===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
     +(v==='cut'?'<div class="'+cls+'"><button type="button" class="tool ghost" data-czrmbg="1" data-epact="rmbg"'+(busy?' disabled':'')+'>'+(busy?'جارٍ التفريغ…':czCutOk(s)?'إعادة تفريغ الخلفية':'تفريغ خلفية هذه الصورة')+'</button></div>':'');
@@ -4063,7 +4105,7 @@ function czContent(s,i,n,num){
   czFooter(s,i,n,false);
 }
 function czFooter(s,i,n,dark){
-  var p=czP(),R=czR(),y=ZH-104-czDb(),h=54,pills=String(s.pills||'').split(/[,،]/).map(function(t){return t.trim()}).filter(Boolean).slice(0,3);
+  var p=czP(),R=czR(),y=ZH-104-czDb(),h=54,pills=CZ.tags==='hide'?[]:String(s.pills||'').split(/[,،]/).map(function(t){return t.trim()}).filter(Boolean).slice(0,3);
   var cw=czCounter(i,n,R?M:W-M-120,y,dark);
   var xs=czEdge(),fx=xs;
   pills.forEach(function(t){
@@ -4076,7 +4118,23 @@ function czFooter(s,i,n,dark){
 function czClosing(s,i,n){
   var p=czP(),cxm=W/2,y=250;
   czArt(ZH,3.1);
-  if(s.photo){
+  var pm=czPmOf(s);
+  if(pm){
+    czLogo();
+    var bw=W-200,bh=pm==='box'?330:370,bt=150+czDy();
+    if(pm==='box'){
+      czRR(cxm-bw/2-10,bt-10,bw+20,bh+20,44);cx.fillStyle='#FFFFFF';cx.fill();
+      cx.save();czRR(cxm-bw/2,bt,bw,bh,34);cx.clip();
+      var cr0=czCrop(s.photo,cxm-bw/2,bt,bw,bh,s.pa,s.pf,.42);
+      if(cr0.w<bw-1||cr0.h<bh-1){cx.fillStyle=p.deep;cx.fillRect(cxm-bw/2,bt,bw,bh)}
+      cx.drawImage(s.photo,cr0.x,cr0.y,cr0.w,cr0.h);cx.restore();
+    }else{
+      var rc=czCutRect(s.cut,cxm-bw/2,bt,bw,bh,s);cx.save();cx.beginPath();cx.rect(0,bt-60,W,bh+60);cx.clip();cx.drawImage(s.cut,rc.x,rc.y,rc.w,rc.h);cx.restore();
+    }
+    HC.tag('photo','','الصورة');HC.box(cxm-bw/2,bt,cxm+bw/2,bt+bh,-1);HC.tag();
+    y=bt+bh+(pm==='box'?58:44);
+  }
+  else if(s.photo){
     // portrait in a ring, like the sample closing slides; the small logo goes to the corner
     czLogo();
     var d=300,r=d/2,cy=175+czDy()+r,rect=cliPhoto().shape==='rect',pw=rect?340:d,ph=rect?380:d,ptop=rect?150+czDy():cy-r;
@@ -4187,7 +4245,7 @@ function czBuildEditor(){
     var sk=skyOn();
     if(sk&&s.stats.length>1)h+='<div class="field"><label>تخطيط الأرقام</label>'+czSel('lay',s.lay,[['','تلقائي'],['single','رقم واحد كبير'],['duo','رقمان جنباً إلى جنب'],['trio','ثلاثة أرقام'],['hero3','رقم كبير وثلاثة تحته'],['flags','شبكة بالأعلام']])+'</div>';
     s.stats.forEach(function(t,j){if(sk){h+='<div class="rowf item"><div class="field">'+czIn(pre+'stats.'+j+'.label',t.label,'قبل الرقم (مثل: نحو)')+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+czIn(pre+'stats.'+j+'.text',t.text,'بعد الرقم (مثل: مليار دولار)')+czIn(pre+'stats.'+j+'.flag',t.flag||'','علم دولة (اختياري): اكتب اسمها')+czFlagCtl(t,j)+'</div><button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button></div>';return}
-      h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div></div>'});
+      h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div><div class="full czstopt"><label>الكلمة المميزة <select data-czst="'+j+':lp" aria-label="موضع الكلمة المميزة لهذا الرقم">'+[['','حسب الإعداد العام'],['above','فوق الرقم'],['below','تحت الرقم']].map(function(o){return '<option value="'+o[0]+'"'+((t.lp||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label> <label>التخطيط <select data-czst="'+j+':ly" aria-label="تخطيط هذا الرقم">'+[['','حسب الإعداد العام'],['stack','النص تحت الرقم'],['side','الرقم يمين والنص يسار']].map(function(o){return '<option value="'+o[0]+'"'+((t.ly||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label></div></div>'});
     h+='<button type="button" class="tool add" data-cadd="stats">+ إضافة رقم</button>';
     secs.push(['num','الأرقام',s.stats.length?s.stats.length+' أرقام':'',h]);
     h='';
@@ -4265,6 +4323,8 @@ function czSyncStyle(){
   $('#czSecSel').value=CZ.sec;var lk=$('#czLook');if(lk)lk.value=CZ.look||'classic';var zs=$('#czSize');if(zs)zs.value=CZ.size||'4:5';czDimNote();
   $$('input[name="czlp"]').forEach(function(r){r.checked=r.value===CZ.labelPos});
   $$('input[name="czpg"]').forEach(function(r){r.checked=r.value===(CZ.pager||'num')});
+  var tg=$('#czTags');if(tg)tg.checked=CZ.tags!=='hide';
+  $$('input[name="czsl"]').forEach(function(r){r.checked=r.value===(CZ.statLay==='side'?'side':'stack')});
   var pn=CPAL.filter(function(P){return P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()})[0],se=$('#czSecSel');
   var a=$('[data-csum="pal"]'),b=$('[data-csum="tpl"]');if(a)a.textContent=pn?pn.n:'ألوان مخصصة';if(b&&se.selectedOptions[0])b.textContent=se.selectedOptions[0].textContent;
 }
@@ -4343,8 +4403,10 @@ function czInit(){
   $('#czBg2').addEventListener('input',function(){CZ.bgC2=this.value.toUpperCase();czBgSet();czRenderAll()});
   $('#czBgAng').addEventListener('change',function(){CZ.bgAngle=+this.value;czRenderAll()});
   $('#czBgPlain').addEventListener('change',function(){CZ.bgPlain=this.checked;czRenderAll()});
-  $$('input[name="czlp"]').forEach(function(r){r.addEventListener('change',function(){CZ.labelPos=r.value;czRenderAll()})});
+  $$('input[name="czlp"]').forEach(function(r){r.addEventListener('change',function(){czAllStats('lp',r.value)})});
+  $$('input[name="czsl"]').forEach(function(r){r.addEventListener('change',function(){czAllStats('ly',r.value)})});
   $$('input[name="czpg"]').forEach(function(r){r.addEventListener('change',function(){CZ.pager=r.value;czRenderAll()})});
+  var tgb=$('#czTags');if(tgb)tgb.addEventListener('change',function(){CZ.tags=tgb.checked?'':'hide';czRenderAll();if(typeof EP!=='undefined'&&EP.on)epBuild()});
   $('#czLang').addEventListener('change',function(){if(this.value!=='auto'){CZ.lang=this.value;czRenderAll()}});
   $('#czGen').addEventListener('click',function(){pgGate('cz',function(imgs,opt){czGenerate(imgs,opt)})});
   $('#czStop').addEventListener('click',function(){if(czCtl)czCtl.abort()});
@@ -4369,6 +4431,7 @@ function czInit(){
   ed.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.cz){czSet(t.dataset.cz,t.value);$('#czNote').hidden=true;czSchedule();if(/\.title$/.test(t.dataset.cz)){var sm=$('#czEditor [data-ac="txt"] .ac-s');if(sm)sm.textContent=t.value.replace(/\*\*/g,'')}}});
   ed.addEventListener('change',function(e){var t=e.target;
     if(t.dataset&&t.dataset.cflagsel!==undefined){var st=CZ.slides[CZ.cur].stats[+t.dataset.cflagsel];if(st&&t.value){st.flag=t.value;delete st.pimg;czBuildEditor();czSchedule()}return}
+    if(t.dataset&&t.dataset.czst){var ka=t.dataset.czst.split(':'),st0=CZ.slides[CZ.cur].stats[+ka[0]];if(st0){if(t.value)st0[ka[1]]=t.value;else delete st0[ka[1]]}czSchedule();return}
     if(t.dataset&&t.dataset.czsel==='pm'){czSetPm(t.value);return}
     if(t.dataset&&t.dataset.czsel){CZ.slides[CZ.cur][t.dataset.czsel]=t.value;if(t.dataset.czsel==='pa'){delete CZ.slides[CZ.cur].pf;delete CZ.slides[CZ.cur].px;delete CZ.slides[CZ.cur].py;czBuildEditor()}czSchedule()}});
   ed.addEventListener('click',function(e){
@@ -6865,7 +6928,7 @@ function tStat(st,cx,y,cw,sz,draw,im,outer){
       ncx=outer==='right'?left+tw/2:right-tw/2;tIcon(st,icx,yy+rowH/2,sz.ic)}
     if(hg)HI.tag(hg,'value','الرقم');put(numTxt,ncx,yy+rowH/2+dh/2,f.num(ns),nc,'center','ltr');HI.tag();yy+=rowH}
   function txt(){if(hg)HI.tag(hg,'text','النص');tl.forEach(function(l,i){put(l,cx,yy+sz.text*.95+i*tS,f.body(sz.text),th.body,'center')});HI.tag();yy+=tH}
-  if(S.labelPos==='above'){if(ll.length)steps.push({h:lH,g:gap*.6,d:lab});steps.push({h:rowH,g:gap,d:num})}
+  if(lpOf(st)==='above'){if(ll.length)steps.push({h:lH,g:gap*.6,d:lab});steps.push({h:rowH,g:gap,d:num})}
   else{steps.push({h:rowH,g:gap,d:num});if(ll.length)steps.push({h:lH,g:gap*.4,d:lab})}
   if(tl.length)steps.push({h:tH,g:0,d:txt});
   var tot=0;steps.forEach(function(s,i){tot+=s.h+(i<steps.length-1?s.g:0)});
@@ -8185,6 +8248,16 @@ function epCol(path,label){
 function epDel(path,label){return '<div class="epf"><button type="button" class="tool danger" data-epdel="'+path+'">'+label+'</button></div>'}
 
 var EP_ANG=[[180,'من الأعلى للأسفل'],[0,'من الأسفل للأعلى'],[90,'من اليسار لليمين'],[270,'من اليمين لليسار'],[135,'قطري ↘'],[225,'قطري ↙']];
+/* the highlighted word beside a number (and, in the carousel, the stacked / side layout): for this number only, or for all numbers */
+function epLpHtml(g){
+  var cz=EP.mode==='cz';
+  var sel=function(key,label,cur,opts){return '<div class="epf"><label>'+label+'</label><select data-epsel="'+key+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(cur||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'};
+  var rad=function(key,label,cur,opts){return '<div class="epf"><label>'+label+'</label><div class="seg full">'+opts.map(function(o){return '<label><input type="radio" name="ep_'+key+'" data-eprad="'+key+'" value="'+o[0]+'"'+(cur===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div></div>'};
+  var h=sel('lp','الكلمة المميزة: لهذا الرقم فقط',epGet(g+'.lp'),[['','حسب الإعداد العام'],['above','فوق الرقم'],['below','تحت الرقم']])+rad('lpall','الكلمة المميزة: لكل الأرقام',cz?CZ.labelPos:S.labelPos,[['above','فوقه'],['below','تحته']]);
+  if(cz)h+=sel('ly','تخطيط هذا الرقم فقط',epGet(g+'.ly'),[['','حسب الإعداد العام'],['stack','النص تحت الرقم'],['side','الرقم يمين والنص يسار']])+rad('lyall','تخطيط كل الأرقام',CZ.statLay==='side'?'side':'stack',[['stack','النص تحت الرقم'],['side','الرقم يمين والنص يسار']]);
+  return h;
+}
+function epTagsChk(){return '<div class="epf"><label class="check"><input type="checkbox" data-epcztags="1"'+(CZ.tags==='hide'?'':' checked')+'> إظهار الوسوم أسفل الشرائح</label></div>'}
 function epAng(sel,val){return '<div class="epf"><label>اتجاه التدرج</label><select data-epsel="'+sel+'">'+EP_ANG.map(function(a){return '<option value="'+a[0]+'"'+(+val===a[0]?' selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></div>'}
 function epModeSeg(attr,cur,opts){return '<div class="epf"><label>نوع الخلفية</label><div class="seg full">'+opts.map(function(o){return '<label><input type="radio" name="ep_'+attr+'" data-'+attr+'="'+o[0]+'" value="'+o[0]+'"'+(cur===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div></div>'}
 function epBgIG(){
@@ -8213,7 +8286,7 @@ function epBodyIG(g,p){
   else if(k==='hero'||k==='stats'){
     t=k==='hero'?'الرقم المميز':'رقم';
     h=epField(g+'.value','الرقم','الرقم',{part:'value'})+epField(g+'.label','الكلمة المميزة','الكلمة المميزة',{part:'label'})+epField(g+'.text','النص تحت الرقم','جملة قصيرة',{part:'text'})
-      +epCol(g+'.color','لون هذا الرقم')+epSwatches('main','اللون العام للأرقام')+epRadio('labelPos','الكلمة المميزة مع الرقم',[['above','فوقه'],['below','تحته']])+(window.__tyPanelHtml?window.__tyPanelHtml(g,p):'');
+      +epCol(g+'.color','لون هذا الرقم')+epSwatches('main','اللون العام للأرقام')+epLpHtml(g)+(window.__tyPanelHtml?window.__tyPanelHtml(g,p):'');
     if(k==='stats')h+=epDel(g,'حذف هذا الرقم');
   }
   else if(k==='bars'){t='عمود';h=epField(g+'.label','الاسم','الاسم',{part:'label'})+epField(g+'.value','القيمة','القيمة',{part:'value'})+epField(g+'.note','النسبة','النسبة',{part:'note'})+epSwatches('main','لون الأعمدة')+epDel(g,'حذف هذا العمود')}
@@ -8257,9 +8330,9 @@ function epBodyCZ(g,p){
   else if(k==='text'){t=s.type==='cover'?'سطر الوصف':'النص';h=epField('text',t,'جملة أو جملتان',{hl:1})}
   else if(k==='cta'){t='الزر';h=epField('cta','نص الزر',s.type==='closing'?'تابعونا':'اسحب للمزيد')+epCzPalette('accent')}
   else if(k==='handle'){t='الحساب';h=epField('handle','الحساب','@aletihad')}
-  else if(k==='pills'){t='الوسوم';h=epField('pills','الوسوم (افصل بفاصلة)','مثال: التعليم، الإمارات')}
+  else if(k==='pills'){t='الوسوم';h=epField('pills','الوسوم (افصل بفاصلة)','مثال: التعليم، الإمارات')+epTagsChk()}
   else if(k==='stats'){t='رقم';acc='num';h=epField(g+'.value','الرقم','الرقم',{part:'value'})+epField(g+'.label','الكلمة المميزة','الكلمة المميزة',{part:'label'})+epField(g+'.text','النص تحت الرقم','جملة قصيرة',{part:'text'})
-    +epCzPalette('main')+'<div class="epf"><label>الكلمة المميزة مع الرقم</label><div class="seg full"><label><input type="radio" name="ep_czlp" data-eprad="czlp" value="above"'+(CZ.labelPos==='above'?' checked':'')+'><span>فوقه</span></label><label><input type="radio" name="ep_czlp" data-eprad="czlp" value="below"'+(CZ.labelPos==='below'?' checked':'')+'><span>تحته</span></label></div></div>'+epDel(g,'حذف هذا الرقم')}
+    +epCzPalette('main')+epLpHtml(g)+epDel(g,'حذف هذا الرقم')}
   else if(k==='points'){t='نقطة';acc='pts';h=epField(g+'.title','العنوان الفرعي','العنوان الفرعي',{part:'title'})+epField(g+'.text','النص','النص',{part:'text'})+epCzPalette('main')+epDel(g,'حذف هذه النقطة')}
   else if(k==='photo'){
     t='الصورة';acc='img';
@@ -8270,7 +8343,7 @@ function epBodyCZ(g,p){
   }
   else if(k==='pager'){
     t='مؤشر الشرائح';acc='tpl';
-    h='<div class="epf"><label>شكل المؤشر في التذييل</label><div class="seg full"><label><input type="radio" name="ep_czpg" data-eprad="czpg" value="num"'+((CZ.pager||'num')==='num'?' checked':'')+'><span>أرقام (2 / 6)</span></label><label><input type="radio" name="ep_czpg" data-eprad="czpg" value="dots"'+(CZ.pager==='dots'?' checked':'')+'><span>دوائر صغيرة</span></label></div></div>';
+    h='<div class="epf"><label>شكل المؤشر في التذييل</label><div class="seg full"><label><input type="radio" name="ep_czpg" data-eprad="czpg" value="num"'+((CZ.pager||'num')==='num'?' checked':'')+'><span>أرقام (2 / 6)</span></label><label><input type="radio" name="ep_czpg" data-eprad="czpg" value="dots"'+(CZ.pager==='dots'?' checked':'')+'><span>دوائر صغيرة</span></label></div></div>'+epTagsChk();
   }
   else if(k==='logo'){
     t='القالب والشعار';acc='tpl';
@@ -8446,6 +8519,12 @@ function epChange(e){
     var k=t.dataset.eprad;
     if(k==='theme'){var r=$('input[name="theme"][value="'+t.value+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}epBuild();return}
     if(k==='czlp'){CZ.labelPos=t.value;czSyncStyle();czRenderAll();return}
+    if(k==='lpall'){
+      if(EP.mode==='cz'){czAllStats('lp',t.value);czSyncStyle()}
+      else{S.labelPos=t.value;[S.hero].concat(S.stats||[]).forEach(function(x){if(x)delete x.lp});setRadio('labelPos',t.value);schedule()}
+      epBuild();return;
+    }
+    if(k==='lyall'){czAllStats('ly',t.value);czSyncStyle();epBuild();return}
     if(k==='czpg'){CZ.pager=t.value;czSyncStyle();czRenderAll();return}
     S[k]=t.value;setRadio(k,t.value);epAgain();return;
   }
@@ -8454,6 +8533,7 @@ function epChange(e){
   if(t.hasAttribute&&t.hasAttribute('data-epczplain')){CZ.bgPlain=t.checked;czBgSet();czRenderAll();return}
   if(t.dataset.epsel){
     var q=t.dataset.epsel;
+    if(q==='lp'||q==='ly'){epPut(EP.g+'.'+q,t.value);if(EP.mode==='cz')czBuildEditor();epAgain();epBuild();return}
     if(q==='bgang'){S.bgAngle=+t.value;schedule();return}
     if(q==='photoFade'){S.photoFade=t.value;$('#photoFade').value=t.value;schedule();return}
     if(q==='czbgang'){CZ.bgAngle=+t.value;czRenderAll();return}
@@ -8463,6 +8543,7 @@ function epChange(e){
     else if(q==='pa'){var s=CZ.slides[CZ.cur];s.pa=t.value;delete s.pf;delete s.px;delete s.py;czSchedule();czBuildEditor();epBuild()}
     return;
   }
+  if(t.dataset.epcztags!==undefined){CZ.tags=t.checked?'':'hide';var tb=$('#czTags');if(tb)tb.checked=t.checked;czRenderAll();epBuild();return}
   if(t.dataset.epchk){S[t.dataset.epchk]=t.checked;var cb=$('#'+t.dataset.epchk);if(cb)cb.checked=t.checked;schedule()}
 }
 function epClick(e){
