@@ -1415,6 +1415,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         </div>
         <div class="tgroup" role="group" aria-label="أدوات الشريحة">
           <button type="button" class="tb strong" id="czAdd">+ شريحة</button>
+          <button type="button" class="tb" id="czAddClose" hidden>+ ختام</button>
           <button type="button" class="tb" id="czDup">نسخ</button>
           <button type="button" class="tb" id="czRt" aria-label="تقديم الشريحة">تقديم</button>
           <button type="button" class="tb" id="czL" aria-label="تأخير الشريحة">تأخير</button>
@@ -4160,7 +4161,7 @@ function czSelect(i){epClose();CZ.cur=Math.max(0,Math.min(CZ.slides.length-1,i))
 function czNav(){
   $('#czPos').textContent=(CZ.cur+1)+' / '+CZ.slides.length;
   $('#czPrev').disabled=CZ.cur<=0;$('#czNext').disabled=CZ.cur>=CZ.slides.length-1;
-  var t=CZ.slides[CZ.cur];$('#czDel').disabled=CZ.slides.length<=2||(t.type!=='content'&&!(t.type==='closing'&&skyOn()));$('#czDup').disabled=t.type!=='content';
+  var t=CZ.slides[CZ.cur];$('#czDel').disabled=CZ.slides.length<=2||t.type==='cover';var ac=$('#czAddClose');if(ac)ac.hidden=skyOn()||CZ.slides[CZ.slides.length-1].type==='closing';$('#czDup').disabled=t.type!=='content';
   var pv=CZ.slides[CZ.cur-1],nx=CZ.slides[CZ.cur+1];$('#czL').disabled=t.type!=='content'||!pv||pv.type!=='content';$('#czRt').disabled=t.type!=='content'||!nx||nx.type!=='content';
   $$('#czThumbs .th').forEach(function(b,k){b.setAttribute('aria-pressed',String(k===CZ.cur))});
 }
@@ -4280,12 +4281,17 @@ function czInit(){
   $('#czDemo').addEventListener('click',function(){czLoad(CZ_DEMO,true);CZ.lang='ar';czBuildThumbs();czRenderAll();czBuildEditor();czNav()});
   $('#czPrev').addEventListener('click',function(){czSelect(CZ.cur-1)});
   $('#czNext').addEventListener('click',function(){czSelect(CZ.cur+1)});
+  /* bring the closing slide back after it was deleted */
+  $('#czAddClose').addEventListener('click',function(){
+    if(CZ.slides[CZ.slides.length-1].type==='closing')return;
+    CZ.slides.push(czBlank('closing'));czBuildThumbs();czRenderAll();czSelect(CZ.slides.length-1);
+  });
   $('#czAdd').addEventListener('click',function(){
     var at=CZ.cur;if(CZ.slides[at].type==='closing')at--;if(at<0)at=0;
     CZ.slides.splice(at+1,0,czBlank('content'));czBuildThumbs();czRenderAll();czSelect(at+1);
   });
   $('#czDup').addEventListener('click',function(){var c=JSON.parse(JSON.stringify(Object.assign({},CZ.slides[CZ.cur],{photo:null})));c.photo=CZ.slides[CZ.cur].photo;(CZ.slides[CZ.cur].fx||[]).forEach(function(e,k){if(c.fx&&c.fx[k]&&e.pimg)c.fx[k].pimg=e.pimg});(CZ.slides[CZ.cur].stats||[]).forEach(function(e,k){if(c.stats&&c.stats[k]&&e.pimg)c.stats[k].pimg=e.pimg});CZ.slides.splice(CZ.cur+1,0,c);czBuildThumbs();czRenderAll();czSelect(CZ.cur+1)});
-  $('#czDel').addEventListener('click',function(){var ty=CZ.slides[CZ.cur].type;if(ty!=='content'&&!(ty==='closing'&&skyOn()))return;CZ.slides.splice(CZ.cur,1);var k=Math.min(CZ.cur,CZ.slides.length-1);czBuildThumbs();czRenderAll();czSelect(k)});
+  $('#czDel').addEventListener('click',function(){var ty=CZ.slides[CZ.cur].type;if(ty==='cover'||CZ.slides.length<=2)return;CZ.slides.splice(CZ.cur,1);var k=Math.min(CZ.cur,CZ.slides.length-1);czBuildThumbs();czRenderAll();czSelect(k)});
   $('#czL').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k-1];a[k-1]=t;czBuildThumbs();czRenderAll();czSelect(k-1)});
   $('#czRt').addEventListener('click',function(){var a=CZ.slides,k=CZ.cur;var t=a[k];a[k]=a[k+1];a[k+1]=t;czBuildThumbs();czRenderAll();czSelect(k+1)});
   $('#czDl1').addEventListener('click',czDownloadOne);$('#czDlAll').addEventListener('click',czDownloadAll);
