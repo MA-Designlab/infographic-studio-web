@@ -1293,7 +1293,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 <div id="photoOpts" hidden class="two">
 <div class="field"><label for="anchor">موضع الصورة</label>
 <select id="anchor"><option value="bottom">محاذاة للأسفل</option><option value="center">وسط</option><option value="top">محاذاة للأعلى</option></select></div>
-<div class="field"><label for="photoZ">حجم الصورة <b id="photoZv">100</b>%</label><input type="range" id="photoZ" min="100" max="300" step="5" value="100"></div>
+<div class="field"><label for="photoZ">حجم الصورة <b id="photoZv">100</b>%</label><input type="range" id="photoZ" min="30" max="300" step="5" value="100"></div>
 <div class="field"><label for="photoX">الموضع أفقياً <b id="photoXv">50</b>%</label><input type="range" id="photoX" min="0" max="100" step="1" value="50"></div>
 <div class="field"><label for="photoY">الموضع رأسياً <b id="photoYv">100</b>%</label><input type="range" id="photoY" min="0" max="100" step="1" value="100"></div>
 <div class="field"><label>&nbsp;</label><button type="button" class="tool ghost" id="photoReset">إعادة ضبط الصورة</button></div>
@@ -1882,15 +1882,18 @@ function drawBackground(){
     if(fd==='auto')fd=ph>=.995?'none':S.anchor==='top'?'b':S.anchor==='center'?'tb':'t';
     if(ph>=.995&&fd==='none'){
       var s=Math.max(W/iw,(H+1)/ih)*igPZ(),dw=iw*s,dh=ih*s;
-      ctx.drawImage(im,(W-dw)*igPX()/100,(H-dh)*igPY()/100,dw,dh);
+      var ix0=(W-dw)*igPX()/100,iy0=(H-dh)*igPY()/100;
+      ctx.drawImage(im,ix0,iy0,dw,dh);
+      ctx.save();ctx.beginPath();ctx.rect(ix0,iy0,dw,dh);ctx.clip(); /* a shrunken picture: the veil covers the picture only */
       ctx.fillStyle='rgba('+th.veil+','+S.veil+')';ctx.fillRect(0,0,W,H+2);
       var tg=ctx.createLinearGradient(0,0,0,H*.6),a=Math.min(.95,S.veil+.4);
       tg.addColorStop(0,'rgba('+th.veil+','+a+')');tg.addColorStop(1,'rgba('+th.veil+',0)');ctx.fillStyle=tg;ctx.fillRect(0,0,W,H*.6);
+      ctx.restore();
     }else bgPhotoFaded(im,ph,fd,th);
   }
 }
 /* framing of the background photo: zoom (1 = just covers), horizontal and vertical position in % (the vertical default follows the anchor) */
-function igPZ(){return Math.max(1,Math.min(3,(S.photoZ||100)/100))}
+function igPZ(){return Math.max(.3,Math.min(3,(S.photoZ||100)/100))}
 function igPX(){return S.photoX==null?50:Math.max(0,Math.min(100,S.photoX))}
 function igPY(){return S.photoY!=null?Math.max(0,Math.min(100,S.photoY)):S.anchor==='top'?0:S.anchor==='center'?50:100}
 function igPhotoReset(){S.photoZ=100;S.photoX=50;S.photoY=null;syncControls();schedule()}
@@ -1904,7 +1907,9 @@ function bgPhotoFaded(im,ph,fd,th){
   var c=PHC.getContext('2d');c.setTransform(1,0,0,1,0,0);c.globalCompositeOperation='source-over';c.clearRect(0,0,PHC.width,PHC.height);c.setTransform(K,0,0,K,0,0);
   var iw=im.naturalWidth,ih=im.naturalHeight,s=Math.max(W/iw,bh/ih)*igPZ(),dw=iw*s,dh=ih*s,dy=by+(bh-dh)*igPY()/100;
   c.save();c.beginPath();c.rect(0,by,W,bh);c.clip();
-  c.drawImage(im,(W-dw)*igPX()/100,dy,dw,dh);
+  var ix1=(W-dw)*igPX()/100;
+  c.drawImage(im,ix1,dy,dw,dh);
+  c.beginPath();c.rect(ix1,dy,dw,dh);c.clip();
   c.fillStyle='rgba('+th.veil+','+S.veil+')';c.fillRect(0,by,W,bh);
   var tg=c.createLinearGradient(0,by,0,by+bh*.6),a=Math.min(.95,S.veil+.4);
   tg.addColorStop(0,'rgba('+th.veil+','+a+')');tg.addColorStop(1,'rgba('+th.veil+',0)');c.fillStyle=tg;c.fillRect(0,by,W,bh*.6);
@@ -3728,10 +3733,11 @@ function czArt(h,seed){
   cx.strokeStyle=rgba(p.accent,.55);cx.lineWidth=3;cx.beginPath();cx.arc(W*.18,h*.22,h*.42+22,.4,2.2);cx.stroke();
 }
 function czCrop(im,bx,by,bw,bh,anchor,pf,ty){
-  var cs=czCurS||{},z=Math.max(1,Math.min(3,(cs.pz||100)/100));
+  var cs=czCurS||{},z=Math.max(.3,Math.min(3,(cs.pz||100)/100));
   var iw=im.naturalWidth,ih=im.naturalHeight,k=Math.max(bw/iw,bh/ih)*z,dw=iw*k,dh=ih*k,x,y;
   if(pf){x=bx+Math.min(0,Math.max(bw-dw,bw/2-pf.x*dw));y=by+Math.min(0,Math.max(bh-dh,bh*(ty==null?.5:ty)-pf.y*dh))}
   else{x=bx+(bw-dw)/2;y=by+(anchor==='top'?0:anchor==='bottom'?bh-dh:(bh-dh)/2)}
+  if(dw<bw)x=bx+(bw-dw)/2;if(dh<bh&&pf)y=by+(bh-dh)/2; /* shrunk below the frame: centred */
   /* a position set by hand (0-100 %) wins over the automatic one */
   if(cs.px!=null)x=bx+(bw-dw)*Math.max(0,Math.min(100,cs.px))/100;
   if(cs.py!=null)y=by+(bh-dh)*Math.max(0,Math.min(100,cs.py))/100;
@@ -3739,7 +3745,9 @@ function czCrop(im,bx,by,bw,bh,anchor,pf,ty){
 }
 function czPhoto(im,h,anchor,pf,ty){
   var r=czCrop(im,0,0,W,h,anchor,pf,ty);
-  cx.save();cx.beginPath();cx.rect(0,0,W,h);cx.clip();cx.drawImage(im,r.x,r.y,r.w,r.h);cx.restore();
+  cx.save();cx.beginPath();cx.rect(0,0,W,h);cx.clip();
+  if(r.w<W-1||r.h<h-1){cx.fillStyle=czP().deep;cx.fillRect(0,0,W,h)} /* a shrunken picture leaves the template colour around it */
+  cx.drawImage(im,r.x,r.y,r.w,r.h);cx.restore();
 }
 /* photo treatment from the client profile: shade strength (0-100, 50 = the standard look) and cover gradient start */
 function czK(){var sh=cliPhoto().shade;return .6+sh*.008}
@@ -3945,6 +3953,7 @@ function czClosing(s,i,n){
     if(rect){czRR(cxm-pw/2-10,ptop-10,pw+20,ph+20,34);cx.fillStyle='#FFFFFF';cx.fill();czRR(cxm-pw/2,ptop,pw,ph,26);cx.clip()}
     else{cx.beginPath();cx.arc(cxm,cy,r+10,0,6.3);cx.fillStyle='#FFFFFF';cx.fill();cx.beginPath();cx.arc(cxm,cy,r,0,6.3);cx.clip()}
     var cr=czCrop(s.photo,cxm-pw/2,ptop,pw,ph,s.pa,s.pf,.42);
+    if(cr.w<pw-1||cr.h<ph-1){cx.fillStyle=czP().deep;cx.fillRect(cxm-pw/2,ptop,pw,ph)}
     cx.drawImage(s.photo,cr.x,cr.y,cr.w,cr.h);cx.restore();
     HC.tag('photo','','الصورة');HC.box(cxm-pw/2,ptop,cxm+pw/2,ptop+ph,-1);HC.tag();
     if(rect)r=ph/2;
@@ -4080,9 +4089,9 @@ async function czPutPhotos(list,start){
 }
 /* picture framing controls (zoom, horizontal, vertical): the same markup in the editor and in the on-design popup */
 function czFrameHtml(s,cls){
-  var z=Math.round(Math.max(1,Math.min(3,(s.pz||100)/100))*100),x=s.px==null?50:Math.round(s.px),y=s.py!=null?Math.round(s.py):s.pa==='top'?0:s.pa==='bottom'?100:50;
+  var z=Math.round(Math.max(.3,Math.min(3,(s.pz||100)/100))*100),x=s.px==null?50:Math.round(s.px),y=s.py!=null?Math.round(s.py):s.pa==='top'?0:s.pa==='bottom'?100:50;
   var f=function(k,l,v,mn,mx,st){return '<div class="'+cls+'"><label>'+l+' <b data-czfrv="'+k+'">'+v+'</b>%</label><input type="range" data-czfr="'+k+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'" aria-label="'+l+'"></div>'};
-  return f('pz','حجم الصورة',z,100,300,5)+f('px','الموضع أفقياً',x,0,100,1)+f('py','الموضع رأسياً',y,0,100,1)+'<div class="'+cls+'"><button type="button" class="tool ghost" data-czfrreset="1">إعادة ضبط الصورة</button></div>';
+  return f('pz','حجم الصورة',z,30,300,5)+f('px','الموضع أفقياً',x,0,100,1)+f('py','الموضع رأسياً',y,0,100,1)+'<div class="'+cls+'"><button type="button" class="tool ghost" data-czfrreset="1">إعادة ضبط الصورة</button></div>';
 }
 function czFrameReset(s){delete s.pz;delete s.px;delete s.py}
 function czSet(path,val){var p=path.split('.'),o=CZ;for(var i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=val}
@@ -4346,7 +4355,7 @@ function skSky(){
 }
 function skBg(s,fadeEnd){
   cx.fillStyle='#FFFFFF';cx.fillRect(0,0,W,ZH+1);
-  if(s.photo){var r=czCrop(s.photo,0,0,W,ZH,s.pa,s.pf,.5);cx.drawImage(s.photo,r.x,r.y,r.w,r.h)}else skSky();
+  if(s.photo){var r=czCrop(s.photo,0,0,W,ZH,s.pa,s.pf,.5);if(r.w<W-1||r.h<ZH-1)skSky();cx.drawImage(s.photo,r.x,r.y,r.w,r.h)}else skSky();
   HC.tag('photo','','الصورة');HC.box(0,0,W,ZH,-4);HC.tag();
   var fe=Math.max(560,Math.min(Math.round(ZH*.763),fadeEnd)),fs=Math.max(220,fe-480),q=fs/fe,g=cx.createLinearGradient(0,0,0,fe),P=SKY.paper;
   g.addColorStop(0,'rgba('+P+',.98)');g.addColorStop(q,'rgba('+P+',.95)');g.addColorStop(q+(1-q)*.45,'rgba('+P+',.55)');g.addColorStop(1,'rgba('+P+',0)');
@@ -6105,7 +6114,7 @@ function chBodyBg(){
   if(m==='photo'){
     h+=cF('صورة الخلفية',cImgCtl('bgp'));
     if(CH.bgp){
-      h+=cRng('bgZoom',100,300,5,'تكبير الصورة')+'<div class="two">'+cRng('bgX',0,100,1,'الموضع أفقياً')+cRng('bgY',0,100,1,'الموضع رأسياً')+'</div>'+cRng('bgBlur',0,24,1,'تغبيش الصورة')+cRng('veil',0,95,5,'قوة التعتيم فوق الصورة')+cCol('veilCol',CH.veilCol,'لون التعتيم')
+      h+=cRng('bgZoom',30,300,5,'حجم الصورة')+'<div class="two">'+cRng('bgX',0,100,1,'الموضع أفقياً')+cRng('bgY',0,100,1,'الموضع رأسياً')+'</div>'+cRng('bgBlur',0,24,1,'تغبيش الصورة')+cRng('veil',0,95,5,'قوة التعتيم فوق الصورة')+cCol('veilCol',CH.veilCol,'لون التعتيم')
       +cRng('photoH',30,100,5,'مساحة الصورة %')+cF('موضع الصورة',cSel('photoPos',[['top','أعلى'],['center','وسط'],['bottom','أسفل']]))+cF('تلاشي حافة الصورة',cSel('photoFade',[['auto','تلقائي'],['none','بدون'],['b','من الأسفل'],['t','من الأعلى'],['tb','أعلى وأسفل'],['r','من اليمين'],['l','من الشمال']]))+cRng('photoFadeAmt',10,100,5,'مقدار التلاشي %');
       h+='<button type="button" class="mini" data-chbgreset="1">إعادة ضبط الصورة</button>';
     }else h+='<p class="hint">ارفع صورة أو اخترها من مكتبة الصور. يظهر عليها تعتيم لتبقى النصوص واضحة.</p>';
@@ -7527,7 +7536,7 @@ function fxOne(m,c,e,Hh,s,hit){
       var irad=Math.max(0,rad-pd);
       fxShapePath(g,e.shape,pd,pd,iw,ih,irad);g.clip();
       if(im&&(im.complete||im.naturalWidth)){
-        var nw=im.naturalWidth||im.width,nh=im.naturalHeight||im.height,k=(e.fit==='contain'?Math.min(iw/nw,ih/nh):Math.max(iw/nw,ih/nh))*Math.max(1,Math.min(4,(e.iz||100)/100)),dw=nw*k,dh=nh*k;
+        var nw=im.naturalWidth||im.width,nh=im.naturalHeight||im.height,k=(e.fit==='contain'?Math.min(iw/nw,ih/nh):Math.max(iw/nw,ih/nh))*Math.max(.3,Math.min(4,(e.iz||100)/100)),dw=nw*k,dh=nh*k;
         g.imageSmoothingQuality='high';g.drawImage(im,pd+(iw-dw)*(e.ix==null?50:e.ix)/100,pd+(ih-dh)*(e.iy==null?50:e.iy)/100,dw,dh);
       }else{
         g.fillStyle=dark?'rgba(255,255,255,.14)':'rgba(40,40,90,.1)';g.fillRect(pd,pd,iw,ih);
@@ -7622,7 +7631,7 @@ function fxBody(m,id){
     c+='<div class="epf"><label>الصورة</label><div class="inrow"><select data-fx="lib" aria-label="الصورة"><option value="">'+(e.pimg&&!e.lib?'الصورة المرفوعة':'اختر…')+'</option>'+(imgs.length?imgs.map(function(a){return '<option value="'+fxEsc(a.id)+'"'+(e.lib===a.id?' selected':'')+'>'+fxEsc(a.name)+'</option>'}).join(''):'')+'</select><button type="button" class="tool hl" data-fxact="upload">رفع صورة</button></div></div>'
       +'<div class="epf"><button type="button" class="tool hl" data-fxact="rmbg"'+(e.pimg&&!FX.rb?'':' disabled')+'>'+(FX.rb===e.id?'جارٍ التفريغ…':e.cut?'تفريغ الخلفية مرة أخرى':'تفريغ الخلفية')+'</button><p class="hint">'+(e.cut?'تم تفريغ الخلفية. للرجوع للأصل اضغط «تراجع».':'يفصل الشخص أو الشيء عن خلفيته ليصير شفافاً. للرجوع للأصل اضغط «تراجع».')+'</p></div>'
       +fxRng('w','عرض الصورة',e.w,60,1080,10)+fxSeg('fit','ملء الشكل',e.fit,[['cover','قص لملء الشكل'],['contain','الصورة كاملة']])
-      +fxRng('iz','حجم الصورة داخل الإطار',e.iz||100,100,400,5,'%')+fxRng('ix','الموضع أفقياً',e.ix==null?50:e.ix,0,100,1,'%')+fxRng('iy','الموضع رأسياً',e.iy==null?50:e.iy,0,100,1,'%')
+      +fxRng('iz','حجم الصورة داخل الإطار',e.iz||100,30,400,5,'%')+fxRng('ix','الموضع أفقياً',e.ix==null?50:e.ix,0,100,1,'%')+fxRng('iy','الموضع رأسياً',e.iy==null?50:e.iy,0,100,1,'%')
       +'<div class="epf"><button type="button" class="tool ghost" data-fxact="imreset">إعادة ضبط الصورة</button></div>';
   }
   h+=fxSec('c','المحتوى',c,true);
@@ -8082,7 +8091,7 @@ function epBodyIG(g,p){
     h+='<div class="epf"><div class="row"><button type="button" class="tool" data-epact="bgup">'+(S.bgImg?'تغيير الصورة':'رفع صورة خلفية')+'</button>'+(S.bgImg?'<button type="button" class="tool ghost" data-epact="bgclr">إزالة</button>':'')+'</div></div>';
     if(S.bgImg)h+='<div class="epf"><label>قوة التعتيم <b data-eprv="veilp">'+Math.round(S.veil*100)+'</b></label><input type="range" data-eprng="veilp" min="0" max="90" value="'+Math.round(S.veil*100)+'"></div>'
     if(S.bgImg){var pH=S.photoH==null?100:S.photoH,pA=S.photoFadeAmt||45,pF=S.photoFade||'auto';
-      h+='<div class="epf"><label>حجم الصورة % <b data-eprv="photoZ">'+Math.round(igPZ()*100)+'</b></label><input type="range" data-eprng="photoZ" min="100" max="300" step="5" value="'+Math.round(igPZ()*100)+'"></div>'
+      h+='<div class="epf"><label>حجم الصورة % <b data-eprv="photoZ">'+Math.round(igPZ()*100)+'</b></label><input type="range" data-eprng="photoZ" min="30" max="300" step="5" value="'+Math.round(igPZ()*100)+'"></div>'
        +'<div class="epf"><label>الموضع أفقياً % <b data-eprv="photoX">'+Math.round(igPX())+'</b></label><input type="range" data-eprng="photoX" min="0" max="100" step="1" value="'+Math.round(igPX())+'"></div>'
        +'<div class="epf"><label>الموضع رأسياً % <b data-eprv="photoY">'+Math.round(igPY())+'</b></label><input type="range" data-eprng="photoY" min="0" max="100" step="1" value="'+Math.round(igPY())+'"></div>'
        +'<div class="epf"><button type="button" class="tool ghost" data-epact="photoreset">إعادة ضبط الصورة</button></div>'
