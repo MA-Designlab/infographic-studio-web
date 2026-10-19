@@ -397,6 +397,7 @@ button.mini{border-radius:999px;padding:7px 13px;background:#fff}
 .th{position:relative;padding:0;border:2px solid transparent;border-radius:6px;background:none;line-height:0;flex:none;cursor:pointer}
 .th canvas{width:64px;height:80px;border-radius:4px;box-shadow:0 1px 6px rgba(30,10,60,.25)}
 .th span{position:absolute;bottom:3px;inset-inline-start:3px;font:700 12px/1 DINCond,var(--fb);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:3px 6px}
+.dragf{outline:2px dashed var(--violet,#6b3fd4);outline-offset:4px;border-radius:8px;background:rgba(107,63,212,.07)}
 .th[aria-pressed=true]{border-color:var(--navy)}
 .chip.pal{display:inline-flex;align-items:center;gap:6px}
 .chip.pal i{width:14px;height:14px;border-radius:50%;display:inline-block;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
@@ -1393,7 +1394,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
             </div></div>
           </section>
         </div>
-        <input type="file" id="czFile" accept="image/*" hidden>
+        <input type="file" id="czFile" accept="image/*" multiple hidden>
         <input type="file" id="czFlagFile" accept="image/*" hidden>
       </div>
     </section>
@@ -4039,12 +4040,29 @@ function czBuildEditor(){
     h+='<button type="button" class="tool add" data-cadd="points">+ إضافة نقطة</button>';
     secs.push(['pts','النقاط',s.points.length?s.points.length+' نقاط':'',h]);
   }
-  secs.push(['img','الصورة',s.photo?'مرفوعة':'بدون','<div class="row"><button type="button" class="tool" data-cphoto="1">'+(s.photo?'تغيير الصورة':'رفع صورة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-cphoto="0">إزالة</button>':'')+'</div>'+
+  secs.push(['img','الصورة',s.photo?'مرفوعة':'بدون','<div class="row"><button type="button" class="tool" data-cphoto="1">'+(s.photo?'تغيير الصورة':'رفع صورة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-cphoto="0">إزالة</button>':'')+'</div><p class="hint">تقدر تختار عدة صور دفعة واحدة، فتتوزّع على الشرائح بالترتيب بدءاً من هذه الشريحة. أو اسحب الصور وأفلتها على الشرائح المصغّرة.</p>'+
     (s.photo?'<div class="field"><label>موضع الصورة</label><select data-czsel="pa"><option value="center"'+(s.pa==='center'?' selected':'')+'>وسط</option><option value="top"'+(s.pa==='top'?' selected':'')+'>الأعلى</option><option value="bottom"'+(s.pa==='bottom'?' selected':'')+'>الأسفل</option></select></div>':'<p class="hint">بدون صورة يظهر تصميم زخرفي بألوان القالب.</p>')]);
   // keep the box that was open; if a general-design box is open, leave it open
   var root=$('#czAccordion'),staticOpen=!!$('.ac.open[data-ac="pal"],.ac.open[data-ac="tpl"]',root),want=CZ.openKey===undefined?'txt':CZ.openKey;
   if(want&&!secs.some(function(x){return x[0]===want}))want='txt';
   $('#czEditor').innerHTML=secs.map(function(x){return czAc(x[0],x[1],x[2],x[3],!staticOpen&&x[0]===want)}).join('');
+}
+/* put one or more pictures on consecutive slides starting at slide `start` (one picture = just that slide, as before) */
+async function czPutPhotos(list,start){
+  var files=Array.prototype.slice.call(list||[]).filter(function(f){return /^image\//.test(f.type)||/\.(jpe?g|png|webp|heic)$/i.test(f.name)});
+  if(!files.length||start<0||start>=CZ.slides.length)return;
+  var room=CZ.slides.length-start,use=files.slice(0,room);
+  czStatus('جارٍ تجهيز '+use.length+' '+(use.length>1?'صور':'صورة')+'…');
+  var got=(await Promise.all(use.map(pgRead))).filter(Boolean);
+  if(!got.length){czStatus('تعذّر قراءة الصور. جرّب JPG أو PNG.',true);return}
+  var multi=got.length>1,side=function(im){return im.naturalHeight>im.naturalWidth*1.1?'top':'center'};
+  got.forEach(function(g,k){var s=CZ.slides[start+k];s.photo=g.im;if(multi){s.pa=side(g.im);delete s.pf}});
+  for(var i=start;i<start+got.length;i++){czDrawSlide(i);czThumb(i)}
+  if(CZ.cur>=start&&CZ.cur<start+got.length)czBuildEditor();
+  czDrawSlide(CZ.cur);czThumb(CZ.cur);
+  var msg=multi?'وُضعت '+got.length+' صور على الشرائح من '+(start+1)+' إلى '+(start+got.length)+'.':'';
+  if(files.length>room)msg+=(msg?' ':'')+'بقيت '+(files.length-room)+' '+(files.length-room>1?'صور':'صورة')+' بلا شريحة، فلم تُستخدم.';
+  czStatus(msg);
 }
 function czSet(path,val){var p=path.split('.'),o=CZ;for(var i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=val}
 function czSelect(i){epClose();CZ.cur=Math.max(0,Math.min(CZ.slides.length-1,i));czBuildEditor();czDrawSlide(CZ.cur);czThumb(CZ.cur);czNav()}
@@ -4204,8 +4222,17 @@ function czInit(){
     var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){if(CZ.slides[CZ.cur]===sl&&sl.stats[idx]){sl.stats[idx].pimg=im;czBuildEditor();czSchedule()}};im.src=fr.result};fr.readAsDataURL(f);self.value='';
   });
   $('#czFile').addEventListener('change',function(){
-    var f=this.files&&this.files[0],idx=czPhotoFor;if(!f||idx<0)return;var self=this;
-    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){CZ.slides[idx].photo=im;if(idx===CZ.cur)czBuildEditor();czDrawSlide(idx);czThumb(idx);czDrawSlide(CZ.cur)};im.src=fr.result};fr.readAsDataURL(f);self.value='';
+    var fl=Array.prototype.slice.call(this.files||[]),idx=czPhotoFor;this.value='';
+    if(fl.length&&idx>=0)czPutPhotos(fl,idx);
+  });
+  /* drop several pictures on the slide strip: they fill the slides in order, starting at the one they were dropped on */
+  var thb=$('#czThumbs'),hasFiles=function(e){var t=e.dataTransfer&&e.dataTransfer.types;return !!t&&Array.prototype.indexOf.call(t,'Files')>-1};
+  ['dragenter','dragover'].forEach(function(ev){thb.addEventListener(ev,function(e){if(!hasFiles(e))return;e.preventDefault();thb.classList.add('dragf')})});
+  thb.addEventListener('dragleave',function(e){if(!thb.contains(e.relatedTarget))thb.classList.remove('dragf')});
+  thb.addEventListener('drop',function(e){
+    if(!hasFiles(e))return;e.preventDefault();thb.classList.remove('dragf');
+    var b=e.target.closest&&e.target.closest('.th'),at=b?Array.prototype.indexOf.call(thb.children,b):0;
+    czPutPhotos(e.dataTransfer.files,Math.max(0,at));
   });
 
   /* swipe / drag the big slide to move between slides, arrow keys too */
@@ -4611,9 +4638,10 @@ function pgPaint(){
   $('#pgPick').textContent=n?'+ إضافة صور أخرى':(PG.mode==='ig'?'+ اختر صورة':'+ اختر صور');
   $('#pgSmartW').hidden=PG.mode!=='cz'||ch==='none';
   $('#dlgPhotos [data-pgo=none]').hidden=pick;
-  $('#pgTitle').textContent=pick?'اختر صورة':'هل عندك صور للتصميم؟';
+  var pm=pick&&PG.input&&PG.input.multiple;
+  $('#pgTitle').textContent=pick?(pm?'اختر صورة أو أكثر':'اختر صورة'):'هل عندك صور للتصميم؟';
   var go=$('#pgGo');go.disabled=PG.busy>0||((up||stk)&&!n);
-  go.textContent=pick?(n?'استخدم الصورة':'اختر صورة أولاً'):(up||stk)?(n?'كمّل بالصور':(stk?'اختر صورة أولاً':'ارفع صورة أولاً')):'كمّل بدون صور';
+  go.textContent=pick?(n?(n>1?'استخدم '+n+' صور':'استخدم الصورة'):'اختر صورة أولاً'):(up||stk)?(n?'كمّل بالصور':(stk?'اختر صورة أولاً':'ارفع صورة أولاً')):'كمّل بدون صور';
   $('#pgMsg').textContent=PG.busy?'جارٍ تجهيز الصور…':'';
   if(stk)pgStPaintSel();
 }
@@ -4681,7 +4709,7 @@ HTMLInputElement.prototype.click=function(){
 };
 function pgPick(inp){
   PG.mode='pick';PG.files=[];PG.next=null;PG.input=inp;PG.text=pgPickText();PG.choice='stock';
-  $('#pgSub').textContent='اختر صورة من مكتبات الصور المجانية، أو ارفع صورة من جهازك.';
+  $('#pgSub').textContent=inp.multiple?'اختر صورة أو عدة صور (حتى 12) من مكتبات الصور المجانية أو من جهازك. تُوزَّع على الشرائح بالترتيب بدءاً من الشريحة الحالية.':'اختر صورة من مكتبات الصور المجانية، أو ارفع صورة من جهازك.';
   pgPaint();openDlg('#dlgPhotos','#pgStIn');pgStOpen();
 }
 function pgPickDone(){
