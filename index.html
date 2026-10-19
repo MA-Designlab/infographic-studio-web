@@ -7865,6 +7865,14 @@ var FX={open:{g:1},pick:null,at:null,q:'',res:[],icNet:{},svg:{},icImg:{},pend:[
 var FX_URL='https://api.iconify.design/ph/';
 var FX_AR={'مستشفي':'hospital','طبيب':'stethoscope','دواء':'pill','مدرس':'graduation-cap','كتاب':'book','قلب':'heart','سيار':'car','قطار':'train','طائر':'airplane','طيار':'airplane','سفين':'boat','بيت':'house','منزل':'house','مبني':'building','شرك':'buildings','فلوس':'money','نقود':'money','ذهب':'coin','نفط':'gas-pump','بترول':'gas-pump','بنزين':'gas-pump','كهرب':'lightning','شمس':'sun','ماء':'drop','مياه':'drop','مطر':'cloud-rain','ثلج':'snowflake','نار':'fire','علم':'flag','خريط':'map-trifold','موقع':'map-pin','هاتف':'phone','موبايل':'phone','كمبيوتر':'desktop','انترنت':'wifi-high','كاميرا':'camera','فيديو':'video-camera','صوت':'speaker-high','موسيق':'music-note','كره':'soccer-ball','جائز':'trophy','كاس':'trophy','تاج':'crown','نجم':'star','عين':'eye','يد':'hand','شخص':'user','عائل':'users-three','اسر':'users-three','طفل':'baby','سهم':'arrow-right','ساع':'clock','تقويم':'calendar','بريد':'envelope','رسال':'chat-circle','تحذير':'warning','امان':'shield-check','حماي':'shield-check','قفل':'lock','مفتاح':'key','اداه':'wrench','صيان':'wrench','مصنع':'factory','زراع':'plant','شجر':'tree','حيوان':'paw-print','سمك':'fish','قهو':'coffee','طعام':'fork-knife','اكل':'fork-knife','عمل':'briefcase','وظيف':'briefcase','تقرير':'file-text','رسم':'chart-bar','نمو':'trend-up','ربح':'trend-up','ارتفاع':'trend-up','خسار':'trend-down','انخفاض':'trend-down','تامين':'umbrella','قانون':'scales','حكوم':'bank','بنك':'bank','انتخاب':'check-square','صح':'heartbeat','رياض':'barbell','سباق':'flag-checkered','فن':'palette','ميكروفون':'microphone','خبر':'newspaper','عالم':'globe-hemisphere-east','فكر':'lightbulb','صاروخ':'rocket-launch','اتفاق':'handshake','شراك':'handshake','هدف':'target','اعداد':'gear','علوم':'flask','تقني':'cpu','بيئ':'leaf','جبل':'mountains','حافل':'bus','شاحن':'truck','دراج':'bicycle','تاكسي':'taxi','سله':'basketball','تنس':'tennis-ball','اسعاف':'first-aid-kit','اسنان':'tooth','وراث':'dna','ذره':'atom'};
 var FX_SHAPES=[['orig','كما هي'],['wide','مستطيل أفقي'],['tall','مستطيل رأسي'],['square','مربع'],['circle','دائرة'],['hexagon','سداسي'],['octagon','ثماني'],['pentagon','خماسي'],['diamond','معين'],['triangle','مثلث'],['star','نجمة'],['arch','قوس']];
+var FX_BM=[['','عادي (Normal)'],['multiply','ضرب (Multiply)'],['screen','سكرين (Screen)'],['overlay','أوفرلاي (Overlay)'],['soft-light','ضوء ناعم (Soft Light)'],['hard-light','ضوء قوي (Hard Light)'],['darken','أغمق (Darken)'],['lighten','أفتح (Lighten)'],['color-dodge','تفتيح اللون (Color Dodge)'],['color-burn','تغميق اللون (Color Burn)'],['difference','اختلاف (Difference)'],['exclusion','استبعاد (Exclusion)'],['hue','الصبغة (Hue)'],['saturation','التشبع (Saturation)'],['color','اللون (Color)'],['luminosity','الإضاءة (Luminosity)']];
+var FX_FLT=[['fb','السطوع',100,0,250,1,'%','brightness'],['fc','التباين',100,0,250,1,'%','contrast'],['fs','التشبع',100,0,300,1,'%','saturate'],['fg','أبيض وأسود',0,0,100,1,'%','grayscale'],['fp','سيبيا',0,0,100,1,'%','sepia'],['fh','تدوير الألوان',0,-180,180,1,'°','hue-rotate'],['fbl','تغبيش',0,0,40,1,'px','blur']];
+/* the picture's own colour effects as a canvas filter string (scaled with the canvas so the look matches at every size) */
+function fxFilter(e,sc){
+  var a=[];
+  FX_FLT.forEach(function(f){var v=e[f[0]];if(v==null||+v===f[2])return;a.push(f[7]+'('+(f[0]==='fbl'?Math.round(+v*(sc||1)*10)/10+'px':f[0]==='fh'?(+v)+'deg':(+v)+'%')+')')});
+  return a.join(' ');
+}
 var FX_POS=[['top','فوق'],['bottom','تحت'],['right','يمين'],['left','شمال'],['center','منتصف']];
 var FX_TYPE={text:'جملة نصية',num:'رقم',icon:'أيقونة',img:'صورة',chart:'تشارت'};
 
@@ -8061,6 +8069,8 @@ function fxOne(m,c,e,Hh,s,hit){
   var dark=m==='cz'&&s&&s.type==='content'?B.cy<585:env.dark;
   var tcol=fxTextCol(e,env,dark),icol=e.ic.col||tcol;
   c.save();
+  var LO=e.lo==null?1:Math.max(0,Math.min(1,e.lo/100));
+  c.globalAlpha=LO;if(e.bm)c.globalCompositeOperation=e.bm;
   c.translate(B.cx,B.cy);
   if(B.v)c.rotate(e.ori==='vu'?-Math.PI/2:Math.PI/2);
   c.translate(-L.ew/2,-L.eh/2);
@@ -8079,7 +8089,9 @@ function fxOne(m,c,e,Hh,s,hit){
       fxShapePath(g,e.shape,pd,pd,iw,ih,irad);g.clip();
       if(im&&(im.complete||im.naturalWidth)){
         var nw=im.naturalWidth||im.width,nh=im.naturalHeight||im.height,k=(e.fit==='contain'?Math.min(iw/nw,ih/nh):Math.max(iw/nw,ih/nh))*Math.max(.3,Math.min(4,(e.iz||100)/100)),dw=nw*k,dh=nh*k;
-        g.imageSmoothingQuality='high';g.drawImage(im,pd+(iw-dw)*(e.ix==null?50:e.ix)/100,pd+(ih-dh)*(e.iy==null?50:e.iy)/100,dw,dh);
+        g.imageSmoothingQuality='high';var flt=fxFilter(e,g.getTransform().a||1);if(flt&&'filter' in g)g.filter=flt;
+        g.drawImage(im,pd+(iw-dw)*(e.ix==null?50:e.ix)/100,pd+(ih-dh)*(e.iy==null?50:e.iy)/100,dw,dh);
+        if(flt&&'filter' in g)g.filter='none';
       }else{
         g.fillStyle=dark?'rgba(255,255,255,.14)':'rgba(40,40,90,.1)';g.fillRect(pd,pd,iw,ih);
         g.fillStyle=dark?'rgba(255,255,255,.8)':'rgba(40,40,90,.6)';g.font=env.f.head(Math.max(22,Math.min(40,iw*.09)));g.textAlign='center';g.direction=L.dir||'rtl';g.fillText('اختر صورة',pd+iw/2,pd+ih/2+10);
@@ -8113,9 +8125,9 @@ function fxOne(m,c,e,Hh,s,hit){
       });
       if(L.cap&&L.cap.length){
         c.font=L.capFont;c.direction=L.dir;c.fillStyle=e.col?e.col:(env.dark||dark?'rgba(255,255,255,.82)':'#5E616B');
-        if(e.col)c.globalAlpha=.85;
+        if(e.col)c.globalAlpha=.85*LO;
         L.cap.forEach(function(ln,i){c.fillText(ln,cxm,y0+L.th+L.cgap+(i+.8)*L.cs*1.3)});
-        c.globalAlpha=1;
+        c.globalAlpha=LO;
       }
     }
   }
@@ -8193,6 +8205,15 @@ function fxBody(m,id){
   }
   /* position */
   h+=fxSec('p','الوضع','<div class="fxpos">'+(T==='img'?FX_POS.concat([['fill','ملء المساحة']]):FX_POS).map(function(p){return '<button type="button" class="fxpb" data-fxact="pos" data-v="'+p[0]+'" aria-pressed="'+(e.pos===p[0])+'">'+p[1]+'</button>'}).join('')+'</div>'+fxFillSel(e,T)+fxSeg('z','الطبقة',e.z==='back'?'back':'',[['','فوق كل العناصر'],['back','تحت العناصر (فوق الخلفية مباشرة)']])+'<p class="hint">'+(e.pos==='free'?'وضع حر. ':'')+(e.pos==='fill'?'الصورة تملأ المساحة كاملة (اسحبها لتحريرها). ':'')+'اسحب العنصر على التصميم لتحريكه في أي مكان.</p>',true);
+  /* transparency, blend mode, picture effects */
+  var ef=fxRng('lo','الشفافية (الظهور)',e.lo==null?100:e.lo,5,100,1,'%')
+    +'<div class="epf"><label>نمط الدمج مع ما تحته</label><select data-fx="bm" aria-label="نمط الدمج">'+FX_BM.map(function(o){return '<option value="'+o[0]+'"'+((e.bm||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
+  if(T==='img'){
+    FX_FLT.forEach(function(f){ef+=fxRng(f[0],f[1],e[f[0]]==null?f[2]:e[f[0]],f[3],f[4],f[5],f[6])});
+    if(typeof CanvasRenderingContext2D!=='undefined'&&!('filter' in CanvasRenderingContext2D.prototype))ef+='<p class="hint">متصفحك لا يدعم تأثيرات الألوان على الصورة (تعمل الشفافية والدمج فقط).</p>';
+  }
+  ef+='<div class="epf"><button type="button" class="tool ghost" data-fxact="efreset">إعادة ضبط التأثيرات</button></div>';
+  h+=fxSec('ef','الشفافية والتأثيرات',ef,false);
   /* colour (text, number) */
   if(T==='text'||T==='num')h+=fxSec('k','اللون',fxCol('col','لون النص',e.col,fxTextCol(e,env,env.dark)),false);
   /* icon */
@@ -8386,7 +8407,7 @@ function fxRebuild(){var b=$('.ep-b',EP.card),sc=b?b.scrollTop:0;epBuild();if(b)
 function fxPostBuild(){if(FX.pick&&EP.card){var s=$('[data-fxsearch]',EP.card);fxIconPaint();if(s&&FX.q)fxSearch(FX.q)}}
 function fxSet(e,path,v,ev){
   var n=+v;
-  if(path==='text'||path==='sub'||path==='lib'||path==='wt'||path==='ori'||path==='fit'||path==='z'||path==='fillTo'||path==='ic.style'||path==='ic.pos'||path==='box.rs'||path==='fade.unit')fxPut(e,path,v);
+  if(path==='text'||path==='sub'||path==='lib'||path==='wt'||path==='ori'||path==='fit'||path==='bm'||path==='z'||path==='fillTo'||path==='ic.style'||path==='ic.pos'||path==='box.rs'||path==='fade.unit')fxPut(e,path,v);
   else if(path==='ic.on'||path==='box.on')fxPut(e,path,!!v);
   else if(/(^|\.)(col2?|fill|bc)$/.test(path))fxPut(e,path,String(v).toUpperCase());
   else fxPut(e,path,n);
@@ -8441,6 +8462,7 @@ function fxClick(ev){
   if(a==='undo'){fxUndo();return}
   if(a!=='pickicon'&&a!=='pickback'&&a!=='upload'&&a!=='rmbg')fxSnap(m2);
   if(a==='pos'){if(b.dataset.v==='fill'&&e.t==='img')fxFillPick(e);e.pos=b.dataset.v;fxAgain(m2);fxRebuildSoon();return}
+  if(a==='efreset'){['lo','bm'].concat(FX_FLT.map(function(f){return f[0]})).forEach(function(k){delete e[k]});fxRedraw(m2);fxRebuild();return}
   if(a==='shape'){e.shape=b.dataset.v;fxRedraw(m2);fxRebuild();return}
   if(a==='side'){var k=b.dataset.v;e.fade[k]=!e.fade[k];fxRedraw(m2);fxRebuild();return}
   if(a==='auto'){fxPut(e,b.dataset.p,b.dataset.p==='box.op'?null:'');fxRedraw(m2);fxRebuild();return}
