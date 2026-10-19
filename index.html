@@ -1023,6 +1023,15 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .rfsw{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.25);vertical-align:middle;margin-inline-start:4px}
 .rfl{margin:4px 0 10px;padding-inline-start:18px;font-size:13.5px;line-height:1.7}
 #rfRes{max-height:240px;overflow:auto}
+
+/* empty spaces around a chart (editor guide only, never exported) */
+.ch-sp{position:absolute;box-sizing:border-box;pointer-events:none;border:2px dashed rgba(123,53,198,.55);background:rgba(123,53,198,.05);border-radius:10px;z-index:2}
+.ch-sp::after{content:attr(data-l);position:absolute;inset-inline-start:6px;top:6px;background:rgba(123,53,198,.85);color:#fff;font:500 11px/1 var(--fh);padding:4px 7px;border-radius:6px}
+.ch-sph{position:absolute;pointer-events:auto;background:#7B35C6;border:2px solid #fff;border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.3);touch-action:none}
+.ch-sp[data-side=top] .ch-sph,.ch-sp[data-side=bottom] .ch-sph{left:calc(50% - 22px);width:44px;height:14px;cursor:ns-resize}
+.ch-sp[data-side=top] .ch-sph{bottom:-8px}.ch-sp[data-side=bottom] .ch-sph{top:-8px}
+.ch-sp[data-side=left] .ch-sph,.ch-sp[data-side=right] .ch-sph{top:calc(50% - 22px);width:14px;height:44px;cursor:ew-resize}
+.ch-sp[data-side=left] .ch-sph{right:-8px}.ch-sp[data-side=right] .ch-sph{left:-8px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5249,7 +5258,7 @@ function chBlank(){
     col:{main:'',second:'',aux:'',up:'',down:'',text:'',series:['','','',''],seg:[]},hole:62,showPct:true,layer:{col:'',tr:null,size:100},
     iconKind:'',iconOver:{},sec:'news',
     legend:{show:true,pos:'auto',x:.1,y:.3,shape:'square',size:26,texts:['','','',''],colors:['','','','']},
-    bgMode:'preset',bgC1:'#0B2A8C',bgC2:'#040C38',bgAngle:180,photoH:100,photoPos:'top',photoFade:'auto',photoFadeAmt:45,veil:.5,veilCol:'#050B30',bgZoom:100,bgX:50,bgY:50,bgBlur:0,bgp:null,pic:null,imgs:[],fx:[],
+    bgMode:'preset',bgC1:'#0B2A8C',bgC2:'#040C38',bgAngle:180,photoH:100,photoPos:'top',photoFade:'auto',photoFadeAmt:45,veil:.5,veilCol:'#050B30',bgZoom:100,bgX:50,bgY:50,bgBlur:0,bgp:null,pic:null,imgs:[],fx:[],labAng:'',spaces:[],
     titleFont:'',titleScale:100,textFont:'',textScale:100,numFont:'',numScale:100,theme:''};
 }
 function chSt(){return CHST[CH.style]||CHST.bars}
@@ -5667,6 +5676,63 @@ function chBackground(H){
   }
 }
 
+
+/* ----- empty spaces around the chart (top / bottom / left / right), free size; the chart shrinks to what is left ----- */
+function chSpSize(s){return Math.max(40,+(s.side==='top'||s.side==='bottom'?s.h:s.w)||220)}
+function chSpaceLayout(P){
+  var L=CH.spaces||[],gap=14,minW=320,minH=340,rects=[],used=false;
+  var sum={top:0,bottom:0,left:0,right:0};
+  L.forEach(function(s){if(s&&sum[s.side]!=null){sum[s.side]+=chSpSize(s)+gap;used=true}});
+  if(!used)return{P:P,rects:rects};
+  var vMax=Math.max(0,P.h-minH),hMax=Math.max(0,P.w-minW),kv=sum.top+sum.bottom>vMax?vMax/(sum.top+sum.bottom):1,kh=sum.left+sum.right>hMax?hMax/(sum.left+sum.right):1;
+  var oT=0,oB=0,oL=0,oR=0;
+  L.forEach(function(s,i){
+    if(!s||(s.side!=='top'&&s.side!=='bottom'))return;
+    var h=Math.round(chSpSize(s)*kv),w=s.fw===false?Math.min(P.w,Math.max(120,+s.w||P.w)):P.w,x=P.x+(P.w-w)/2;
+    if(s.side==='top'){rects.push({i:i,side:'top',x:x,y:P.y+oT,w:w,h:h});oT+=h+Math.round(gap*kv)}
+    else{rects.push({i:i,side:'bottom',x:x,y:P.y+P.h-oB-h,w:w,h:h});oB+=h+Math.round(gap*kv)}
+  });
+  var cy=P.y+oT,chh=P.h-oT-oB;
+  L.forEach(function(s,i){
+    if(!s||(s.side!=='left'&&s.side!=='right'))return;
+    var w=Math.round(chSpSize(s)*kh),h=s.fh===false?Math.min(chh,Math.max(120,+s.h||chh)):chh,y=cy+(chh-h)/2;
+    if(s.side==='left'){rects.push({i:i,side:'left',x:P.x+oL,y:y,w:w,h:h});oL+=w+Math.round(gap*kh)}
+    else{rects.push({i:i,side:'right',x:P.x+P.w-oR-w,y:y,w:w,h:h});oR+=w+Math.round(gap*kh)}
+  });
+  return{P:{x:P.x+oL,y:cy,w:P.w-oL-oR,h:chh},rects:rects};
+}
+function chSpaceFrames(rects){
+  var sh=document.getElementById('chSheet');if(!sh)return;
+  var L=sh.querySelectorAll('.ch-sp'),Hh=chH();
+  rects.forEach(function(r,k){
+    var d=L[k];
+    if(!d){d=document.createElement('div');d.className='ch-sp';var hd=document.createElement('i');hd.className='ch-sph';d.appendChild(hd);sh.appendChild(d);chSpaceHandle(hd)}
+    d.style.left=(r.x/W*100)+'%';d.style.top=(r.y/Hh*100)+'%';d.style.width=(r.w/W*100)+'%';d.style.height=(r.h/Hh*100)+'%';
+    d.dataset.si=r.i;d.dataset.side=r.side;d.setAttribute('data-l','مساحة '+(r.i+1));
+  });
+  for(var i=L.length-1;i>=rects.length;i--)L[i].remove();
+}
+function chSpaceHandle(hd){
+  var dr=null;
+  hd.addEventListener('pointerdown',function(e){
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.preventDefault();e.stopPropagation();
+    var d=hd.parentNode,i=+d.dataset.si,rc=((CH.geo&&CH.geo.sp)||[]).filter(function(r){return r.i===i})[0];if(!rc)return;
+    dr={i:i,rc:rc};try{hd.setPointerCapture(e.pointerId)}catch(x){}
+  });
+  hd.addEventListener('pointermove',function(e){
+    if(!dr)return;e.stopPropagation();
+    var sh=document.getElementById('chSheet'),b=sh.getBoundingClientRect(),px=(e.clientX-b.left)/b.width*W,py=(e.clientY-b.top)/b.height*chH(),s=CH.spaces[dr.i],rc=dr.rc;if(!s)return;
+    var v=s.side==='top'?py-rc.y:s.side==='bottom'?rc.y+rc.h-py:s.side==='left'?px-rc.x:rc.x+rc.w-px,tb=s.side==='top'||s.side==='bottom';
+    v=Math.max(40,Math.min(tb?900:700,Math.round(v/10)*10));
+    var key=tb?'h':'w';s[key]=v;
+    var rv=document.querySelector('[data-chrv="spaces.'+dr.i+'.'+key+'"]');if(rv){rv.textContent=v;var inp=rv.parentNode.parentNode.querySelector('input[type=range]');if(inp)inp.value=v}
+    chRender();
+  });
+  function end(){dr=null}
+  hd.addEventListener('pointerup',end);hd.addEventListener('pointercancel',end);
+}
+
 /* ----- logo marks ----- */
 function chDy(){return chH()>1500?216:0}
 function chDb(){return chH()>1500?310:0}
@@ -5792,6 +5858,8 @@ function chTime(P,R,area){
   var rg=chRange(R),lo=Math.min(0,rg.mn),hi=rg.mx*(area?(hasCall?1.55:1.14):1.1);if(hi<=lo)hi=lo+1;
   var axisH=area?100:62,topPad=area?24:40;
   var lf=chF('num',area?26:28),lw=0;R.forEach(function(r){lw=Math.max(lw,chWidth(r.label,lf,'ltr'))});
+  var lAng=chLabAng(area?56.25:0),lRad=Math.abs(lAng)*Math.PI/180;
+  if(chLabSet())axisH=Math.max(axisH,Math.round(Math.min(lw,320)*Math.sin(lRad)+(area?26:28)*1.3*Math.cos(lRad))+36);
   var ins=area?76:40,x0=P.x+ins,x1=P.x+P.w-ins,y0=P.y+topPad,y1=P.y+P.h-axisH,sl=n>1?(x1-x0)/(n-1):0;
   var X=function(i){return n>1?x0+i*sl:(x0+x1)/2},Y=function(v){return y1-(v-lo)/(hi-lo)*(y1-y0)};
   var yz=Y(0);
@@ -5842,17 +5910,19 @@ function chTime(P,R,area){
     chNumPut(hv,tx,ty+10,40,chOn(main),'center');HK.tag();
   }
   /* year labels */
-  var lstep=area?Math.max(1,Math.ceil(30/(sl||1))):Math.max(1,Math.ceil((lw+18)/(sl||1)));
+  var lstep=chLabSet()?Math.max(1,Math.ceil((lRad>=.35?(area?26:28)*1.25/Math.sin(lRad)+4:lw*Math.cos(lRad)+(area?26:28)*Math.sin(lRad)+18)/(sl||1))):area?Math.max(1,Math.ceil(30/(sl||1))):Math.max(1,Math.ceil((lw+18)/(sl||1)));
   R.forEach(function(r,i){
     if(i%lstep!==0&&!(i===n-1&&(n-1)%lstep>=lstep/2)&&i!==hiI)return;
-    if(i!==hiI&&hiI>-1&&Math.abs(i-hiI)*sl<(lw+34)*.75&&area)return;
+    if(i!==hiI&&hiI>-1&&Math.abs(i-hiI)*sl<(lw+34)*.75&&area&&lAng)return;
     HK.tag('axis',String(i),'التسمية');
     if(i===hiI){
       var bw2=chWidth(r.label,chF('num',30),'ltr')+30;
       c.fillStyle=main;chRRect(X(i)-bw2/2,y1+12,bw2,48,10);c.fill();chNumPut(r.label,X(i),y1+46,30,chOn(main),'center');
-    }else if(area){
-      c.save();c.translate(X(i)+8,y1+20);c.rotate(-Math.PI/3.2);c.font=lf;c.fillStyle=chMute();c.direction='ltr';c.textAlign='right';c.textBaseline='middle';c.fillText(r.label,0,0);c.restore();
-      HK.box(X(i)-lw*.5,y1+8,X(i)+14,y1+axisH);
+    }else if(lAng){
+      var ox=chLabSet()?Math.round(8*Math.cos(lRad)):8,fz=area?26:28,tw2=Math.min(chWidth(r.label,lf,'ltr'),320);
+      c.save();c.translate(X(i)+(lAng>0?ox:-ox),y1+(area?20:24));c.rotate(-lAng*Math.PI/180);c.font=lf;c.fillStyle=chMute();c.direction='ltr';c.textAlign=lAng>0?'right':'left';c.textBaseline='middle';c.fillText(r.label,0,0,320);c.restore();
+      var bw3=tw2*Math.cos(lRad)+fz*Math.sin(lRad);
+      HK.box(lAng>0?X(i)-bw3:X(i)-14,y1+8,lAng>0?X(i)+14:X(i)+bw3,y1+axisH);
     }else chNumPut(r.label,X(i),y1+44,28,chMute(),'center');
     HK.tag();
   });
@@ -5903,8 +5973,25 @@ function chVB(P,R,o){
   return{slot:slot,bw:bw,yz:yz,sc:sc};
 }
 /* names under the bars when there is no icon (or when asked to keep both) */
+/* angle of the names under the columns / on the time axis: '' = automatic, otherwise degrees (0 flat, 90 / -90 upright) */
+function chLabSet(){var a=CH.labAng;return a!==''&&a!=null&&!isNaN(a)}
+function chLabAng(def){return chLabSet()?Math.max(-90,Math.min(90,+CH.labAng)):def}
+/* room (height) the turned names need under the axis; 0 when the names stay flat */
+function chLabRoom(R,size){
+  var a=chLabAng(0);if(!a)return 0;
+  var f=chF('body',size),w=0,r=Math.abs(a)*Math.PI/180;R.forEach(function(x){w=Math.max(w,chWidth(x.label,f))});
+  return Math.ceil(Math.min(w,320)*Math.sin(r)+size*1.3*Math.cos(r))+16;
+}
 function chBarLabel(r,xc,y,slot,size){
-  var f=chF('body',size),ls=chLines(r.label,f,slot-10,2);
+  var f=chF('body',size),a=chLabAng(0);
+  if(a){
+    var c=chx,rad=Math.abs(a)*Math.PI/180,tw=Math.min(chWidth(r.label,f),320),off=Math.round(8*Math.cos(rad));
+    HK.tag('axis','L:'+r.label,'التسمية');
+    c.save();c.translate(xc+(a>0?off:-off),y+Math.round(size*.4));c.rotate(-a*Math.PI/180);c.font=f;c.fillStyle=chC('text');c.direction=chDir();c.textAlign=a>0?'right':'left';c.textBaseline='middle';c.fillText(r.label,0,0,320);c.restore();
+    var hw=tw*Math.cos(rad)+size*Math.sin(rad),hh=tw*Math.sin(rad)+size*Math.cos(rad);
+    HK.box(a>0?xc-hw:xc-6,y,a>0?xc+6:xc+hw,y+hh+6);HK.tag();return;
+  }
+  var ls=chLines(r.label,f,slot-10,2);
   HK.tag('axis','L:'+r.label,'التسمية');ls.forEach(function(l,i){chPut(l,xc,y+size+i*Math.round(size*1.25),f,chC('text'),'center')});HK.tag();
 }
 function chIconRow(R,P,d,yc,showLab){
@@ -5918,7 +6005,7 @@ function chIconRow(R,P,d,yc,showLab){
 /* ===== STYLE 2: gold bars with flags underneath ===== */
 function chBars(P,R){
   var n=R.length,slot=P.w/Math.max(1,n),d=Math.min(slot*.8,84),icons=chHasIcons(R),fs=Math.round(Math.max(22,Math.min(44,slot*.42))),ink=chC('text');
-  var bot=icons?d+(CH.showLab?72:34):96;
+  var lsz=Math.max(18,Math.min(26,Math.round(slot*.2))),lroom=chLabRoom(R,lsz),bot=icons?d+(CH.showLab?Math.max(72,lroom+18):34):Math.max(96,lroom+26);
   var geo=chVB(P,R,{top:fs+30,bot:bot,cb:function(r,i,xc,yt,yz){
     var v=r.vals[0];if(isNaN(v))return;
     HK.tag('val',String(i),'قيمة');chNumPut(r.vtxt[0],xc,v>=0?yt-14:yt+fs+10,fs,ink,'center');HK.tag();
@@ -5939,13 +6026,14 @@ function chPill(t,xc,yb,h,fill,col,font,dir){
 function chBubbles(P,R){
   var n=R.length,slot=P.w/Math.max(1,n),fs=Math.round(Math.max(17,Math.min(30,slot*.3))),ph=Math.round(fs*1.6),dark=chDark();
   var anyG=R.some(function(r){return chGrowth(r)}),top=ph+14+(anyG?ph+12:0)+8;
-  var geo=chVB(P,R,{top:top,bot:n?(CH.showLab?96:70):70,bwMax:100,cb:function(r,i,xc,yt){
+  var lroomB=chLabRoom(R,Math.max(20,Math.min(28,Math.round(slot*.24)))),botB=Math.max(n?(CH.showLab?96:70):70,lroomB?lroomB+22:0);
+  var geo=chVB(P,R,{top:top,bot:botB,bwMax:100,cb:function(r,i,xc,yt){
     var v=r.vals[0];if(isNaN(v))return;
     var yb=yt-10,g=chGrowth(r);
     HK.tag('val',String(i),'قيمة');chPill(r.vtxt[0],xc,yb,ph,dark?'rgba(255,255,255,.16)':'#E4E6EC',chC('text'),chF('num',fs));HK.tag();
     if(g){HK.tag('grow',String(i),'نسبة النمو');var gc=g.up?chC('up'):chC('down');chPill(g.t,xc,yb-ph-8,ph,gc,chOn(gc),chF('num',Math.round(fs*.92)));HK.tag()}
   }});
-  if(geo)R.forEach(function(r,i){chBarLabel(r,chSlotX(i,n,P.x,P.w),P.y+P.h-70+10,slot,Math.max(20,Math.min(28,Math.round(slot*.24))))});
+  if(geo)R.forEach(function(r,i){chBarLabel(r,chSlotX(i,n,P.x,P.w),P.y+P.h-Math.min(botB,Math.max(70,botB))+10,slot,Math.max(20,Math.min(28,Math.round(slot*.24))))});
 }
 function chBubbleHead(y){
   var c=chx,maxW=W-2*CHPAD,R=chR(),ink=chC('text'),main=chC('main'),any=false;
@@ -5981,7 +6069,7 @@ function chBubbleHead(y){
 function chPins(P,R){
   var n=R.length,slot=P.w/Math.max(1,n),icons=chHasIcons(R),d=Math.min(slot*.82,92),pd=Math.round(Math.max(40,Math.min(70,slot*.55))),fs=Math.round(Math.max(20,Math.min(38,slot*.34))),pc=chPinCol();
   var order=R.map(function(r,i){return i}).sort(function(a,b){return(R[b].vals[0]||-Infinity)-(R[a].vals[0]||-Infinity)}),rank={};order.forEach(function(ix,k){rank[ix]=k+1});
-  var bot=icons?d+(CH.showLab?70:30):96;
+  var lroomP=chLabRoom(R,Math.max(18,Math.min(26,Math.round(slot*.2)))),bot=icons?d+(CH.showLab?Math.max(70,lroomP+18):30):Math.max(96,lroomP+26);
   var geo=chVB(P,R,{top:fs+pd+34,bot:bot,bwMax:90,cb:function(r,i,xc,yt){
     var v=r.vals[0];if(isNaN(v))return;
     var pcy=yt-pd/2-4,txt=r.note||String(rank[i]);
@@ -6167,12 +6255,14 @@ function chRender(){
   if(nl)bottom+=14+nl*30;
   var P={x:CHPAD+(side&&chR()?40:0),y:y,w:W-2*CHPAD-(side?40:0),h:H-y-bottom};
   if(lb&&CH.legend.pos==='bottom'){lpos.y=H-bottom+4}
-  if(D.plot&&P.h>120)D.plot(P,R);
+  var SPL=chSpaceLayout(P),PC=SPL.P;
+  if(D.plot&&PC.h>120)D.plot(PC,R);
   if(lb)chLegendDraw(lb,lpos.x,lpos.y);
   chNoteDraw(H,P);
   chOvDraw('front',ovb);
   if(!CH_TR)fxDraw('ch',c,null);
-  CH.geo={P:P,ov:ovb,lb:lb&&{x:lpos.x,y:lpos.y,w:lb.w,h:lb.h}};
+  CH.geo={P:P,PC:PC,sp:SPL.rects,ov:ovb,lb:lb&&{x:lpos.x,y:lpos.y,w:lb.w,h:lb.h}};
+  if(!CH_TR)chSpaceFrames(SPL.rects);
   if(window.__epAfter&&!CH_TR)window.__epAfter();
 }
 /* the current chart as a transparent, trimmed canvas (for placing inside an infographic) */
@@ -6382,6 +6472,27 @@ function chBodyImg(){
   }else h+='<p class="hint">وصلت للحد الأقصى (6 صور).</p>';
   return h;
 }
+function chBodyLay(){
+  var h='';
+  if(CH.style!=='donut'){
+    var cur=chLabSet()?String(+CH.labAng):'',opts=[['','تلقائي'],['0','أفقي صريح (0°)'],['90','رأسي صريح (90° — يُقرأ من الأسفل للأعلى)'],['-90','رأسي صريح (−90° — يُقرأ من الأعلى للأسفل)']];
+    [15,30,45,60,75].forEach(function(a){opts.push([String(a),'زاوية '+a+'°'])});[15,30,45,60,75].forEach(function(a){opts.push([String(-a),'زاوية −'+a+'°'])});
+    if(cur!==''&&!opts.some(function(o){return o[0]===cur}))opts.push([cur,'زاوية '+cur+'°']);
+    h+='<p class="acc-label">زاوية أسماء القيم (الأسماء تحت الأعمدة أو على المحور)</p>'+cF('الزاوية',cSel('labAng',opts))
+      +'<div class="field"><label>أو اكتب الزاوية بالرقم (من −90 إلى 90)</label><input type="number" data-ch="labAng" data-chn="1" min="-90" max="90" step="1" value="'+(cur===''?'':cur)+'" aria-label="الزاوية بالدرجات"></div>';
+  }
+  h+='<p class="acc-label">مساحات فارغة حول الشارت</p><p class="hint">اضغط الجهة فتُضاف مساحة ويصغر الشارت تلقائياً. اضغط داخل المساحة على التصميم لإضافة نص أو رقم أو صورة. اسحب المقبض على حافة المساحة (على التصميم) لتغيير حجمها، ويمكن إضافة أكثر من مساحة في كل الجهات.</p>';
+  (CH.spaces||[]).forEach(function(s,i){
+    var p='spaces.'+i+'.',tb=s.side==='top'||s.side==='bottom';
+    h+='<div class="chimg"><div class="chimg-h"><b>مساحة '+(i+1)+'</b><button type="button" class="x" data-chspdel="'+i+'">حذف</button></div>'
+      +cF('الجهة',cSel(p+'side',[['top','أعلى الشارت'],['bottom','أسفل الشارت'],['left','يسار الشارت'],['right','يمين الشارت']]))
+      +(tb?cRng(p+'h',40,900,10,'الارتفاع')+cChk(p+'fw','بعرض الشارت كاملاً')+(s.fw===false?cRng(p+'w',120,1080,10,'العرض'):'')
+         :cRng(p+'w',40,700,10,'العرض')+cChk(p+'fh','بارتفاع الشارت كاملاً')+(s.fh===false?cRng(p+'h',120,1500,10,'الارتفاع'):''))
+      +'</div>';
+  });
+  if((CH.spaces||[]).length<8)h+='<div class="field"><label>إضافة مساحة</label><div class="row"><button type="button" class="tool" data-chspadd="top">أعلى</button><button type="button" class="tool" data-chspadd="bottom">أسفل</button><button type="button" class="tool" data-chspadd="right">يمين</button><button type="button" class="tool" data-chspadd="left">يسار</button></div></div>';
+  return h;
+}
 function chBuildEditor(){
   if(!$('#chEditor'))return;
   var secs=[
@@ -6392,6 +6503,7 @@ function chBuildEditor(){
     ['fnt','الخطوط والأحجام',CH.titleFont||CH.textFont||CH.numFont?'مخصصة':'',chBodyFnt()],
     ['ico','الأعلام والشعارات',chIconKind()==='none'?'بدون':({flag:'أعلام',logo:'شعارات'}[chIconKind()]||''),chBodyIco()],
     ['img','صور على التشارت',CH.imgs.length?CH.imgs.length+' صور':'بدون',chBodyImg()],
+    ['lay','التخطيط والمساحات',(CH.spaces||[]).length?CH.spaces.length+' مساحات':'',chBodyLay()],
     ['key','مفتاح التشارت',CH.legend.show?'ظاهر':'مخفي',chBodyKey()],
     ['bg','الخلفية',{preset:'جاهزة',solid:'لون واحد',grad:'تدرج',photo:'صورة'}[CH.bgMode],chBodyBg()]
   ];
@@ -6400,7 +6512,7 @@ function chBuildEditor(){
 }
 function chRefreshSec(key){
   var ac=$('#chEditor [data-ac="'+key+'"]');if(!ac)return;
-  var fn={style:chBodyStyle,data:chBodyData,txt:chBodyTxt,col:chBodyCol,ico:chBodyIco,key:chBodyKey,fnt:chBodyFnt,bg:chBodyBg,img:chBodyImg}[key];
+  var fn={style:chBodyStyle,data:chBodyData,txt:chBodyTxt,col:chBodyCol,ico:chBodyIco,key:chBodyKey,fnt:chBodyFnt,bg:chBodyBg,img:chBodyImg,lay:chBodyLay}[key];
   var b=$('.ac-b',ac);if(b)b.innerHTML=fn();
 }
 function chStatus(msg,err,busy){var s=$('#chStatus');if(!s)return;s.className=err?'err':'';s.innerHTML=(busy?'<span class="spin"></span>':'')+esc(msg||'')}
@@ -6499,15 +6611,16 @@ function chSyncSum(){
   var set=function(k,v){var e=$('#chEditor [data-ac="'+k+'"] .ac-s');if(e)e.textContent=v||''};
   set('txt',CH.title);set('data',CH.table.rows.length+' صف');
 }
-var CH_REB={bgMode:1,'legend.show':1,'legend.pos':1,iconKind:1,lang:1,size:0,theme:1,'call.side':0};
+var CH_REB={labAng:1,bgMode:1,'legend.show':1,'legend.pos':1,iconKind:1,lang:1,size:0,theme:1,'call.side':0};
 function chInput(e){
   var t=e.target;if(!t||!t.dataset)return;
   if(t.dataset.chhead!=null){CH.table.head[+t.dataset.chhead]=t.value;chSchedule();return}
   if(t.dataset.chcell!=null&&e.type==='input'){var p=t.dataset.chcell.split(',');CH.table.rows[+p[0]][+p[1]]=t.value;chIsDemo=false;chSchedule();return}
   if(t.dataset.chcol!=null){cSet(t.dataset.chcol,t.value.toUpperCase());chSchedule();return}
-  if(t.dataset.ch!=null&&(t.type==='text'||t.type==='range')&&e.type==='input'){
+  if(t.dataset.ch!=null&&(t.type==='text'||t.type==='range'||t.type==='number')&&e.type==='input'){
     if(t.dataset.ch.indexOf('table.')===0)chIsDemo=false;
     var v=t.dataset.chn?parseFloat(t.value):t.value;
+    if(t.type==='number'&&isNaN(v))v='';
     if(t.dataset.ch==='veil')v=v/100;
     cSet(t.dataset.ch,v);
     var rv=$('[data-chrv="'+t.dataset.ch+'"]');if(rv)rv.textContent=t.value;
@@ -6520,7 +6633,7 @@ function chChange(e){
   if(t.dataset.chhead!=null){chRefreshSec('ico');return}
   if(t.dataset.chcell!=null){chRefreshSec('ico');return}
   if(t.dataset.chcol!=null){var ac=t.closest('.ac');chRefreshKeepOpen(ac);return}
-  if(t.dataset.chb!=null){cSet(t.dataset.chb,t.checked);CH_REB[t.dataset.chb]!==undefined?chBuildEditor():0;chSchedule();return}
+  if(t.dataset.chb!=null){cSet(t.dataset.chb,t.checked);(CH_REB[t.dataset.chb]!==undefined||/^spaces\./.test(t.dataset.chb))?chBuildEditor():0;chSchedule();return}
   if(t.dataset.chmap!=null){
     var k=t.dataset.chmap,v=+t.value;
     if(k==='label')CH.map.label=v;else if(k==='val')CH.map.vals=[v];else if(k==='aux')CH.map.aux=v;else if(k==='note')CH.map.note=v;
@@ -6549,7 +6662,7 @@ function chChange(e){
     cSet(path,val2);
     if(path==='size'){chFit();chSchedule();return}
     if(path==='noteSide'||path==='sort'||path==='hi'||path==='call.side'||path==='titleAlign'){chSchedule();return}
-    if(CH_REB[path])chBuildEditor();
+    if(CH_REB[path]||/^spaces\.\d+\.side$/.test(path))chBuildEditor();
     chSchedule();
   }
 }
@@ -6569,6 +6682,8 @@ function chClick(e){
   if(d.chfetch){chFetchOne(d.chfetch,true).then(function(ok){chRefreshSec('ico');if(ok)chIcoMsg('تم جلب '+d.chfetch);chSchedule()});return}
   if(d.chfetchall){chFetchAll(t);return}
   if(d.chiup){chUpFor=d.chiup;$('#chIconFile').click();return}
+  if(d.chspadd){var sd=d.chspadd,tb2=sd==='top'||sd==='bottom';if(!CH.spaces)CH.spaces=[];if(CH.spaces.length<8){CH.spaces.push({side:sd,h:tb2?300:600,w:tb2?1000:320,fw:true,fh:true});chBuildEditor();chSchedule()}return}
+  if(d.chspdel!=null){CH.spaces.splice(+d.chspdel,1);chBuildEditor();chSchedule();return}
   if(d.chovadd){$('#chOvFile').click();return}
   if(d.chovdel!=null){CH.imgs.splice(+d.chovdel,1);if(EP.on&&EP.g==='ovimg')epClose();chBuildEditor();chSchedule();return}
   if(d.chbgreset){CH.bgZoom=100;CH.bgX=50;CH.bgY=50;CH.bgBlur=0;CH.veil=.5;CH.veilCol='#050B30';chRefreshSec('bg');chSchedule();return}
@@ -8692,6 +8807,7 @@ function epBodyCH(g,p){
     }
     if(k==='bar'||k==='val'){h+=CH.style==='line'?chBodyCol():cCol('col.main',chC('main'),'لون الأعمدة')}
     h+=k==='val'?ttHtml('ch','numFont','numScale','الأرقام'):k==='axis'?ttHtml('ch','textFont','textScale','النصوص'):'';
+    if(k==='axis'&&CH.style!=='donut')h+=cF('زاوية أسماء القيم',cSel('labAng',[['','تلقائي'],['0','أفقي صريح (0°)'],['90','رأسي صريح (90°)'],['-90','رأسي صريح (−90°)'],['30','زاوية 30°'],['45','زاوية 45°'],['60','زاوية 60°'],['-30','زاوية −30°'],['-45','زاوية −45°'],['-60','زاوية −60°']].concat(chLabSet()&&['0','90','-90','30','45','60','-30','-45','-60'].indexOf(String(+CH.labAng))<0?[[String(+CH.labAng),'زاوية '+(+CH.labAng)+'°']]:[])));
     if(r)h+='<div class="epf"><button type="button" class="tool danger" data-chrow="'+r.ti+'">حذف هذا الصف</button></div>';
   }
   else if(k==='seg'){t='جزء الدائرة';acc='data';if(r){h=cell(m.label,'الاسم')+cell(m.vals[0],CH.table.head[m.vals[0]]||'القيمة','القيمة')+cCol('col.seg.'+r.ti,chSegC(r.ti),'لون الجزء')+'<div class="epf"><button type="button" class="tool danger" data-chrow="'+r.ti+'">حذف هذا الصف</button></div>'}}
