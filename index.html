@@ -1018,6 +1018,11 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .tyg input[type=color]{width:56px;height:36px;padding:0}
 .tyset{color:#D8560B;font-style:normal;font-size:11px}
 .lfx{font-size:22px;line-height:1.35;color:var(--ink)}
+
+/* reference design dialog */
+.rfsw{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.25);vertical-align:middle;margin-inline-start:4px}
+.rfl{margin:4px 0 10px;padding-inline-start:18px;font-size:13.5px;line-height:1.7}
+#rfRes{max-height:240px;overflow:auto}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1262,6 +1267,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <section class="ac" data-ac="style">
           <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">القالب والنمط</span><span class="ac-s" data-sum="style"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
           <div class="ac-w"><div class="ac-b">
+<div class="field"><button type="button" class="tool" data-rfopen="ig">✨ تصميم مرجعي: ارفع تصميماً يعجبك</button></div>
 <div class="field"><label for="secSel">القالب</label>
 <select id="secSel">
             <option value="news">قالب خبري</option>
@@ -1380,6 +1386,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           <section class="ac" data-ac="tpl">
             <button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">القالب والأرقام</span><span class="ac-s" data-csum="tpl"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
             <div class="ac-w"><div class="ac-b">
+<div class="field"><button type="button" class="tool" data-rfopen="cz">✨ تصميم مرجعي: ارفع تصميماً يعجبك</button></div>
 <div class="field"><label for="czLook">شكل الشرائح</label>
   <select id="czLook"><option value="classic">كلاسيكي (صورة في الأعلى)</option><option value="sky">سماء (صورة تتلاشى إلى الأبيض)</option></select></div>
 <div class="field"><label for="czSecSel">القالب</label>
@@ -1454,6 +1461,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
       </div>
       <div class="step">
         <h2><i>2</i> تعديل التشارت</h2>
+        <div class="field"><button type="button" class="tool" data-rfopen="ch">✨ تصميم مرجعي: ارفع تصميماً يعجبك</button></div>
         <p class="hint" id="chNote">هذا مثال بأرقام تجريبية. الصق جدولك واضغط الزر، أو اختر شكلاً آخر وعدّل مباشرة.</p>
         <div class="acc" id="chAccordion"><div id="chEditor" style="display:contents"></div></div>
         <input type="file" id="chPicFile" accept="image/png,image/jpeg,image/webp" hidden>
@@ -1602,6 +1610,17 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
     </form>
   </div>
 
+  <div class="dlg-wrap" id="dlgRef" hidden>
+    <form class="dlg" id="refForm" role="dialog" aria-modal="true" aria-labelledby="rfTitle" autocomplete="off">
+      <h3 id="rfTitle">تصميم مرجعي</h3>
+      <p class="hint">ارفع تصميماً يعجبك (إنفوجراف أو شريحة أو شارت). يحلّل الذكاء الاصطناعي ألوانه وتخطيطه ويطبّق مثله على تصميمك الحالي. نصوصك وأرقامك تبقى كما هي.</p>
+      <div class="field"><label for="rfFile">صورة التصميم المرجعي</label><input type="file" id="rfFile" accept="image/*"><img id="rfPrev" alt="" hidden style="max-width:100%;max-height:110px;margin-top:8px;border-radius:10px"></div>
+      <div class="field"><span class="lab">أريد</span><div class="seg full"><label><input type="radio" name="rfhow" value="exact" checked><span>زيه تقريباً</span></label><label><input type="radio" name="rfhow" value="spirit"><span>مختلف بنفس الروح</span></label></div></div>
+      <div class="dlg-msg" id="rfMsg" role="status"></div>
+      <div id="rfRes" hidden></div>
+      <div class="dlg-act"><button type="submit" class="btn pink" id="rfGo">تحليل وتطبيق</button><button type="button" class="btn ghost" id="rfUndo" hidden>تراجع عن التطبيق</button><button type="button" class="btn ghost" data-close>إغلاق</button></div>
+    </form>
+  </div>
   <div class="dlg-wrap" id="dlgLibEdit" hidden>
     <form class="dlg" id="libEditForm" role="dialog" aria-modal="true" aria-labelledby="leTitle" autocomplete="off">
       <h3 id="leTitle">تعديل ملف المكتبة</h3>
@@ -2531,7 +2550,7 @@ function openDlg(id,focusSel){
   setTimeout(function(){var f=w.querySelector(focusSel||'input:not([type=radio])');if(f)f.focus()},30);
 }
 function closeDlg(id){var w=$(id);w.hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus()}
-function openedDlg(){return ['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].filter(function(i){return !$(i).hidden})[0]}
+function openedDlg(){return ['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].filter(function(i){return !$(i).hidden})[0]}
 
 /* user dialog (add / new password) */
 var udMode='add';
@@ -2672,7 +2691,7 @@ async function loadStats(){
 
 /* ---------- sign-in flow ---------- */
 function showLogin(open){
-  setDrawer(false);['#dlgUser','#dlgPw','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].forEach(function(i){$(i).hidden=true});
+  setDrawer(false);['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].forEach(function(i){$(i).hidden=true});
   $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
   if(open)setTimeout(function(){$('#email').focus()},30);
 }
@@ -4001,7 +4020,9 @@ function czPoints(list,tier,w){
 /* ----- top picture of a content slide: fade (default) | clean box | cut-out (background removed) ----- */
 var czRbBusy=-1;
 function czCutOk(s){return !!(s&&s.photo&&s.cut&&s.cutOf===s.photo)}
-function czPmOf(s){return !s||!s.photo||skyOn()?'':s.pm==='box'?'box':s.pm==='cut'&&czCutOk(s)?'cut':''}
+/* the picture shape of a slide: its own choice, else the general default (set by a reference design) for covers / content slides */
+function czPmRaw(s){var v=s&&s.pm!=null?s.pm:(s&&s.type==='cover'?CZ.pmV:s&&s.type==='content'?CZ.pmC:'');return v==='box'||v==='cut'?v:''}
+function czPmOf(s){if(!s||!s.photo||skyOn())return '';var v=czPmRaw(s);return v==='box'?'box':v==='cut'&&czCutOk(s)?'cut':''}
 function czPhotoBox(s,ab){
   var p=czP(),x=40,y=czDy()+18,w=W-80,h=Math.max(120,ab-y);
   cx.save();cx.shadowColor='rgba(0,0,0,.3)';cx.shadowBlur=36;cx.shadowOffsetY=10;cx.fillStyle=p.deep;czRR(x,y,w,h,40);cx.fill();cx.restore();
@@ -4054,13 +4075,13 @@ async function czRmBg(i){
 }
 function czSetPm(v){
   var s=CZ.slides[CZ.cur];if(!s)return;
-  if(v==='box'||v==='cut')s.pm=v;else delete s.pm;
+  s.pm=v==='box'||v==='cut'?v:'fade';
   czFrameReset(s);czBuildEditor();czDrawSlide(CZ.cur);czThumb(CZ.cur);
   if(v==='cut'&&!czCutOk(s))czRmBg(CZ.cur);
 }
 function czPmHtml(s,cls,attr){
   if(skyOn()||!s.photo)return '';
-  var v=s.pm==='box'||s.pm==='cut'?s.pm:'',busy=czRbBusy>=0,opts=[['','بتلاشي أبيض (الافتراضي)'],['box','بوكس صريح بدون تلاشي'],['cut','مفرّغة الخلفية (ديكوبيه)']];
+  var v=czPmRaw(s),busy=czRbBusy>=0,opts=[['','بتلاشي أبيض (الافتراضي)'],['box','بوكس صريح بدون تلاشي'],['cut','مفرّغة الخلفية (ديكوبيه)']];
   return '<div class="'+cls+'"><label>شكل الصورة</label><select '+attr+'="pm">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(v===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
     +(v==='cut'?'<div class="'+cls+'"><button type="button" class="tool ghost" data-czrmbg="1" data-epact="rmbg"'+(busy?' disabled':'')+'>'+(busy?'جارٍ التفريغ…':czCutOk(s)?'إعادة تفريغ الخلفية':'تفريغ خلفية هذه الصورة')+'</button></div>':'');
 }
@@ -8653,7 +8674,7 @@ function epHint(){
   });
 }
 function epInit(){
-  bandOptsInit();fxInit();sdInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
+  bandOptsInit();fxInit();sdInit();rfInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EP.on)epClose()});
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){epClose()})});
   ['#chRead','#chDemo','#chDl'].forEach(function(s){var b=$(s);if(b)b.addEventListener('click',function(){epClose()})});
@@ -10376,6 +10397,143 @@ function lnInit(){
   a.addEventListener('click',lnLearn);$('#lnSave').addEventListener('click',lnSave);$('#lnClear').addEventListener('click',lnClear);
 }
 lnInit();
+
+/* ===== reference design: upload a design you like; the studio rebuilds its look with your own content ===== */
+var RF={kind:'ig',how:'exact',img:null,busy:false,prev:null};
+function rfMsg(m,err,busy){var e=$('#rfMsg');if(!e)return;e.className='dlg-msg'+(err?' err':'');e.innerHTML=(busy?'<span class="spin"></span>':'')+esc(m||'')}
+/* the colours that cover most of the picture, measured here so the AI does not have to guess hex values */
+function rfPalette(im){
+  var k=Math.min(1,96/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+  var g=c.getContext('2d');g.drawImage(im,0,0,c.width,c.height);
+  var d=g.getImageData(0,0,c.width,c.height).data,m={};
+  for(var i=0;i<d.length;i+=4){
+    if(d[i+3]<200)continue;
+    var r=d[i],gg=d[i+1],b=d[i+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);
+    if(mn>238||mx<18)continue;                       /* pure white / black are not brand colours */
+    var key=(r>>5)*64+(gg>>5)*8+(b>>5),o=m[key]||(m[key]={r:0,g:0,b:0,n:0});o.r+=r;o.g+=gg;o.b+=b;o.n++;
+  }
+  var list=Object.keys(m).map(function(q){var o=m[q],r=Math.round(o.r/o.n),gg=Math.round(o.g/o.n),b=Math.round(o.b/o.n),mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),sat=mx?(mx-mn)/mx:0;return{r:r,g:gg,b:b,w:o.n*(1+2*sat)}});
+  list.sort(function(a,b){return b.w-a.w});
+  var out=[];
+  list.forEach(function(c0){
+    if(out.length>=6)return;
+    if(out.some(function(o){return Math.abs(o.r-c0.r)+Math.abs(o.g-c0.g)+Math.abs(o.b-c0.b)<90}))return;
+    out.push(c0);
+  });
+  return out.map(function(o){return '#'+[o.r,o.g,o.b].map(function(v){return ('0'+v.toString(16)).slice(-2)}).join('').toUpperCase()});
+}
+function rfB64(im){
+  var k=Math.min(1,1280/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+  var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);
+  return c.toDataURL('image/jpeg',.82).split(',')[1];
+}
+var RF_SHAPE={fade:'تلاشي أبيض',box:'بوكس صريح',cut:'مفرّغة الخلفية'};
+function rfSw(c){return '<i class="rfsw" style="background:'+esc(c)+'"></i>'}
+/* ----- apply a cleaned spec to the current design; returns the list of what changed and keeps a snapshot for undo ----- */
+function rfApplyCZ(s,out){
+  var keys=['main','accent','bgMode','bgC1','bgC2','bgAngle','pmC','pmV','labelPos','statLay','pager','tags','statMid'];
+  RF.prev={kind:'cz',vals:keys.map(function(k){return [k,CZ[k]]}),stats:CZ.slides.map(function(sl){return(sl.stats||[]).map(function(x){return[x.lp,x.ly]})})};
+  if(s.main||s.accent){if(s.main)CZ.main=s.main;if(s.accent)CZ.accent=s.accent;out.push('الألوان '+(s.main?rfSw(s.main):'')+(s.accent?rfSw(s.accent):''))}
+  if(s.bg){CZ.bgMode=s.bg;if(s.bgC1)CZ.bgC1=s.bgC1;if(s.bgC2)CZ.bgC2=s.bgC2;if(s.bgAngle!=null)CZ.bgAngle=s.bgAngle;out.push('الخلفية: '+(s.bg==='auto'?'تلقائية':s.bg==='solid'?'لون واحد':'تدرج')+(s.bg!=='auto'&&s.bgC1?' '+rfSw(s.bgC1)+(s.bg==='grad'&&s.bgC2?rfSw(s.bgC2):''):''))}
+  if(s.photoShape){CZ.pmC=s.photoShape;out.push('صورة الشرائح: '+RF_SHAPE[s.photoShape])}
+  if(s.coverShape){CZ.pmV=s.coverShape;out.push('صورة الغلاف: '+RF_SHAPE[s.coverShape])}
+  if(s.labelPos){CZ.labelPos=s.labelPos;CZ.slides.forEach(function(sl){(sl.stats||[]).forEach(function(x){delete x.lp})});out.push('الكلمة المميزة '+(s.labelPos==='above'?'فوق':'تحت')+' الرقم')}
+  if(s.statLay){CZ.statLay=s.statLay==='side'?'side':'';CZ.slides.forEach(function(sl){(sl.stats||[]).forEach(function(x){delete x.ly})});out.push('تخطيط الأرقام: '+(s.statLay==='side'?'الرقم يمين والنص يسار':'النص تحت الرقم'))}
+  if(s.pager){CZ.pager=s.pager;out.push('مؤشر الشرائح: '+(s.pager==='dots'?'دوائر':'أرقام'))}
+  if(s.tags!=null){CZ.tags=s.tags?'':'hide';out.push('الوسوم: '+(s.tags?'ظاهرة':'مخفية'))}
+  if(s.statMid!=null){CZ.statMid=!!s.statMid;out.push('توسيط الأرقام: '+(s.statMid?'نعم':'لا'))}
+  czSyncStyle();czBuildEditor();czRenderAll();
+}
+function rfApplyIG(s,out){
+  var keys=['theme','main','titleC','strap','strapPos','bgMode','bgC1','bgC2','bgAngle','layout','labelPos','band','bandShape','statMid'];
+  RF.prev={kind:'ig',vals:keys.map(function(k){return [k,S[k]]}),lp:[S.hero].concat(S.stats).map(function(x){return x&&x.lp})};
+  if(s.theme){S.theme=s.theme;out.push('النمط: '+(s.theme==='dark'?'داكن':'فاتح'))}
+  if(s.main||s.titleC||s.strap){if(s.main)S.main=s.main;if(s.titleC)S.titleC=s.titleC;if(s.strap)S.strap=s.strap;out.push('الألوان '+[s.main,s.titleC,s.strap].filter(Boolean).map(rfSw).join(''))}
+  if(s.strapPos){S.strapPos=s.strapPos;out.push('موضع السترابة: '+(s.strapPos==='top'?'فوق العنوان':'تحته'))}
+  if(s.bg){S.bgMode=s.bg;if(s.bgC1)S.bgC1=s.bgC1;if(s.bgC2)S.bgC2=s.bgC2;if(s.bgAngle!=null)S.bgAngle=s.bgAngle;out.push('الخلفية: '+(s.bg==='preset'?'جاهزة':s.bg==='solid'?'لون واحد':'تدرج')+(s.bg!=='preset'&&s.bgC1?' '+rfSw(s.bgC1)+(s.bg==='grad'&&s.bgC2?rfSw(s.bgC2):''):''))}
+  if(s.layout){
+    var has={stats:S.stats.length||S.hero.value,list:S.items.length,bars:S.bars.length,cards:S.items.length}[s.layout];
+    if(has){S.layout=s.layout;S.tpl='';out.push('القالب العام: '+s.layout)}
+    else out.push('لم يُطبَّق القالب العام ('+s.layout+') لأن محتواك الحالي لا يناسبه')
+  }
+  if(s.labelPos){S.labelPos=s.labelPos;[S.hero].concat(S.stats).forEach(function(x){if(x)delete x.lp});out.push('الكلمة المميزة '+(s.labelPos==='above'?'فوق':'تحت')+' الرقم')}
+  if(s.band!=null){S.band=!!s.band;out.push('خلفية شريط الأرقام: '+(s.band?'نعم':'لا'))}
+  if(s.bandShape){S.bandShape=s.bandShape;out.push('شكل الشريط: '+(s.bandShape==='card'?'بطاقة':'كامل العرض'))}
+  if(s.statMid!=null){S.statMid=!!s.statMid;out.push('توسيط الأرقام: '+(s.statMid?'نعم':'لا'))}
+  syncControls();schedule();
+}
+function rfApplyCH(s,out){
+  RF.prev={kind:'ch',style:CH.style,theme:CH.theme,col:JSON.stringify(CH.col),bgMode:CH.bgMode,bgC1:CH.bgC1,bgC2:CH.bgC2,bgAngle:CH.bgAngle,titleAlign:CH.titleAlign,legend:CH.legend.show};
+  if(s.style&&s.style!==CH.style&&CHST[s.style]){chSetStyle(s.style);out.push('نوع الشارت: '+CHST[s.style].n)}
+  if(s.theme){CH.theme=s.theme;out.push('النمط: '+(s.theme==='dark'?'داكن':'فاتح'))}
+  if(s.main||s.second){if(s.main)CH.col.main=s.main;if(s.second)CH.col.second=s.second;out.push('الألوان '+[s.main,s.second].filter(Boolean).map(rfSw).join(''))}
+  if(s.bg){CH.bgMode=s.bg;if(s.bgC1)CH.bgC1=s.bgC1;if(s.bgC2)CH.bgC2=s.bgC2;if(s.bgAngle!=null)CH.bgAngle=s.bgAngle;out.push('الخلفية: '+(s.bg==='preset'?'جاهزة':s.bg==='solid'?'لون واحد':'تدرج')+(s.bg!=='preset'&&s.bgC1?' '+rfSw(s.bgC1)+(s.bg==='grad'&&s.bgC2?rfSw(s.bgC2):''):''))}
+  if(s.titleAlign){CH.titleAlign=s.titleAlign;out.push('محاذاة العنوان: '+(s.titleAlign==='center'?'في الوسط':'من البداية'))}
+  if(s.legendShow!=null){CH.legend.show=!!s.legendShow;out.push('مفتاح الألوان: '+(s.legendShow?'ظاهر':'مخفي'))}
+  chBuildEditor();chSchedule();
+}
+function rfApply(kind,spec){
+  var out=[];
+  if(kind==='cz')rfApplyCZ(spec,out);else if(kind==='ch')rfApplyCH(spec,out);else rfApplyIG(spec,out);
+  return out;
+}
+function rfUndo(){
+  var p=RF.prev;if(!p)return;RF.prev=null;
+  if(p.kind==='cz'){
+    p.vals.forEach(function(v){if(v[1]===undefined)delete CZ[v[0]];else CZ[v[0]]=v[1]});
+    CZ.slides.forEach(function(sl,i){(sl.stats||[]).forEach(function(x,j){var o=(p.stats[i]||[])[j];if(!o)return;if(o[0]==null)delete x.lp;else x.lp=o[0];if(o[1]==null)delete x.ly;else x.ly=o[1]})});
+    czSyncStyle();czBuildEditor();czRenderAll();
+  }else if(p.kind==='ig'){
+    p.vals.forEach(function(v){S[v[0]]=v[1]});
+    [S.hero].concat(S.stats).forEach(function(x,i){if(!x)return;if(p.lp[i]==null)delete x.lp;else x.lp=p.lp[i]});
+    syncControls();schedule();
+  }else{
+    if(p.style!==CH.style)chSetStyle(p.style);
+    CH.theme=p.theme;CH.col=JSON.parse(p.col);CH.bgMode=p.bgMode;CH.bgC1=p.bgC1;CH.bgC2=p.bgC2;CH.bgAngle=p.bgAngle;CH.titleAlign=p.titleAlign;CH.legend.show=p.legend;
+    chBuildEditor();chSchedule();
+  }
+  rfMsg('تم التراجع عن تطبيق التصميم المرجعي.');$('#rfRes').hidden=true;$('#rfUndo').hidden=true;
+}
+function rfOpen(kind){
+  RF.kind=kind;RF.prev=null;RF.img=null;$('#rfPrev').hidden=true;$('#rfFile').value='';
+  $('#rfRes').hidden=true;$('#rfUndo').hidden=true;rfMsg('');
+  $('#rfTitle').textContent='تصميم مرجعي — '+(kind==='cz'?'كاروسيل':kind==='ch'?'شارت':'إنفوجراف');
+  openDlg('#dlgRef','#rfFile');
+}
+function rfLoadFile(f){
+  RF.img=null;var pv=$('#rfPrev');pv.hidden=true;
+  if(!f)return;
+  if(!/^image\//.test(f.type)&&!/\.(jpe?g|png|webp|heic)$/i.test(f.name)){rfMsg('اختر صورة JPG أو PNG.',true);return}
+  var u=URL.createObjectURL(f),im=new Image();
+  im.onload=function(){RF.img=im;pv.src=u;pv.hidden=false;rfMsg('')};
+  im.onerror=function(){URL.revokeObjectURL(u);rfMsg('تعذّر قراءة الصورة. جرّب JPG أو PNG.',true)};
+  im.src=u;
+}
+async function rfRun(){
+  if(RF.busy)return;
+  if(!RF.img){rfMsg('ارفع صورة التصميم المرجعي أولاً.',true);return}
+  RF.busy=true;$('#rfGo').disabled=true;$('#rfRes').hidden=true;rfMsg('جارٍ تحليل التصميم…',false,true);
+  try{
+    var how=($('input[name="rfhow"]:checked')||{}).value||'exact';
+    var j=await callFn('reference-design',{kind:RF.kind,how:how,type:'image/jpeg',image:rfB64(RF.img),palette:rfPalette(RF.img)});
+    var d=j&&j.data;if(!d||!d.spec||!Object.keys(d.spec).length)throw{code:'invalid_json'};
+    var done=rfApply(RF.kind,d.spec);
+    var h='<p class="hint"><b>تم التطبيق:</b></p><ul class="rfl">'+done.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+    if(d.notes&&d.notes.length)h+='<p class="hint"><b>تقريبي أو غير ممكن:</b></p><ul class="rfl">'+d.notes.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+    $('#rfRes').innerHTML=h;$('#rfRes').hidden=false;$('#rfUndo').hidden=false;rfMsg('');
+  }catch(x){
+    var c=x&&x.code;rfMsg(c==='invalid_json'?'لم أستطع فهم هذا التصميم. جرّب صورة أوضح.':errText(c),true);
+    if(c==='not_signed_in'){closeDlg('#dlgRef');showLogin(true)}
+  }finally{RF.busy=false;$('#rfGo').disabled=false}
+}
+function rfInit(){
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-rfopen]');if(b)rfOpen(b.dataset.rfopen)});
+  var f=$('#rfFile');if(f)f.addEventListener('change',function(){rfLoadFile(f.files&&f.files[0])});
+  var fm=$('#refForm');if(fm)fm.addEventListener('submit',function(e){e.preventDefault();rfRun()});
+  var u=$('#rfUndo');if(u)u.addEventListener('click',rfUndo);
+}
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
