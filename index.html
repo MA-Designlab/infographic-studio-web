@@ -2151,7 +2151,7 @@ function render(){
   var th=TH[S.theme],f=F();
   ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.setTransform(K,0,0,K,0,0);
   HI.reset();HI.tag('bg','','الخلفية');HI.box(0,0,W,H,-5);HI.tag('sec','','القسم والشعار');HI.box(0,igDy(),W,190+igDy(),-3);HI.tag();
-  drawBackground();drawOverlay();
+  drawBackground();drawOverlay();fxDrawBack('ig',ctx,null);
   var y=titleBlock(150+igDy()),footH=S.footer?Math.max(46,S.footY+S.footSize+2):0,T=tplCur(),stats=S.stats.filter(validStat).slice(0,T&&T.max||6);
   var sp=T&&T.split?T.split(stats):null;
   var heroOn=S.layout==='stats'&&S.hero.value,bandStats=sp?sp.band:(S.layout==='stats'?(heroOn?stats:[]):stats);
@@ -3908,6 +3908,7 @@ function czCover(s,i,n){
   else if(s.photo){czPhoto(s.photo,ZH,s.pa,s.pf,.36);var o=czGradOff(),g=cx.createLinearGradient(0,0,0,ZH);g.addColorStop(0,rgba(p.deep,czA(.5)));g.addColorStop(.2,rgba(p.deep,czA(.04)));g.addColorStop(Math.max(.3,.4+o),rgba(p.deep,czA(.1)));g.addColorStop(Math.max(.45,.58+o),rgba(p.deep,czA(.82)));g.addColorStop(Math.min(.9,.72+o),rgba(p.deep,czA(.95)));g.addColorStop(1,rgba(p.deep,.98));cx.fillStyle=g;cx.fillRect(0,0,W,ZH+1)}
   else czArt(ZH,2.2);
   HC.tag('photo','','الصورة');HC.box(0,0,W,ZH,-4);HC.tag();
+  fxDrawBack('cz',cx,s);
   if(!pm)czLogo();
   var xs=czEdge(),al=czAl(),colT=function(b){return b?p.accent:'#FFFFFF'},cw=W-2*M-30;
   var tf=function(sz){return function(){return czFont('title',sz)}},size=ttMax(122),tl;
@@ -4115,6 +4116,7 @@ function czContent(s,i,n,num){
     var fg=cx.createLinearGradient(0,PH-250,0,PH);fg.addColorStop(0,'rgba(255,255,255,0)');fg.addColorStop(.75,'rgba(255,255,255,.96)');fg.addColorStop(1,'#FFFFFF');cx.fillStyle=fg;cx.fillRect(0,PH-250,W,251);
   }
   HC.tag('photo','','الصورة');HC.box(0,0,W,PH,-4);HC.tag();
+  fxDrawBack('cz',cx,s);
   czLogo();
   // title + number badge
   var bd=112,gap=28,xs=czEdge(),tx=R?xs-bd-gap:xs+bd+gap,tw=W-2*M-bd-gap-10;
@@ -4165,6 +4167,7 @@ function czFooter(s,i,n,dark){
 function czClosing(s,i,n){
   var p=czP(),cxm=W/2,y=250;
   czArt(ZH,3.1);
+  fxDrawBack('cz',cx,s);
   var pm=czPmOf(s);
   if(pm){
     czLogo();
@@ -4613,6 +4616,7 @@ function skBg(s,fadeEnd){
   var fe=Math.max(560,Math.min(Math.round(ZH*.763),fadeEnd)),fs=Math.max(220,fe-480),q=fs/fe,g=cx.createLinearGradient(0,0,0,fe),P=SKY.paper;
   g.addColorStop(0,'rgba('+P+',.98)');g.addColorStop(q,'rgba('+P+',.95)');g.addColorStop(q+(1-q)*.45,'rgba('+P+',.55)');g.addColorStop(1,'rgba('+P+',0)');
   cx.fillStyle=g;cx.fillRect(0,0,W,fe+1);
+  fxDrawBack('cz',cx,s);
 }
 function skHeader(){czShift(skHeader0)}
 function skHeader0(){
@@ -6299,7 +6303,7 @@ function chRender(){
   c.setTransform(CH_S,0,0,CH_S,0,0);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
   HK.reset();
   var ovb=[];
-  chBackground(H);chOvDraw('back',ovb);if(!CH_TR)chMarkShift();
+  chBackground(H);chOvDraw('back',ovb);if(!CH_TR)fxDrawBack('ch',c,null);if(!CH_TR)chMarkShift();
   var y=186+chDy(),maxW=W-2*CHPAD,picW=0;
   if(D.headPic&&chPicImg(chDark())){picW=210;chPicDraw(chR()?CHPAD:W-CHPAD-picW,y-8,picW,150,chR()?'start':'end')}
   y=chTitle(y,maxW-(picW?picW+30:0));if(picW)y=Math.max(y,y)+0;
@@ -8002,7 +8006,7 @@ function fxRadius(e,ew,eh){var b=e.box;return b.rs==='sharp'?0:b.rs==='round'?Ma
 /* "fill the space": the whole design, or (charts) the empty space the picture belongs to */
 function fxFillRect(e,env){
   var Hh=fxHeight(env.m),R={x:0,y:0,w:W,h:Hh};
-  if(env.m==='ch'&&typeof CH!=='undefined'&&CH.geo&&CH.geo.sp&&CH.geo.sp.length){
+  if(env.m==='ch'&&e.fillTo!=='all'&&typeof CH!=='undefined'&&CH.geo&&CH.geo.sp&&CH.geo.sp.length){
     var L=CH.geo.sp,r=e.sp!=null?L.filter(function(q){return q.i===e.sp})[0]:null;
     if(!r)r=L[0];
     if(r)R={x:r.x,y:r.y,w:r.w,h:r.h};
@@ -8117,20 +8121,31 @@ function fxOne(m,c,e,Hh,s,hit){
   }
   c.restore();
   var x1=B.cx-B.bw/2,y1=B.cy-B.bh/2,x2=B.cx+B.bw/2,y2=B.cy+B.bh/2;
-  fxGeoAdd(m,e.id,x1,y1,x2,y2);
-  if(hit&&hit.on){hit.tag('fx:'+e.id,'',FX_TYPE[e.t]);hit.box(x1,y1,x2,y2,9);hit.tag()}
+  fxGeoAdd(m,e.id,x1,y1,x2,y2,e.z==='back');
+  if(hit&&hit.on){hit.tag('fx:'+e.id,'',FX_TYPE[e.t]);hit.box(x1,y1,x2,y2,e.z==='back'?-1.5:9);hit.tag()}
 }
 var FXG={ig:[],cz:[],ch:[]};
-function fxGeoAdd(m,id,x1,y1,x2,y2){
+function fxGeoAdd(m,id,x1,y1,x2,y2,back){
   if(m==='cz'&&!HC.on)return;
-  FXG[m].push({id:id,x1:x1,y1:y1,x2:x2,y2:y2});
+  FXG[m].push({id:id,x1:x1,y1:y1,x2:x2,y2:y2,back:!!back});
+}
+/* layers: normally on top of everything; "under the elements" ones are drawn right after the background */
+function fxDrawBack(m,c,s){
+  var L=m==='cz'?s.fx:m==='ch'?CH.fx:S.fx;
+  FX.bk=FX.bk||{};
+  if(m!=='cz'||HC.on){FXG[m]=[];FX.bk[m]=true}
+  if(!L||!L.length)return;
+  var hit=fxHitOf(m),Hh=fxHeight(m);
+  L.forEach(function(e){if(e.z!=='back')return;try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
 }
 function fxDraw(m,c,s){
   var L=m==='cz'?s.fx:m==='ch'?CH.fx:S.fx;
-  if(m!=='cz'||HC.on)FXG[m]=[];
+  FX.bk=FX.bk||{};
+  if((m!=='cz'||HC.on)&&!FX.bk[m])FXG[m]=[];
+  FX.bk[m]=false;
   if(!L||!L.length)return;
   var hit=fxHitOf(m),Hh=fxHeight(m);
-  L.forEach(function(e){try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
+  L.forEach(function(e){if(e.z==='back')return;try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
 }
 
 /* ---------- the card ---------- */
@@ -8177,7 +8192,7 @@ function fxBody(m,id){
     h+=fxSec('s','شكل الصورة','<div class="fxshapes">'+FX_SHAPES.map(function(s){return '<button type="button" class="fxsh" data-fxact="shape" data-v="'+s[0]+'" aria-pressed="'+(e.shape===s[0])+'" title="'+s[1]+'"><svg viewBox="0 0 40 40" aria-hidden="true">'+fxShapeSvg(s[0])+'</svg><small>'+s[1]+'</small></button>'}).join('')+'</div>',true);
   }
   /* position */
-  h+=fxSec('p','الوضع','<div class="fxpos">'+(T==='img'?FX_POS.concat([['fill','ملء المساحة']]):FX_POS).map(function(p){return '<button type="button" class="fxpb" data-fxact="pos" data-v="'+p[0]+'" aria-pressed="'+(e.pos===p[0])+'">'+p[1]+'</button>'}).join('')+'</div>'+fxFillSel(e,T)+'<p class="hint">'+(e.pos==='free'?'وضع حر. ':'')+(e.pos==='fill'?'الصورة تملأ المساحة كاملة (اسحبها لتحريرها). ':'')+'اسحب العنصر على التصميم لتحريكه في أي مكان.</p>',true);
+  h+=fxSec('p','الوضع','<div class="fxpos">'+(T==='img'?FX_POS.concat([['fill','ملء المساحة']]):FX_POS).map(function(p){return '<button type="button" class="fxpb" data-fxact="pos" data-v="'+p[0]+'" aria-pressed="'+(e.pos===p[0])+'">'+p[1]+'</button>'}).join('')+'</div>'+fxFillSel(e,T)+fxSeg('z','الطبقة',e.z==='back'?'back':'',[['','فوق كل العناصر'],['back','تحت العناصر (فوق الخلفية مباشرة)']])+'<p class="hint">'+(e.pos==='free'?'وضع حر. ':'')+(e.pos==='fill'?'الصورة تملأ المساحة كاملة (اسحبها لتحريرها). ':'')+'اسحب العنصر على التصميم لتحريكه في أي مكان.</p>',true);
   /* colour (text, number) */
   if(T==='text'||T==='num')h+=fxSec('k','اللون',fxCol('col','لون النص',e.col,fxTextCol(e,env,env.dark)),false);
   /* icon */
@@ -8371,7 +8386,7 @@ function fxRebuild(){var b=$('.ep-b',EP.card),sc=b?b.scrollTop:0;epBuild();if(b)
 function fxPostBuild(){if(FX.pick&&EP.card){var s=$('[data-fxsearch]',EP.card);fxIconPaint();if(s&&FX.q)fxSearch(FX.q)}}
 function fxSet(e,path,v,ev){
   var n=+v;
-  if(path==='text'||path==='sub'||path==='lib'||path==='wt'||path==='ori'||path==='fit'||path==='ic.style'||path==='ic.pos'||path==='box.rs'||path==='fade.unit')fxPut(e,path,v);
+  if(path==='text'||path==='sub'||path==='lib'||path==='wt'||path==='ori'||path==='fit'||path==='z'||path==='fillTo'||path==='ic.style'||path==='ic.pos'||path==='box.rs'||path==='fade.unit')fxPut(e,path,v);
   else if(path==='ic.on'||path==='box.on')fxPut(e,path,!!v);
   else if(/(^|\.)(col2?|fill|bc)$/.test(path))fxPut(e,path,String(v).toUpperCase());
   else fxPut(e,path,n);
@@ -8390,8 +8405,10 @@ function fxInput(ev){
   fxAgain(EP.mode);
 }
 function fxFillSel(e,T){
-  if(T!=='img'||e.pos!=='fill'||EP.mode!=='ch'||!CH.geo||!CH.geo.sp||CH.geo.sp.length<2)return '';
-  return '<div class="epf"><label>المساحة</label><select data-fx="sp" aria-label="المساحة">'+CH.geo.sp.map(function(r){return '<option value="'+r.i+'"'+((e.sp==null?CH.geo.sp[0].i:e.sp)===r.i?' selected':'')+'>مساحة '+(r.i+1)+'</option>'}).join('')+'</select></div>';
+  if(T!=='img'||e.pos!=='fill'||EP.mode!=='ch'||!CH.geo||!CH.geo.sp||!CH.geo.sp.length)return '';
+  var to=fxSeg('fillTo','ملء',e.fillTo||'space',[['space','داخل المساحة (البوكس)'],['all','مساحة التصميم بالكامل']]);
+  if(e.fillTo==='all'||CH.geo.sp.length<2)return to;
+  return to+'<div class="epf"><label>المساحة</label><select data-fx="sp" aria-label="المساحة">'+CH.geo.sp.map(function(r){return '<option value="'+r.i+'"'+((e.sp==null?CH.geo.sp[0].i:e.sp)===r.i?' selected':'')+'>مساحة '+(r.i+1)+'</option>'}).join('')+'</select></div>';
 }
 function fxFillPick(e){
   /* chart: the space the picture sits in (or the nearest one); the picture takes its width so leaving "fill" keeps the size */
@@ -8399,8 +8416,8 @@ function fxFillPick(e){
   if(m==='ch'&&CH.geo&&CH.geo.sp&&CH.geo.sp.length){
     var cx=e.pos==='free'?e.x/100*W:W/2,cy=e.pos==='free'?e.y/100*Hh:Hh/2,best=null,bd=1e9;
     CH.geo.sp.forEach(function(r){var inside=cx>=r.x&&cx<=r.x+r.w&&cy>=r.y&&cy<=r.y+r.h,d=inside?-1:Math.hypot(cx-(r.x+r.w/2),cy-(r.y+r.h/2));if(d<bd){bd=d;best=r}});
-    e.sp=best.i;R=best;
-  }else R={w:W};
+    e.sp=best.i;if(!e.fillTo)e.fillTo='space';R=e.fillTo==='all'?{w:W}:best;
+  }else{R={w:W};e.fillTo='all'}
   e.w=Math.max(60,Math.min(1080,Math.round(R.w)));
   if(e.shape!=='square'&&e.shape!=='orig'&&e.shape!=='wide'&&e.shape!=='tall')e.shape='square';
 }
@@ -8454,7 +8471,7 @@ function fxBodyFor(g,m,p){
 window.fxBodyFor=fxBodyFor;
 
 /* ---------- drag on the design ---------- */
-function fxAt(m,p){var L=FXG[m]||[];for(var i=L.length-1;i>=0;i--){var b=L[i];if(p.x>=b.x1-6&&p.x<=b.x2+6&&p.y>=b.y1-6&&p.y<=b.y2+6)return b}return null}
+function fxAt(m,p){var L=FXG[m]||[];for(var i=L.length-1;i>=0;i--){var b=L[i];if(p.x>=b.x1-6&&p.x<=b.x2+6&&p.y>=b.y1-6&&p.y<=b.y2+6){if(b.back){var r=epPick(m,p.x,p.y);if(!(r&&r.g==='fx:'+b.id))continue}return b}}return null}
 function fxTouchSync(){
   var on=EP.on&&EP.g&&EP.g.indexOf('fx:')===0;
   [['ig','.sheet'],['cz','#czSheet'],['ch','#chSheet']].forEach(function(p){var sh=$(p[1]);if(!sh)return;sh.style.touchAction=on?'none':(p[0]==='cz'?'pan-y':'')});
