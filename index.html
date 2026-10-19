@@ -5733,6 +5733,65 @@ function chSpaceHandle(hd){
   hd.addEventListener('pointerup',end);hd.addEventListener('pointercancel',end);
 }
 
+
+/* ----- what goes inside a space: three figures or three sentences, laid out in our style (even cells, fine fading lines) ----- */
+function chSpSample(kind){
+  return kind==='nums'?[{v:'25%',l:'الكلمة المميزة',t:'وصف قصير'},{v:'40%',l:'الكلمة المميزة',t:'وصف قصير'},{v:'60%',l:'الكلمة المميزة',t:'وصف قصير'}]
+    :[{l:'عنوان قصير',t:'جملة نصية قصيرة تشرح الفكرة بوضوح.'},{l:'عنوان قصير',t:'جملة نصية قصيرة تشرح الفكرة بوضوح.'},{l:'عنوان قصير',t:'جملة نصية قصيرة تشرح الفكرة بوضوح.'}];
+}
+function chSpFade(vertical,x1,y1,x2,y2){
+  var c=chx,ink=chC('text'),g=vertical?c.createLinearGradient(0,y1,0,y2):c.createLinearGradient(x1,0,x2,0);
+  g.addColorStop(0,rgba(ink,0));g.addColorStop(.5,rgba(ink,chDark()?.34:.26));g.addColorStop(1,rgba(ink,0));
+  c.strokeStyle=g;c.lineWidth=1.8;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
+}
+function chSpaceDraw(r){
+  var s=(CH.spaces||[])[r.i];if(!s||!s.kind)return;
+  var src=(s.kind==='nums'?s.nums:s.txts)||[],list=src.filter(function(x){return x&&(x.v||x.l||x.t)}).slice(0,4);
+  if(!list.length)return;
+  var c=chx,n=list.length,horiz=r.side==='top'||r.side==='bottom',pad=20,main=chC('main'),ink=chC('text'),mute=chMute();
+  HK.tag('sp.'+r.i,'','مساحة '+(r.i+1));HK.box(r.x,r.y,r.x+r.w,r.y+r.h,-1);
+  if(s.card){chRRect(r.x,r.y,r.w,r.h,26);c.fillStyle=chDark()?'rgba(255,255,255,.09)':'rgba(255,255,255,.88)';c.fill();c.lineWidth=1.4;c.strokeStyle=rgba(ink,chDark()?.22:.14);c.stroke()}
+  var cw=horiz?r.w/n:r.w,chh=horiz?r.h:r.h/n,aw=cw-2*pad-(horiz&&n>1?10:0),ah=chh-2*pad;
+  list.forEach(function(it,k){
+    var idx=horiz&&chR()?n-1-k:k,x0=horiz?r.x+idx*cw:r.x,y0=horiz?r.y:r.y+k*chh,cx=x0+cw/2,blocks,total,ns=0,tz=0;
+    if(s.kind==='nums'){
+      ns=Math.min(120,Math.round(ah*.46));
+      for(;ns>=26;ns-=4){
+        var ls=Math.max(18,Math.round(ns*.34)),ts=Math.max(16,Math.round(ns*.25));
+        blocks={v:it.v?(function(){return chWidth(it.v,chF('num',ns),'ltr')<=aw?[it.v]:null})():[],l:it.l?chLines(it.l,chF('head',ls),aw,2):[],t:it.t?chLines(it.t,chF('body',ts),aw,3):[],ls:ls,ts:ts};
+        if(it.v&&!blocks.v)continue;
+        total=(it.v?Math.round(ns*.82):0)+blocks.l.length*Math.round(ls*1.3)+blocks.t.length*Math.round(ts*1.42)+((it.v?1:0)+(blocks.l.length?1:0)+(blocks.t.length?1:0)-1)*10;
+        if(total<=ah)break;
+      }
+      if(!blocks||(it.v&&!blocks.v))blocks={v:it.v?[it.v]:[],l:it.l?chLines(it.l,chF('head',18),aw,2):[],t:it.t?chLines(it.t,chF('body',16),aw,3):[],ls:18,ts:16},ns=26;
+    }else{
+      for(tz=40;tz>=20;tz-=2){
+        var hz=tz,bz=Math.round(tz*.86);
+        blocks={l:it.l?chLines(it.l,chF('head',hz),aw,2):[],t:it.t?chLines(it.t,chF('body',bz),aw,7):[],hz:hz,bz:bz};
+        total=(it.l?5+14:0)+blocks.l.length*Math.round(hz*1.3)+blocks.t.length*Math.round(bz*1.5)+(blocks.l.length&&blocks.t.length?10:0);
+        if(total<=ah)break;
+      }
+    }
+    var y=y0+Math.max(pad,(chh-total)/2);
+    HK.tag('sp.'+r.i,'','مساحة '+(r.i+1));
+    if(s.kind==='nums'){
+      if(blocks.v.length){chNumPut(it.v,cx,y+Math.round(ns*.8),ns,main,'center');y+=Math.round(ns*.82)+10}
+      blocks.l.forEach(function(l,j){chPut(l,cx,y+blocks.ls+j*Math.round(blocks.ls*1.3)-4,chF('head',blocks.ls),ink,'center')});y+=blocks.l.length*Math.round(blocks.ls*1.3)+(blocks.l.length?10:0);
+      blocks.t.forEach(function(l,j){chPut(l,cx,y+blocks.ts+j*Math.round(blocks.ts*1.42)-4,chF('body',blocks.ts),mute,'center')});
+    }else{
+      if(it.l){c.fillStyle=main;chRRect(cx-23,y,46,5,3);c.fill();y+=19}
+      blocks.l.forEach(function(l,j){chPut(l,cx,y+blocks.hz+j*Math.round(blocks.hz*1.3)-6,chF('head',blocks.hz),main,'center')});y+=blocks.l.length*Math.round(blocks.hz*1.3)+(blocks.l.length&&blocks.t.length?10:0);
+      blocks.t.forEach(function(l,j){chPut(l,cx,y+blocks.bz+j*Math.round(blocks.bz*1.5)-6,chF('body',blocks.bz),ink,'center')});
+    }
+    HK.tag();
+    if(k<n-1){
+      if(horiz){var lx=r.x+(chR()?(n-1-k):(k+1))*cw;chSpFade(true,lx,r.y+18,lx,r.y+r.h-18)}
+      else{var ly=r.y+(k+1)*chh;chSpFade(false,r.x+18,ly,r.x+r.w-18,ly)}
+    }
+  });
+  HK.tag();
+}
+
 /* ----- logo marks ----- */
 function chDy(){return chH()>1500?216:0}
 function chDb(){return chH()>1500?310:0}
@@ -6257,6 +6316,7 @@ function chRender(){
   if(lb&&CH.legend.pos==='bottom'){lpos.y=H-bottom+4}
   var SPL=chSpaceLayout(P),PC=SPL.P;
   if(D.plot&&PC.h>120)D.plot(PC,R);
+  SPL.rects.forEach(chSpaceDraw);
   if(lb)chLegendDraw(lb,lpos.x,lpos.y);
   chNoteDraw(H,P);
   chOvDraw('front',ovb);
@@ -6472,6 +6532,22 @@ function chBodyImg(){
   }else h+='<p class="hint">وصلت للحد الأقصى (6 صور).</p>';
   return h;
 }
+function chSpBody(i){
+  var s=(CH.spaces||[])[i];if(!s)return '';
+  var p='spaces.'+i+'.',tb=s.side==='top'||s.side==='bottom';
+  var h='<div class="chimg"><div class="chimg-h"><b>مساحة '+(i+1)+'</b><button type="button" class="x" data-chspdel="'+i+'">حذف</button></div>'
+    +cF('الجهة',cSel(p+'side',[['top','أعلى الشارت'],['bottom','أسفل الشارت'],['left','يسار الشارت'],['right','يمين الشارت']]))
+    +(tb?cRng(p+'h',40,900,10,'الارتفاع')+cChk(p+'fw','بعرض الشارت كاملاً')+(s.fw===false?cRng(p+'w',120,1080,10,'العرض'):'')
+       :cRng(p+'w',40,700,10,'العرض')+cChk(p+'fh','بارتفاع الشارت كاملاً')+(s.fh===false?cRng(p+'h',120,1500,10,'الارتفاع'):''))
+    +cF('المحتوى',cSel(p+'kind',[['','فارغة (أضف عناصرك على التصميم)'],['nums','٣ أرقام'],['txt','٣ جمل نصية']]));
+  if(s.kind==='nums'){
+    for(var j=0;j<3;j++)h+='<div class="field"><label>الرقم '+(j+1)+'</label>'+cIn(p+'nums.'+j+'.v','الرقم (مثل 25%)')+cIn(p+'nums.'+j+'.l','الكلمة المميزة')+cIn(p+'nums.'+j+'.t','الوصف')+'</div>';
+  }else if(s.kind==='txt'){
+    for(var k=0;k<3;k++)h+='<div class="field"><label>الجملة '+(k+1)+'</label>'+cIn(p+'txts.'+k+'.l','عنوان قصير (اختياري)')+cIn(p+'txts.'+k+'.t','الجملة')+'</div>';
+  }
+  if(s.kind)h+=cChk(p+'card','لوحة خلف المحتوى')+'<p class="hint">يُوزَّع المحتوى تلقائياً على مساحات متساوية بخطوط فاصلة ناعمة. اترك خانة فارغة لتخفيف العدد.</p>';
+  return h+'</div>';
+}
 function chBodyLay(){
   var h='';
   if(CH.style!=='donut'){
@@ -6482,14 +6558,7 @@ function chBodyLay(){
       +'<div class="field"><label>أو اكتب الزاوية بالرقم (من −90 إلى 90)</label><input type="number" data-ch="labAng" data-chn="1" min="-90" max="90" step="1" value="'+(cur===''?'':cur)+'" aria-label="الزاوية بالدرجات"></div>';
   }
   h+='<p class="acc-label">مساحات فارغة حول الشارت</p><p class="hint">اضغط الجهة فتُضاف مساحة ويصغر الشارت تلقائياً. اضغط داخل المساحة على التصميم لإضافة نص أو رقم أو صورة. اسحب المقبض على حافة المساحة (على التصميم) لتغيير حجمها، ويمكن إضافة أكثر من مساحة في كل الجهات.</p>';
-  (CH.spaces||[]).forEach(function(s,i){
-    var p='spaces.'+i+'.',tb=s.side==='top'||s.side==='bottom';
-    h+='<div class="chimg"><div class="chimg-h"><b>مساحة '+(i+1)+'</b><button type="button" class="x" data-chspdel="'+i+'">حذف</button></div>'
-      +cF('الجهة',cSel(p+'side',[['top','أعلى الشارت'],['bottom','أسفل الشارت'],['left','يسار الشارت'],['right','يمين الشارت']]))
-      +(tb?cRng(p+'h',40,900,10,'الارتفاع')+cChk(p+'fw','بعرض الشارت كاملاً')+(s.fw===false?cRng(p+'w',120,1080,10,'العرض'):'')
-         :cRng(p+'w',40,700,10,'العرض')+cChk(p+'fh','بارتفاع الشارت كاملاً')+(s.fh===false?cRng(p+'h',120,1500,10,'الارتفاع'):''))
-      +'</div>';
-  });
+  (CH.spaces||[]).forEach(function(s,i){h+=chSpBody(i)});
   if((CH.spaces||[]).length<8)h+='<div class="field"><label>إضافة مساحة</label><div class="row"><button type="button" class="tool" data-chspadd="top">أعلى</button><button type="button" class="tool" data-chspadd="bottom">أسفل</button><button type="button" class="tool" data-chspadd="right">يمين</button><button type="button" class="tool" data-chspadd="left">يسار</button></div></div>';
   return h;
 }
@@ -6662,6 +6731,8 @@ function chChange(e){
     cSet(path,val2);
     if(path==='size'){chFit();chSchedule();return}
     if(path==='noteSide'||path==='sort'||path==='hi'||path==='call.side'||path==='titleAlign'){chSchedule();return}
+    var mk=/^spaces\.(\d+)\.kind$/.exec(path);
+    if(mk){var sp0=CH.spaces[+mk[1]];if(sp0){if(val2==='nums'&&!sp0.nums)sp0.nums=chSpSample('nums');if(val2==='txt'&&!sp0.txts)sp0.txts=chSpSample('txt')}chBuildEditor();chSchedule();return}
     if(CH_REB[path]||/^spaces\.\d+\.side$/.test(path))chBuildEditor();
     chSchedule();
   }
@@ -8797,6 +8868,7 @@ function epBodyCH(g,p){
   else if(k==='note'){t='الملاحظة / المصدر';acc='txt';h=cF('النص',cIn('note','المصدر: ...'))+cF('المكان',cSel('noteSide',[['auto','حسب الشكل'],['bottom','أسفل التشارت'],['side','عمودية على الجانب']]))}
   else if(k==='logo'){t='القالب والشعار';h=cF('القالب',cSel('sec',$$('#czSecSel option').map(function(o){return[o.value,o.textContent]})))}
   else if(k==='legend'){t='مفتاح التشارت';acc='key';h=chBodyKey()}
+  else if(k==='sp'){var si=+g.split('.')[1];t='مساحة '+(si+1);acc='lay';h=chSpBody(si)}
   else if(k==='bar'||k==='val'||k==='axis'){
     t=k==='axis'?'تسمية':k==='val'?'قيمة':'عمود';acc='data';
     if(r){
