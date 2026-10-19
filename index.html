@@ -1237,6 +1237,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 <div class="field"><span class="lab">لون الأرقام</span><div class="seg full" id="segNum"><label><input type="radio" name="numCol" value="main"><span>ملوّن</span></label><label><input type="radio" name="numCol" value="gray"><span>رمادي</span></label></div></div>
 <div class="field"><span class="lab">لون الأرقام العام (ولكل رقم لون مستقل من صفّه)</span><div class="sws" id="swMain"></div></div>
 <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span><div class="seg full" id="segLabelPos"><label><input type="radio" name="labelPos" value="above"><span>فوقه</span></label><label><input type="radio" name="labelPos" value="below"><span>تحته</span></label></div></div>
+<div class="field"><label class="check"><input type="checkbox" id="statMid"> توسيط الأرقام رأسياً في المساحة</label></div>
 <label class="check"><input type="checkbox" id="band"> شريط خلفية خلف الأرقام السفلية</label>
 <div id="bandOpts" class="bandopts"></div>
           </div></div>
@@ -1398,6 +1399,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
   <div class="seg full"><label><input type="radio" name="czlp" value="above"><span>فوقه</span></label><label><input type="radio" name="czlp" value="below"><span>تحته</span></label></div></div>
 <div class="field"><span class="lab">تخطيط الأرقام (لكل الأرقام)</span>
   <div class="seg full"><label><input type="radio" name="czsl" value="stack"><span>النص تحت الرقم</span></label><label><input type="radio" name="czsl" value="side"><span>الرقم يمين والنص يسار</span></label></div></div>
+<div class="field"><label class="check"><input type="checkbox" id="czStatMid"> توسيط الأرقام رأسياً في المساحة</label></div>
 <div class="field"><span class="lab">مؤشر الشرائح في التذييل</span>
   <div class="seg full"><label><input type="radio" name="czpg" value="num"><span>أرقام (2 / 6)</span></label><label><input type="radio" name="czpg" value="dots"><span>دوائر صغيرة</span></label></div></div>
 <div class="field"><label class="check"><input type="checkbox" id="czTags" checked> إظهار الوسوم أسفل الشرائح</label></div>
@@ -1986,7 +1988,7 @@ function statCell(st,cx,y,cw,sz,draw){
   var gap=sz.gap||12;
   if(lpOf(st)==='above'){if(ll.length)steps.push({h:lH,d:lab,g:gap*.6});steps.push({h:dh,d:num,g:gap});}
   else{steps.push({h:dh,d:num,g:gap});if(ll.length)steps.push({h:lH,d:lab,g:gap*.4});}
-  if(tl.length)steps.push({h:tH,d:txt,g:0});
+  if(tl.length){if(st.tp==='above')steps.unshift({h:tH,d:txt,g:gap*.6});else steps.push({h:tH,d:txt,g:0})}
   var tot=0;steps.forEach(function(s,i){tot+=s.h+(i<steps.length-1?s.g:0)});
   if(draw){if(hg){HI.tag(hg,'','الرقم');HI.box(cx-cw/2+4,y-6,cx+cw/2-4,y+tot+6,-1);HI.tag()}steps.forEach(function(s,i){s.d();if(i<steps.length-1)yy+=s.g})}
   return tot;
@@ -2003,7 +2005,7 @@ function statsGrid(list,y,sz,draw,x0,totalW){
     var off=(cols-r.length)/2;
     r.forEach(function(s,i){
       var idx=i+off,cx=rtl()?left+w-(idx+.5)*cw:left+(idx+.5)*cw;
-      statCell(s,cx,yy,cw,sz,true);
+      statCell(s,cx,S.statMid?yy+(hs[ri]-statCell(s,0,0,cw,sz,false))/2:yy,cw,sz,true);
       if(i<r.length-1){var lx=rtl()?left+w-(idx+1)*cw:left+(idx+1)*cw;ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(lx,yy+6);ctx.lineTo(lx,yy+hs[ri]-6);ctx.stroke()}
     });
     if(ri<rows.length-1){var ly=yy+hs[ri]+rowGap/2;ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(left+cw*.15,ly);ctx.lineTo(left+w-cw*.15,ly);ctx.stroke()}
@@ -2188,7 +2190,7 @@ function bgAuto(){
 function bgSetMode(m){S.bgMode=m;if(m!=='preset')S.bgImg=null;syncBg();bgAuto();syncBg();schedule()}
 function setRadio(name,val){$$('input[name="'+name+'"]').forEach(function(r){r.checked=r.value===val})}
 function syncControls(){
-  $('#secSel').value=S.sec;if($('#igSize'))$('#igSize').value=S.size||'4:5';setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
+  $('#secSel').value=S.sec;if($('#igSize'))$('#igSize').value=S.size||'4:5';setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);var smy=$('#statMid');if(smy)smy.checked=!!S.statMid;setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
   $('#band').checked=S.band;$('#veil').value=Math.round(S.veil*100);$('#anchor').value=S.anchor;if($('#photoZ')){$('#photoZ').value=igPZ()*100;$('#photoZv').textContent=Math.round(igPZ()*100);$('#photoX').value=igPX();$('#photoXv').textContent=Math.round(igPX());$('#photoY').value=igPY();$('#photoYv').textContent=Math.round(igPY())}if($('#photoH')){$('#photoH').value=S.photoH==null?100:S.photoH;$('#photoHv').textContent=$('#photoH').value;$('#photoFade').value=S.photoFade||'auto';$('#photoFadeAmt').value=S.photoFadeAmt||45;$('#photoFadeAmtv').textContent=$('#photoFadeAmt').value}
   if($('#layoutSel').value!=='auto')$('#layoutSel').value=S.layout;
   syncSw();syncBg();syncFoot();tplSync();
@@ -2204,6 +2206,7 @@ function bindControls(){
     if(S.theme==='dark'&&lum(S.titleC)<.2)S.titleC='#FFFFFF';
     if(S.theme==='light'&&lum(S.titleC)>.8)S.titleC='#1B1F78';
     syncSw();syncBg();schedule()})});
+  var smx=$('#statMid');if(smx)smx.addEventListener('change',function(){S.statMid=smx.checked;schedule()});
   $$('input[name="labelPos"]').forEach(function(r){r.addEventListener('change',function(){S.labelPos=r.value;[S.hero].concat(S.stats||[]).forEach(function(x){if(x)delete x.lp});schedule()})});
   $$('input[name="strapPos"]').forEach(function(r){r.addEventListener('change',function(){S.strapPos=r.value;schedule()})});
   $$('input[name="numCol"]').forEach(function(r){r.addEventListener('change',function(){S.numGray=r.value==='gray';schedule()})});
@@ -3925,7 +3928,7 @@ function czStats(list,tier,w){
     var tl2=st.text?czCut(czWrap(st.text,function(){return czFont('body',txt)},cw-40),3):[];
     var dh2=czDigitH(czFont('num',ns2)),lH2=ll2.length*lab*1.3,tH2=tl2.length*txt*1.45;
     var h=(lp==='above'?lH2+(lH2?14:0)+dh2:dh2+(lH2?14:0)+lH2)+16+6+(tl2.length?16+tH2:0);
-    return{nt:nt,ns:ns2,ll:ll2,tl:tl2,dh:dh2,lH:lH2,tH:tH2,h:h,lab:lab,txt:txt,lp:lp};
+    return{nt:nt,ns:ns2,ll:ll2,tl:tl2,dh:dh2,lH:lH2,tH:tH2,h:h,lab:lab,txt:txt,lp:lp,tp:st.tp==='above'?'above':''};
   }
   var rcells=rows.map(function(r){var sd=r.length===1&&czSideOf(r[0]);return r.map(function(st){return mk(st,sd)})});
   var rowGap=[34,30,26,22,18][tier],rh=rcells.map(function(r){var m=0;r.forEach(function(c){m=Math.max(m,c.h)});return m});
@@ -3947,13 +3950,15 @@ function czStats(list,tier,w){
           cx.fillStyle=p.accent;cx.fillRect(dvx-2,yy+Math.max(0,(rh[ri]-Math.max(c.Ah,c.tH))/2),4,Math.max(c.Ah,c.tH));
           return;
         }
-        var cxm=R?x0+w-(idx+.5)*cw:x0+(idx+.5)*cw,yc2=yy;
+        var cxm=R?x0+w-(idx+.5)*cw:x0+(idx+.5)*cw,yc2=CZ.statMid?yy+(rh[ri]-c.h)/2:yy;
         HC.tag(sg,'','الرقم');HC.box(cxm-cw/2+6,yy-6,cxm+cw/2-6,yy+rh[ri]+6,-1);HC.tag();
         function lb(){HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],cxm,yc2+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag();yc2+=c.lH+(c.lH?14:0)}
         function nm(){HC.tag(sg,'value','الرقم');czPut(c.nt,cxm,yc2+c.dh,czFont('num',c.ns),p.main,'center','ltr');HC.tag();yc2+=c.dh}
+        function tx(){HC.tag(sg,'text','النص');c.tl.forEach(function(l,k){czDraw([l],cxm,yc2+c.txt*.95+k*c.txt*1.45,0,function(){return czFont('body',c.txt)},function(){return p.gray},'center')});HC.tag();yc2+=c.tH}
+        if(c.tp==='above'&&c.tl.length){tx();yc2+=16}
         if(c.lp==='above'){if(c.ll.length)lb();nm()}else{nm();if(c.ll.length){yc2+=14;lb();yc2-=14}}
         yc2+=16;czRR(cxm-28,yc2,56,6,3);cx.fillStyle=p.accent;cx.fill();yc2+=6;
-        if(c.tl.length){yc2+=16;HC.tag(sg,'text','النص');c.tl.forEach(function(l,k){czDraw([l],cxm,yc2+c.txt*.95+k*c.txt*1.45,0,function(){return czFont('body',c.txt)},function(){return p.gray},'center')});HC.tag()}
+        if(c.tp!=='above'&&c.tl.length){yc2+=16;tx()}
         if(ci<r.length-1){var lx=R?x0+w-(idx+1)*cw:x0+(idx+1)*cw;cx.strokeStyle=p.line;cx.lineWidth=1.6;cx.beginPath();cx.moveTo(lx,yy+10);cx.lineTo(lx,yy+rh[ri]-6);cx.stroke()}
       });
       yy+=rh[ri]+rowGap;
@@ -4100,7 +4105,7 @@ function czContent(s,i,n,num){
     if(tot<=avail)break;
   }
   if(tot>avail+44)qaFlag('overflow');
-  var yy=top+Math.max(0,(avail-tot))*(ZH>1500?.5:.3);
+  var yy=top+Math.max(0,(avail-tot))*(ZH>1500||CZ.statMid?.5:.3);
   mods.forEach(function(m){m.draw(yy,M);yy+=m.h+gp});
   czFooter(s,i,n,false);
 }
@@ -4245,7 +4250,7 @@ function czBuildEditor(){
     var sk=skyOn();
     if(sk&&s.stats.length>1)h+='<div class="field"><label>تخطيط الأرقام</label>'+czSel('lay',s.lay,[['','تلقائي'],['single','رقم واحد كبير'],['duo','رقمان جنباً إلى جنب'],['trio','ثلاثة أرقام'],['hero3','رقم كبير وثلاثة تحته'],['flags','شبكة بالأعلام']])+'</div>';
     s.stats.forEach(function(t,j){if(sk){h+='<div class="rowf item"><div class="field">'+czIn(pre+'stats.'+j+'.label',t.label,'قبل الرقم (مثل: نحو)')+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+czIn(pre+'stats.'+j+'.text',t.text,'بعد الرقم (مثل: مليار دولار)')+czIn(pre+'stats.'+j+'.flag',t.flag||'','علم دولة (اختياري): اكتب اسمها')+czFlagCtl(t,j)+'</div><button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button></div>';return}
-      h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div><div class="full czstopt"><label>الكلمة المميزة <select data-czst="'+j+':lp" aria-label="موضع الكلمة المميزة لهذا الرقم">'+[['','حسب الإعداد العام'],['above','فوق الرقم'],['below','تحت الرقم']].map(function(o){return '<option value="'+o[0]+'"'+((t.lp||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label> <label>التخطيط <select data-czst="'+j+':ly" aria-label="تخطيط هذا الرقم">'+[['','حسب الإعداد العام'],['stack','النص تحت الرقم'],['side','الرقم يمين والنص يسار']].map(function(o){return '<option value="'+o[0]+'"'+((t.ly||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label></div></div>'});
+      h+='<div class="rowf"><div class="field">'+czIn(pre+'stats.'+j+'.value',t.value,'الرقم')+'</div>'+czIn(pre+'stats.'+j+'.label',t.label,'الكلمة المميزة')+'<button type="button" class="x" data-crm="stats.'+j+'" aria-label="حذف">حذف</button><div class="full">'+czIn(pre+'stats.'+j+'.text',t.text,'النص تحت الرقم')+'</div><div class="full czstopt"><label>الكلمة المميزة <select data-czst="'+j+':lp" aria-label="موضع الكلمة المميزة لهذا الرقم">'+[['','حسب الإعداد العام'],['above','فوق الرقم'],['below','تحت الرقم']].map(function(o){return '<option value="'+o[0]+'"'+((t.lp||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label> <label>التخطيط <select data-czst="'+j+':ly" aria-label="تخطيط هذا الرقم">'+[['','حسب الإعداد العام'],['stack','النص تحت الرقم'],['side','الرقم يمين والنص يسار']].map(function(o){return '<option value="'+o[0]+'"'+((t.ly||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label> <label>النص <select data-czst="'+j+':tp" aria-label="موضع النص لهذا الرقم">'+[['','تحت الرقم'],['above','فوق الرقم']].map(function(o){return '<option value="'+o[0]+'"'+((t.tp||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label></div></div>'});
     h+='<button type="button" class="tool add" data-cadd="stats">+ إضافة رقم</button>';
     secs.push(['num','الأرقام',s.stats.length?s.stats.length+' أرقام':'',h]);
     h='';
@@ -4324,6 +4329,7 @@ function czSyncStyle(){
   $$('input[name="czlp"]').forEach(function(r){r.checked=r.value===CZ.labelPos});
   $$('input[name="czpg"]').forEach(function(r){r.checked=r.value===(CZ.pager||'num')});
   var tg=$('#czTags');if(tg)tg.checked=CZ.tags!=='hide';
+  var sm=$('#czStatMid');if(sm)sm.checked=!!CZ.statMid;
   $$('input[name="czsl"]').forEach(function(r){r.checked=r.value===(CZ.statLay==='side'?'side':'stack')});
   var pn=CPAL.filter(function(P){return P.main.toLowerCase()===CZ.main.toLowerCase()&&P.accent.toLowerCase()===CZ.accent.toLowerCase()})[0],se=$('#czSecSel');
   var a=$('[data-csum="pal"]'),b=$('[data-csum="tpl"]');if(a)a.textContent=pn?pn.n:'ألوان مخصصة';if(b&&se.selectedOptions[0])b.textContent=se.selectedOptions[0].textContent;
@@ -4406,6 +4412,7 @@ function czInit(){
   $$('input[name="czlp"]').forEach(function(r){r.addEventListener('change',function(){czAllStats('lp',r.value)})});
   $$('input[name="czsl"]').forEach(function(r){r.addEventListener('change',function(){czAllStats('ly',r.value)})});
   $$('input[name="czpg"]').forEach(function(r){r.addEventListener('change',function(){CZ.pager=r.value;czRenderAll()})});
+  var smb=$('#czStatMid');if(smb)smb.addEventListener('change',function(){CZ.statMid=smb.checked;czRenderAll()});
   var tgb=$('#czTags');if(tgb)tgb.addEventListener('change',function(){CZ.tags=tgb.checked?'':'hide';czRenderAll();if(typeof EP!=='undefined'&&EP.on)epBuild()});
   $('#czLang').addEventListener('change',function(){if(this.value!=='auto'){CZ.lang=this.value;czRenderAll()}});
   $('#czGen').addEventListener('click',function(){pgGate('cz',function(imgs,opt){czGenerate(imgs,opt)})});
@@ -6930,7 +6937,7 @@ function tStat(st,cx,y,cw,sz,draw,im,outer){
   function txt(){if(hg)HI.tag(hg,'text','النص');tl.forEach(function(l,i){put(l,cx,yy+sz.text*.95+i*tS,f.body(sz.text),th.body,'center')});HI.tag();yy+=tH}
   if(lpOf(st)==='above'){if(ll.length)steps.push({h:lH,g:gap*.6,d:lab});steps.push({h:rowH,g:gap,d:num})}
   else{steps.push({h:rowH,g:gap,d:num});if(ll.length)steps.push({h:lH,g:gap*.4,d:lab})}
-  if(tl.length)steps.push({h:tH,g:0,d:txt});
+  if(tl.length){if(st.tp==='above')steps.unshift({h:tH,g:gap*.6,d:txt});else steps.push({h:tH,g:0,d:txt})}
   var tot=0;steps.forEach(function(s,i){tot+=s.h+(i<steps.length-1?s.g:0)});
   if(draw){if(hg){HI.tag(hg,'','الرقم');HI.box(cx-cw/2+4,y-6,cx+cw/2-4,y+tot+6,-1);HI.tag()}steps.forEach(function(s,i){s.d();if(i<steps.length-1)yy+=s.g})}
   return tot;
@@ -8146,6 +8153,53 @@ function fxInit(){
   epClose=function(){cl.apply(this,arguments);FX.pick=null;fxTouchSync()};
 }
 
+/* drag the highlighted word or the explanatory text of a number above / below the number, right on the design */
+function sdValue(m,g){var v=null;epReg(m).list.forEach(function(r){if(r.g===g&&r.p==='value')v=r});return v}
+function sdObj(m,g){
+  var k=/^stats\.(\d+)$/.exec(g);
+  if(m==='cz'){var s=CZ.slides[CZ.cur];return s&&k?(s.stats||[])[+k[1]]||null:null}
+  if(g==='hero')return S.hero;
+  return k?S.stats[+k[1]]||null:null;
+}
+function sdApply(m,d){
+  var o=d.o;
+  if(d.part==='label')o.lp=d.to;else if(d.to==='above')o.tp='above';else delete o.tp;
+  if(m==='cz'){czBuildEditor();czSchedule()}else schedule();
+  if(EP.on&&EP.g===d.g)epBuild();
+}
+function sdBind(m){
+  var sh=epSheet(m);if(!sh||sh.dataset.sdd)return;sh.dataset.sdd='1';
+  var dr=null;
+  function dragOk(r){return r&&(r.p==='label'||r.p==='text')&&/^(stats\.\d+|hero)$/.test(r.g)&&!(m==='cz'&&(r.g==='hero'||skyOn()))}
+  sh.addEventListener('pointerdown',function(e){
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    var p=epPoint(m,e),r=epPick(m,p.x,p.y);
+    if(!dragOk(r))return;
+    if(e.pointerType!=='mouse'&&!(EP.on&&EP.g===r.g))return;
+    var o=sdObj(m,r.g);if(!o)return;
+    dr={g:r.g,part:r.p,o:o,sx:e.clientX,sy:e.clientY,moved:false,to:null};
+    try{sh.setPointerCapture(e.pointerId)}catch(x){}
+  },true);
+  sh.addEventListener('pointermove',function(e){
+    if(!dr)return;
+    if(!dr.moved&&Math.abs(e.clientX-dr.sx)+Math.abs(e.clientY-dr.sy)<8)return;
+    dr.moved=true;e.stopImmediatePropagation();
+    var p=epPoint(m,e),v=sdValue(m,dr.g);if(!v)return;
+    var above=p.y<(v.y1+v.y2)/2;dr.to=above?'above':'below';
+    epFrame(sh,'ep-hl',above?{x1:v.x1,x2:v.x2,y1:v.y1-14,y2:v.y1-6}:{x1:v.x1,x2:v.x2,y1:v.y2+6,y2:v.y2+14},above?'هنا: فوق الرقم':'هنا: تحت الرقم');
+  },true);
+  function end(e){
+    if(!dr)return;var d=dr;dr=null;epFrame(sh,'ep-hl',null);
+    if(!d.moved)return;
+    e.stopImmediatePropagation();
+    window.__fxDragged=true;setTimeout(function(){window.__fxDragged=false},350);
+    if(d.to)sdApply(m,d);
+  }
+  sh.addEventListener('pointerup',end,true);sh.addEventListener('pointercancel',end,true);
+  sh.addEventListener('touchstart',function(e){var t=e.touches[0];if(!t||!EP.on)return;var pt=epPoint(m,t),r=epPick(m,pt.x,pt.y);if(dragOk(r)&&EP.g===r.g)e.preventDefault()},{passive:false});
+}
+function sdInit(){sdBind('ig');sdBind('cz')}
+
 /* ===== click any element in the design to edit it live ===== */
 var EP={on:false,mode:'',g:'',p:'',box:null,down:null,card:null};
 var EP_ACC={title:'head',subtitle:'head',lede:'head',kicker:'kick',hero:'hero',stats:'stats',bars:'list',items:'list',legend:'list',footer:'foot',sec:'style',band:'style',bg:'bg'};
@@ -8254,7 +8308,10 @@ function epLpHtml(g){
   var sel=function(key,label,cur,opts){return '<div class="epf"><label>'+label+'</label><select data-epsel="'+key+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(cur||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'};
   var rad=function(key,label,cur,opts){return '<div class="epf"><label>'+label+'</label><div class="seg full">'+opts.map(function(o){return '<label><input type="radio" name="ep_'+key+'" data-eprad="'+key+'" value="'+o[0]+'"'+(cur===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div></div>'};
   var h=sel('lp','الكلمة المميزة: لهذا الرقم فقط',epGet(g+'.lp'),[['','حسب الإعداد العام'],['above','فوق الرقم'],['below','تحت الرقم']])+rad('lpall','الكلمة المميزة: لكل الأرقام',cz?CZ.labelPos:S.labelPos,[['above','فوقه'],['below','تحته']]);
+  h+=sel('tp','النص: لهذا الرقم فقط',epGet(g+'.tp'),[['','تحت الرقم'],['above','فوق الرقم']]);
   if(cz)h+=sel('ly','تخطيط هذا الرقم فقط',epGet(g+'.ly'),[['','حسب الإعداد العام'],['stack','النص تحت الرقم'],['side','الرقم يمين والنص يسار']])+rad('lyall','تخطيط كل الأرقام',CZ.statLay==='side'?'side':'stack',[['stack','النص تحت الرقم'],['side','الرقم يمين والنص يسار']]);
+  h+='<div class="epf"><label class="check"><input type="checkbox" data-epstatmid="1"'+((cz?CZ.statMid:S.statMid)?' checked':'')+'> توسيط الأرقام رأسياً في المساحة</label></div>';
+  h+='<p class="hint">تقدر كمان تسحب الكلمة المميزة أو النص على التصميم نفسه فوق الرقم أو تحته.</p>';
   return h;
 }
 function epTagsChk(){return '<div class="epf"><label class="check"><input type="checkbox" data-epcztags="1"'+(CZ.tags==='hide'?'':' checked')+'> إظهار الوسوم أسفل الشرائح</label></div>'}
@@ -8533,7 +8590,7 @@ function epChange(e){
   if(t.hasAttribute&&t.hasAttribute('data-epczplain')){CZ.bgPlain=t.checked;czBgSet();czRenderAll();return}
   if(t.dataset.epsel){
     var q=t.dataset.epsel;
-    if(q==='lp'||q==='ly'){epPut(EP.g+'.'+q,t.value);if(EP.mode==='cz')czBuildEditor();epAgain();epBuild();return}
+    if(q==='lp'||q==='ly'||q==='tp'){epPut(EP.g+'.'+q,t.value);if(EP.mode==='cz')czBuildEditor();epAgain();epBuild();return}
     if(q==='bgang'){S.bgAngle=+t.value;schedule();return}
     if(q==='photoFade'){S.photoFade=t.value;$('#photoFade').value=t.value;schedule();return}
     if(q==='czbgang'){CZ.bgAngle=+t.value;czRenderAll();return}
@@ -8543,6 +8600,7 @@ function epChange(e){
     else if(q==='pa'){var s=CZ.slides[CZ.cur];s.pa=t.value;delete s.pf;delete s.px;delete s.py;czSchedule();czBuildEditor();epBuild()}
     return;
   }
+  if(t.dataset.epstatmid!==undefined){if(EP.mode==='cz'){CZ.statMid=t.checked;var sb=$('#czStatMid');if(sb)sb.checked=t.checked;czRenderAll()}else{S.statMid=t.checked;var sb2=$('#statMid');if(sb2)sb2.checked=t.checked;schedule()}return}
   if(t.dataset.epcztags!==undefined){CZ.tags=t.checked?'':'hide';var tb=$('#czTags');if(tb)tb.checked=t.checked;czRenderAll();epBuild();return}
   if(t.dataset.epchk){S[t.dataset.epchk]=t.checked;var cb=$('#'+t.dataset.epchk);if(cb)cb.checked=t.checked;schedule()}
 }
@@ -8595,7 +8653,7 @@ function epHint(){
   });
 }
 function epInit(){
-  bandOptsInit();fxInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
+  bandOptsInit();fxInit();sdInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EP.on)epClose()});
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){epClose()})});
   ['#chRead','#chDemo','#chDl'].forEach(function(s){var b=$(s);if(b)b.addEventListener('click',function(){epClose()})});
