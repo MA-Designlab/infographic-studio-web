@@ -7429,33 +7429,61 @@ function tplItemExtra(i,it){
   if(T.fields.indexOf('photo')>-1)h+='<div class="full"><button type="button" class="tool" data-tphoto="'+i+'">'+(it.pimg?'تغيير الصورة':'رفع صورة')+'</button>'+(it.pimg?' <button type="button" class="tool" data-tphoto-rm="'+i+'">إزالة</button>':'')+'<span class="hint"> أو تُجلب تلقائياً من المكتبة بالاسم</span></div>';
   return h;
 }
+/* the same picture controls inside the click-to-edit card (clicking the portrait must offer the upload, not the generic number fields) */
+function tpPicRow(key,has,up,chg,rm){
+  return '<div class="epf"><div class="row"><button type="button" class="tool" data-tphoto="'+key+'">'+(has?chg:up)+'</button>'+(has?'<button type="button" class="tool ghost" data-tphoto-rm="'+key+'">'+rm+'</button>':'')+'</div></div>';
+}
+function tplPopHero(){
+  var T=tplCur();if(!T||!(T.person||T.heroPhoto||T.center))return null;
+  var hh=S.hero,h=tpPicRow('hero',!!hh.pimg,'رفع صورة','تغيير الصورة','إزالة الصورة');
+  h+=epField('hero.label',T.heroPhoto?'تعليق أسفل الصورة (اختياري)':'الاسم',T.heroPhoto?'':'الاسم',{part:'label'});
+  if(!T.heroPhoto)h+=epField('hero.text','الصفة','المنصب أو الصفة',{part:'text'});
+  if(T.center){
+    var cz=hh.cz||120;
+    h+='<div class="epf"><label>لون الصندوق خلف الشخص</label><input type="color" data-tc="boxC" value="'+(hh.boxC||'#8C7E73')+'" aria-label="لون الصندوق"></div>'
+      +'<div class="epf"><label>صورة إضافية تتداخل مع أسفل الصورة</label><div class="row"><button type="button" class="tool" data-tphoto="cut">'+(hh.cut?'تغيير الصورة الإضافية':'رفع صورة إضافية')+'</button>'+(hh.cut?'<button type="button" class="tool ghost" data-tphoto-rm="cut">إزالة</button><button type="button" class="tool" data-tcrb="1">تفريغ الخلفية</button>':'')+'</div></div>';
+    if(hh.cut)h+='<div class="epf"><label>حجم الصورة الإضافية</label><select data-tc="cz" aria-label="حجم الصورة الإضافية">'+[[90,'أصغر'],[120,'متوسط'],[150,'كبير'],[190,'أكبر']].map(function(o){return '<option value="'+o[0]+'"'+(cz==o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
+      +'<div class="epf"><label class="check"><input type="checkbox" data-tc="cfade"'+(hh.cfade===false?'':' checked')+'> تلاشي حافة الصورة الإضافية العلوية مع الصورة</label></div>';
+  }
+  return{t:T.heroPhoto?'الصورة المركزية':'الشخصية',h:h,acc:'style'};
+}
+function tplPopItemPhoto(i){
+  var T=tplCur(),it=S.items[i];if(!T||!T.fields||T.fields.indexOf('photo')<0||!it)return '';
+  return tpPicRow(String(i),!!it.pimg,'رفع صورة','تغيير الصورة','إزالة الصورة')+'<p class="hint">أو تُجلب تلقائياً من المكتبة بالاسم.</p>';
+}
+function tplPopItemValue(i,g){
+  var T=tplCur();return (T&&T.fields&&T.fields.indexOf('value')>-1)?epField(g+'.value','الرقم أو القيمة','الرقم أو القيمة',{part:'value'}):'';
+}
 var TP_PH=null,TC_RB=false;
+function tpRefresh(){buildEditor();schedule();if(typeof EP!=='undefined'&&EP.on&&EP.mode==='ig')epBuild()}
 async function tcRmBg(){
   var im=S.hero&&S.hero.cut;if(TC_RB||!im)return;TC_RB=true;
   try{
     var j=await callFn('remove-bg',{image:fxRbBase64(im),type:'image/jpeg'});
     var d=j&&j.data;if(!d||!d.b64)throw{code:'removebg_failed'};
     var n=await new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i)};i.onerror=function(){rej({code:'removebg_failed'})};i.src='data:image/png;base64,'+d.b64});
-    S.hero.cut=n;buildEditor();schedule();toast('تم تفريغ الخلفية.');
+    S.hero.cut=n;tpRefresh();toast('تم تفريغ الخلفية.');
   }catch(x){var c=x&&x.code;toast(errText(c),true);if(c==='not_signed_in')showLogin(true)}
   finally{TC_RB=false}
 }
 function tplPhotoInit(){
-  var ed=$('#acc');if(!ed||ed.__tp)return;ed.__tp=1;
+  if(document.__tp)return;document.__tp=1;
   var fi=document.createElement('input');fi.id='tpFile';fi.type='file';fi.accept='image/*';fi.hidden=true;document.body.appendChild(fi);
-  ed.addEventListener('click',function(e){
-    var b=e.target.closest&&e.target.closest('[data-tphoto],[data-tphoto-rm],[data-tcrb]');if(!b)return;
+  /* the side panel (#acc) and the click-to-edit card (#ep) share these controls */
+  var inPanel=function(t){return !!(t&&t.closest&&t.closest('#acc,#ep'))};
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('[data-tphoto],[data-tphoto-rm],[data-tcrb]');if(!b||!inPanel(b))return;
     if(b.dataset.tcrb){tcRmBg();return}
-    if(b.dataset.tphotoRm==='cut'){delete S.hero.cut;buildEditor();schedule();return}
-    if(b.dataset.tphotoRm){var o=b.dataset.tphotoRm==='hero'?S.hero:S.items[+b.dataset.tphotoRm];if(o)delete o.pimg;buildEditor();schedule();return}
+    if(b.dataset.tphotoRm==='cut'){delete S.hero.cut;tpRefresh();return}
+    if(b.dataset.tphotoRm){var o=b.dataset.tphotoRm==='hero'?S.hero:S.items[+b.dataset.tphotoRm];if(o)delete o.pimg;tpRefresh();return}
     TP_PH=b.dataset.tphoto;fi.value='';fi.click();
   });
-  ed.addEventListener('input',function(e){var t=e.target;if(!t||!t.dataset||!t.dataset.tc)return;var k=t.dataset.tc;
+  document.addEventListener('input',function(e){var t=e.target;if(!t||!t.dataset||!t.dataset.tc||!inPanel(t))return;var k=t.dataset.tc;
     if(k==='boxC')S.hero.boxC=t.value;else if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()});
-  ed.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.tc){var k=t.dataset.tc;if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()}});
+  document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.tc&&inPanel(t)){var k=t.dataset.tc;if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()}});
   fi.addEventListener('change',function(){
     var file=fi.files&&fi.files[0];if(!file||TP_PH==null)return;var k=TP_PH;
-    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){if(k==='cut'){S.hero.cut=im}else{var o=k==='hero'?S.hero:S.items[+k];if(o)o.pimg=im}buildEditor();schedule()};im.src=fr.result};fr.readAsDataURL(file);
+    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){if(k==='cut'){S.hero.cut=im}else{var o=k==='hero'?S.hero:S.items[+k];if(o)o.pimg=im}tpRefresh()};im.src=fr.result};fr.readAsDataURL(file);
   });
 }
 /* a person's picture: uploaded one, else from the library by name; circle (or rounded) crop; placeholder when missing */
@@ -8845,6 +8873,7 @@ function epBodyIG(g,p){
   else if(k==='subtitle'){t='العنوان الثانوي';h=epField('subtitle','العنوان الثانوي','العنوان الثانوي')}
   else if(k==='lede'){t='الجملة تحت العنوان';h=epField('lede','الجملة','جملة تعريفية قصيرة',{hl:1})+'<div class="epf"><button type="button" class="tool hl" data-ldai>تمييز ذكي ✨</button><p class="hint">يلوّن الأرقام والتواريخ والكلمات الأهم.</p></div>'+epSwatches('ledeHi','لون التمييز',true)+epRange('ledeSize','حجم الجملة',70,140)}
   else if(k==='kicker'){t='السترابة';h=epField('kicker','النص','السترابة')+epSwatches('strap','لون الشريط')+epRadio('strapPos','موضع الشريط',[['top','فوق العنوان'],['bottom','تحته']])}
+  else if(k==='hero'&&typeof tplPopHero==='function'&&tplPopHero()){return tplPopHero()}
   else if(k==='hero'||k==='stats'){
     t=k==='hero'?'الرقم المميز':'رقم';
     h=epField(g+'.value','الرقم','الرقم',{part:'value'})+epField(g+'.label','الكلمة المميزة','الكلمة المميزة',{part:'label'})+epField(g+'.text','النص تحت الرقم','جملة قصيرة',{part:'text'})
@@ -8853,7 +8882,7 @@ function epBodyIG(g,p){
   }
   else if(k==='bars'){t='عمود';h=epField(g+'.label','الاسم','الاسم',{part:'label'})+epField(g+'.value','القيمة','القيمة',{part:'value'})+epField(g+'.note','النسبة','النسبة',{part:'note'})+epSwatches('main','لون الأعمدة')+epDel(g,'حذف هذا العمود')}
   else if(k==='legend'){t='مفتاح الأعمدة';h=epField(g,'نص المفتاح','وصف قصير')}
-  else if(k==='items'){t=S.layout==='cards'?'بطاقة':'نقطة';h=epField(g+'.title','العنوان الفرعي','العنوان الفرعي',{part:'title'})+epField(g+'.text','النص','النص',{part:'text'})+epSwatches('main','لون العناوين والأرقام')+epDel(g,'حذف')}
+  else if(k==='items'){t=S.layout==='cards'?'بطاقة':'نقطة';var ii=+g.split('.')[1];h=tplPopItemPhoto(ii)+epField(g+'.title','العنوان الفرعي','العنوان الفرعي',{part:'title'})+tplPopItemValue(ii,g)+epField(g+'.text','النص','النص',{part:'text'})+epSwatches('main','لون العناوين والأرقام')+epDel(g,'حذف')}
   else if(k==='footer'){t='السطر السفلي';h=epField('footer','النص','إعداد: الاسم، تصميم: الاسم')+epRange('footSize','الحجم',10,60)+epRange('footY','البعد عن الحافة',6,140)+epRadio('footAl','المحاذاة',[['right','يمين'],['center','وسط'],['left','يسار']])+epSwatches('footC','اللون',true)}
   else if(k==='sec'){
     t='القالب والشعار';
