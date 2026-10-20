@@ -5262,7 +5262,7 @@ function chBlank(){
     col:{main:'',second:'',aux:'',up:'',down:'',text:'',series:['','','',''],seg:[]},hole:62,showPct:true,layer:{col:'',tr:null,size:100},
     iconKind:'',iconOver:{},sec:'news',
     legend:{show:true,pos:'auto',x:.1,y:.3,shape:'square',size:26,texts:['','','',''],colors:['','','','']},
-    bgMode:'preset',bgC1:'#0B2A8C',bgC2:'#040C38',bgAngle:180,photoH:100,photoPos:'top',photoFade:'auto',photoFadeAmt:45,veil:.5,veilCol:'#050B30',bgZoom:100,bgX:50,bgY:50,bgBlur:0,bgp:null,pic:null,imgs:[],fx:[],labAng:'',spaces:[],
+    bgMode:'preset',bgC1:'#0B2A8C',bgC2:'#040C38',bgAngle:180,photoH:100,photoPos:'top',photoFade:'auto',photoFadeAmt:45,veil:.5,veilCol:'#050B30',bgZoom:100,bgX:50,bgY:50,bgBlur:0,bgp:null,pic:null,picZ:100,picX:0,picY:0,imgs:[],fx:[],labAng:'',spaces:[],
     titleFont:'',titleScale:100,textFont:'',textScale:100,numFont:'',numScale:100,theme:''};
 }
 function chSt(){return CHST[CH.style]||CHST.bars}
@@ -5611,6 +5611,11 @@ function chContain(im,x,y,w,h,al){
   var k=Math.min(w/im.naturalWidth,h/im.naturalHeight),dw=im.naturalWidth*k,dh=im.naturalHeight*k;
   chx.drawImage(im,al==='end'?x+w-dw:al==='start'?x:x+(w-dw)/2,y+(h-dh)/2,dw,dh);
 }
+/* the logo / hero picture: its own size and offset inside its frame */
+function chPicRect(x,y,w,h){
+  var z=Math.max(.2,Math.min(3,(CH.picZ||100)/100)),nw=w*z,nh=h*z;
+  return{x:x+(w-nw)/2+w*(CH.picX||0)/100,y:y+(h-nh)/2+h*(CH.picY||0)/100,w:nw,h:nh};
+}
 function chRange(R){
   var mn=Infinity,mx=-Infinity;
   R.forEach(function(r){r.vals.forEach(function(v){if(!isNaN(v)){mn=Math.min(mn,v);mx=Math.max(mx,v)}})});
@@ -5910,7 +5915,7 @@ function chEmpty(P,msg){
 /* ----- picture (logo / hero photo) ----- */
 function chPicDraw(x,y,w,h,al){
   var im=chPicImg(chDark());if(!im)return false;
-  HK.tag('pic','','الصورة');chContain(im,x,y,w,h,al||'c');HK.box(x,y,x+w,y+h);HK.tag();return true;
+  var q=chPicRect(x,y,w,h);HK.tag('pic','','الصورة');chContain(im,q.x,q.y,q.w,q.h,al||'c');HK.box(q.x,q.y,q.x+q.w,q.y+q.h);HK.tag();return true;
 }
 
 /* ===== STYLE 1 + 3: line / area over time (always left to right) ===== */
@@ -6010,7 +6015,7 @@ function chCallout(P,geo,R){
   if(k.text){var xf=Math.round(D*.062),tl=chLines(k.text,chF('body',xf),D*.72,2);tl.forEach(function(l,i){chPut(l,cxm,yy+xf*1.45*(i+1)+4,chF('body',xf),chMute(),'center')});yy+=xf*1.45*tl.length+4}
   if(im){
     var pw=D*.62,ph=Math.max(D*.16,cym+D*.44-(yy+D*.04)),py=yy+D*.04;
-    HK.tag('pic','','الصورة');chContain(im,cxm-pw/2,py,pw,ph,'c');HK.box(cxm-pw/2,py,cxm+pw/2,py+ph);HK.tag('call','','الدائرة المميزة');
+    var q=chPicRect(cxm-pw/2,py,pw,ph);HK.tag('pic','','الصورة');chContain(im,q.x,q.y,q.w,q.h,'c');HK.box(q.x,q.y,q.x+q.w,q.y+q.h);HK.tag('call','','الدائرة المميزة');
   }
   HK.box(cxm-D/2,cym-D/2,cxm+D/2,cym+D/2);HK.tag();
 }
@@ -6395,6 +6400,12 @@ function cCol(path,eff,lab){
 }
 function cChk(path,lab){return '<label class="check"><input type="checkbox" data-chb="'+path+'"'+(cGet(path)?' checked':'')+'> '+lab+'</label>'}
 function cRowsOpts(extra){return (extra||[]).concat(CH.table.rows.map(function(r){var l=String(r[CH.map.label]==null?'':r[CH.map.label]).trim();return[l,l]}))}
+/* size and position of the logo / hero picture */
+function cPicPos(){
+  if(!chPicImg(chDark()))return '';
+  var r=function(k,l,v,mn,mx,st){return '<div class="field"><label>'+l+' <b data-chrv="'+k+'">'+v+'</b></label><input type="range" data-ch="'+k+'" data-chn="1" min="'+mn+'" max="'+mx+'" step="'+(st||1)+'" value="'+v+'" aria-label="'+l+'"></div>'};
+  return r('picZ','حجم الصورة %',CH.picZ==null?100:CH.picZ,20,300,5)+'<div class="two">'+r('picX','أفقياً',CH.picX||0,-100,100)+r('picY','رأسياً',CH.picY||0,-100,100)+'</div><button type="button" class="mini" data-chpicreset="1">إعادة ضبط الصورة</button>';
+}
 function cImgCtl(which){
   var cur=which==='pic'?CH.pic:CH.bgp,val=cur?(cur.lib?'lib:'+cur.lib:'up'):'';
   var imgs=LIB.list.filter(function(a){return a.kind==='image'||(which==='pic'&&a.kind==='logo')});
@@ -6438,7 +6449,7 @@ function chBodyTxt(){
   if(CH.style==='bubbles'){
     h+='<p class="acc-label">الرقم الكبير أعلى التشارت</p>'+cF('الرقم',cIn('big.value','مثال: 204'))+cF('الوصف',cIn('big.label','مثال: مليار درهم إيرادات 2025'));
     CH.sum.forEach(function(s,i){h+='<p class="acc-label">بطاقة ملخص '+(i+1)+'</p><div class="two">'+cF('العنوان',cIn('sum.'+i+'.label','عنوان'))+cF('الرقم',cIn('sum.'+i+'.value','الرقم'))+'</div>'+cF('سطر صغير',cIn('sum.'+i+'.sub','تفصيل'))+cCol('sum.'+i+'.color',s.color||chC('main'),'لون البطاقة')});
-    h+='<p class="acc-label">صورة أعلى التشارت (شعار)</p>'+cImgCtl('pic');
+    h+='<p class="acc-label">صورة أعلى التشارت (شعار)</p>'+cImgCtl('pic')+cPicPos();
   }
   if(CH.style==='donut'){
     h+='<p class="acc-label">وسط الدائرة والأرقام</p>'+cF('نص وسط الدائرة',cIn('call.title','مثال: توزيع الميزانية للعام المالي'))+cF('سطر كبير تحته',cIn('call.value','مثال: 2026'))+cF('الوحدة بجانب كل رقم',cIn('unit','مثال: مليار درهم'))+cRng('hole',40,85,1,'حجم الفتحة %')+cChk('showPct','عرض النسب المئوية على الحلقة');
@@ -6761,6 +6772,7 @@ function chClick(e){
   if(d.chspdel!=null){CH.spaces.splice(+d.chspdel,1);chBuildEditor();chSchedule();return}
   if(d.chovadd){$('#chOvFile').click();return}
   if(d.chovdel!=null){CH.imgs.splice(+d.chovdel,1);if(EP.on&&EP.g==='ovimg')epClose();chBuildEditor();chSchedule();return}
+  if(d.chpicreset){CH.picZ=100;CH.picX=0;CH.picY=0;chBuildEditor();if(EP.on&&EP.mode==='ch')epBuild();chSchedule();return}
   if(d.chbgreset){CH.bgZoom=100;CH.bgX=50;CH.bgY=50;CH.bgBlur=0;CH.veil=.5;CH.veilCol='#050B30';chRefreshSec('bg');chSchedule();return}
 }
 var chUpTarget='pic';
@@ -7411,23 +7423,41 @@ function tplHeroHtml(){
   if(T.club)return '<div class="field"><label>اسم النادي / الجهة (يُجلب الشعار من المكتبة)</label>'+inp('hero.label',S.hero.label,'')+'</div><div class="field"><label>الرقم الرئيسي (مثل القيمة السوقية)</label>'+inp('hero.value',S.hero.value,'')+'</div><div class="field"><label>وصف الرقم</label>'+inp('hero.text',S.hero.text,'')+'</div>';
   if(T.center){var hh=S.hero,cz=hh.cz||120;
     return '<div class="field"><label>الاسم (يظهر في الإطار أعلى التصميم)</label>'+inp('hero.label',hh.label,'مثال: معالي أحمد جاسم الزعابي')+'</div><div class="field"><label>الصفة</label>'+inp('hero.text',hh.text,'المنصب أو الصفة')+'</div>'+
-      '<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(hh.pimg?'تغيير صورة الشخص':'رفع صورة الشخص')+'</button>'+(hh.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>'+
+      '<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(hh.pimg?'تغيير صورة الشخص':'رفع صورة الشخص')+'</button>'+(hh.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>'+tpPosHtml('hero','field')+
       '<div class="field"><label>لون الصندوق خلف الشخص</label><input type="color" data-tc="boxC" value="'+(hh.boxC||'#8C7E73')+'" aria-label="لون الصندوق"></div>'+
       '<div class="field"><label>صورة إضافية تتداخل مع أسفل الصورة (مبنى، معلم، شعار…)</label><button type="button" class="tool" data-tphoto="cut">'+(hh.cut?'تغيير الصورة الإضافية':'رفع صورة إضافية')+'</button>'+(hh.cut?' <button type="button" class="tool" data-tphoto-rm="cut">إزالة</button> <button type="button" class="tool" data-tcrb="1">تفريغ الخلفية</button>':'')+'</div>'+
-      (hh.cut?'<div class="field"><label>حجم الصورة الإضافية</label><select data-tc="cz" aria-label="حجم الصورة الإضافية">'+[[90,'أصغر'],[120,'متوسط'],[150,'كبير'],[190,'أكبر']].map(function(o){return '<option value="'+o[0]+'"'+(cz==o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'+
+      (hh.cut?tpCutHtml('field')+
       '<div class="field"><label><input type="checkbox" data-tc="cfade"'+(hh.cfade===false?'':' checked')+'> تلاشي حافة الصورة الإضافية العلوية مع الصورة</label></div>':'')+
       '<div class="field"><span class="hint">الخلفية: من «الخلفية» ارفع صورة أو اختر لوناً/تدرجاً.</span></div>';}
   var pb='<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(S.hero.pimg?'تغيير الصورة':'رفع الصورة المركزية')+'</button>'+(S.hero.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>';
-  if(T.heroPhoto)return pb+'<div class="field"><label>تعليق أسفل الصورة (اختياري)</label>'+inp('hero.label',S.hero.label,'')+'</div>';
+  if(T.heroPhoto)return pb+tpPosHtml('hero','field')+'<div class="field"><label>تعليق أسفل الصورة (اختياري)</label>'+inp('hero.label',S.hero.label,'')+'</div>';
   return '<div class="field"><label>الاسم</label>'+inp('hero.label',S.hero.label,'الاسم')+'</div><div class="field"><label>الصفة</label>'+inp('hero.text',S.hero.text,'المنصب أو الصفة')+'</div>'+
-    '<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(S.hero.pimg?'تغيير الصورة':'رفع صورة الشخص')+'</button>'+(S.hero.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>';
+    '<div class="field"><button type="button" class="tool" data-tphoto="hero">'+(S.hero.pimg?'تغيير الصورة':'رفع صورة الشخص')+'</button>'+(S.hero.pimg?' <button type="button" class="tool" data-tphoto-rm="hero">إزالة</button>':'')+'</div>'+tpPosHtml('hero','field');
 }
 function tplItemExtra(i,it){
   var T=tplCur();if(!T||!T.fields)return '';
   var h='';
   if(T.fields.indexOf('value')>-1)h+='<div class="full">'+inp('items.'+i+'.value',it.value,'الرقم أو القيمة')+'</div>';
-  if(T.fields.indexOf('photo')>-1)h+='<div class="full"><button type="button" class="tool" data-tphoto="'+i+'">'+(it.pimg?'تغيير الصورة':'رفع صورة')+'</button>'+(it.pimg?' <button type="button" class="tool" data-tphoto-rm="'+i+'">إزالة</button>':'')+'<span class="hint"> أو تُجلب تلقائياً من المكتبة بالاسم</span></div>';
+  if(T.fields.indexOf('photo')>-1)h+='<div class="full"><button type="button" class="tool" data-tphoto="'+i+'">'+(it.pimg?'تغيير الصورة':'رفع صورة')+'</button>'+(it.pimg?' <button type="button" class="tool" data-tphoto-rm="'+i+'">إزالة</button>':'')+'<span class="hint"> أو تُجلب تلقائياً من المكتبة بالاسم</span></div>'+tpPosHtml(String(i),'field');
   return h;
+}
+/* size + position sliders for a picture (hero / item / the extra cut-out); cls is 'epf' in the card and 'field' in the side panel */
+function tpOwner(k){return k==='hero'||k==='cut'?S.hero:S.items[+k]}
+function tpDefs(k){var T=tplCur(),id=T&&T.id;if(k==='hero')return{x:50,y:(id==='callouts')?50:100};return{x:50,y:12}}
+function tpRng(cls,key,k,lab,v,mn,mx,st){
+  return '<div class="'+cls+'"><label>'+lab+' <b data-tpv="'+key+'.'+k+'">'+Math.round(v)+'</b>%</label><input type="range" data-tpz="'+k+'" data-tpo="'+key+'" min="'+mn+'" max="'+mx+'" step="'+(st||1)+'" value="'+Math.round(v)+'" aria-label="'+lab+'"></div>';
+}
+function tpPosHtml(key,cls){
+  var o=tpOwner(key);if(!o)return '';
+  var has=key==='hero'?!!o.pimg:!!tPersonImg(o,o.title);if(!has)return '';
+  var d=tpDefs(key);
+  return tpRng(cls,key,'iz','حجم الصورة',o.iz||100,30,300,5)+tpRng(cls,key,'ix','الموضع أفقياً',o.ix==null?d.x:o.ix,0,100)+tpRng(cls,key,'iy','الموضع رأسياً',o.iy==null?d.y:o.iy,0,100)
+    +'<div class="'+cls+'"><button type="button" class="tool ghost" data-tpreset="'+key+'">إعادة ضبط الصورة</button></div>';
+}
+function tpCutHtml(cls){
+  var h=S.hero;if(!h||!h.cut)return '';
+  return tpRng(cls,'cut','cz','حجم الصورة الإضافية',h.cz||120,30,300,5)+tpRng(cls,'cut','cox','الموضع أفقياً',h.cox||0,-100,100)+tpRng(cls,'cut','coy','الموضع رأسياً',h.coy||0,-100,100)
+    +'<div class="'+cls+'"><button type="button" class="tool ghost" data-tpreset="cut">إعادة ضبط الصورة الإضافية</button></div>';
 }
 /* the same picture controls inside the click-to-edit card (clicking the portrait must offer the upload, not the generic number fields) */
 function tpPicRow(key,has,up,chg,rm){
@@ -7435,21 +7465,21 @@ function tpPicRow(key,has,up,chg,rm){
 }
 function tplPopHero(){
   var T=tplCur();if(!T||!(T.person||T.heroPhoto||T.center))return null;
-  var hh=S.hero,h=tpPicRow('hero',!!hh.pimg,'رفع صورة','تغيير الصورة','إزالة الصورة');
+  var hh=S.hero,h=tpPicRow('hero',!!hh.pimg,'رفع صورة','تغيير الصورة','إزالة الصورة')+tpPosHtml('hero','epf');
   h+=epField('hero.label',T.heroPhoto?'تعليق أسفل الصورة (اختياري)':'الاسم',T.heroPhoto?'':'الاسم',{part:'label'});
   if(!T.heroPhoto)h+=epField('hero.text','الصفة','المنصب أو الصفة',{part:'text'});
   if(T.center){
     var cz=hh.cz||120;
     h+='<div class="epf"><label>لون الصندوق خلف الشخص</label><input type="color" data-tc="boxC" value="'+(hh.boxC||'#8C7E73')+'" aria-label="لون الصندوق"></div>'
       +'<div class="epf"><label>صورة إضافية تتداخل مع أسفل الصورة</label><div class="row"><button type="button" class="tool" data-tphoto="cut">'+(hh.cut?'تغيير الصورة الإضافية':'رفع صورة إضافية')+'</button>'+(hh.cut?'<button type="button" class="tool ghost" data-tphoto-rm="cut">إزالة</button><button type="button" class="tool" data-tcrb="1">تفريغ الخلفية</button>':'')+'</div></div>';
-    if(hh.cut)h+='<div class="epf"><label>حجم الصورة الإضافية</label><select data-tc="cz" aria-label="حجم الصورة الإضافية">'+[[90,'أصغر'],[120,'متوسط'],[150,'كبير'],[190,'أكبر']].map(function(o){return '<option value="'+o[0]+'"'+(cz==o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
+    if(hh.cut)h+=tpCutHtml('epf')
       +'<div class="epf"><label class="check"><input type="checkbox" data-tc="cfade"'+(hh.cfade===false?'':' checked')+'> تلاشي حافة الصورة الإضافية العلوية مع الصورة</label></div>';
   }
   return{t:T.heroPhoto?'الصورة المركزية':'الشخصية',h:h,acc:'style'};
 }
 function tplPopItemPhoto(i){
   var T=tplCur(),it=S.items[i];if(!T||!T.fields||T.fields.indexOf('photo')<0||!it)return '';
-  return tpPicRow(String(i),!!it.pimg,'رفع صورة','تغيير الصورة','إزالة الصورة')+'<p class="hint">أو تُجلب تلقائياً من المكتبة بالاسم.</p>';
+  return tpPicRow(String(i),!!it.pimg,'رفع صورة','تغيير الصورة','إزالة الصورة')+'<p class="hint">أو تُجلب تلقائياً من المكتبة بالاسم.</p>'+tpPosHtml(String(i),'epf');
 }
 function tplPopItemValue(i,g){
   var T=tplCur();return (T&&T.fields&&T.fields.indexOf('value')>-1)?epField(g+'.value','الرقم أو القيمة','الرقم أو القيمة',{part:'value'}):'';
@@ -7472,13 +7502,18 @@ function tplPhotoInit(){
   /* the side panel (#acc) and the click-to-edit card (#ep) share these controls */
   var inPanel=function(t){return !!(t&&t.closest&&t.closest('#acc,#ep'))};
   document.addEventListener('click',function(e){
+    var rb=e.target.closest&&e.target.closest('[data-tpreset]');
+    if(rb&&inPanel(rb)){var ro=tpOwner(rb.dataset.tpreset);if(ro){if(rb.dataset.tpreset==='cut'){delete ro.cz;delete ro.czs;delete ro.cox;delete ro.coy;delete ro.cy}else{delete ro.iz;delete ro.ix;delete ro.iy}tpRefresh()}return}
     var b=e.target.closest&&e.target.closest('[data-tphoto],[data-tphoto-rm],[data-tcrb]');if(!b||!inPanel(b))return;
     if(b.dataset.tcrb){tcRmBg();return}
     if(b.dataset.tphotoRm==='cut'){delete S.hero.cut;tpRefresh();return}
     if(b.dataset.tphotoRm){var o=b.dataset.tphotoRm==='hero'?S.hero:S.items[+b.dataset.tphotoRm];if(o)delete o.pimg;tpRefresh();return}
     TP_PH=b.dataset.tphoto;fi.value='';fi.click();
   });
-  document.addEventListener('input',function(e){var t=e.target;if(!t||!t.dataset||!t.dataset.tc||!inPanel(t))return;var k=t.dataset.tc;
+  document.addEventListener('input',function(e){var t=e.target;
+    if(t&&t.dataset&&t.dataset.tpz&&inPanel(t)){var o=tpOwner(t.dataset.tpo);if(!o)return;var k=t.dataset.tpz,v=+t.value;o[k]=v;if(k==='cz')o.czs=1;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-tpv="'+t.dataset.tpo+'.'+k+'"]'),function(b){b.textContent=Math.round(v)});schedule();return}
+    if(!t||!t.dataset||!t.dataset.tc||!inPanel(t))return;var k=t.dataset.tc;
     if(k==='boxC')S.hero.boxC=t.value;else if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()});
   document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.tc&&inPanel(t)){var k=t.dataset.tc;if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()}});
   fi.addEventListener('change',function(){
@@ -7491,12 +7526,18 @@ function tPersonImg(o,name){
   if(o&&o.pimg)return o.pimg;
   var a=name&&libFind('image',name);return a?tLibIm(a,false):null;
 }
+/* place a picture in a frame: base cover scale x the picture's own size (iz), anchored by ix / iy (0-100); dx / dy are the template's default anchor */
+function tpPlace(im,x,y,w,h,o,sc0,dx,dy){
+  var iw=im.naturalWidth,ih=im.naturalHeight,z=Math.max(.3,Math.min(3,((o&&o.iz)||100)/100)),s=sc0*z,
+      ax=(o&&o.ix!=null?o.ix:dx)/100,ay=(o&&o.iy!=null?o.iy:dy)/100;
+  return{x:x+(w-iw*s)*ax,y:y+(h-ih*s)*ay,w:iw*s,h:ih*s};
+}
 function tPerson(o,name,cx,cy,d,shape,hh){
   var im=tPersonImg(o,name),dark=S.theme==='dark',h=hh||d;
   ctx.save();ctx.beginPath();
   if(shape==='round'){rrect(cx-d/2,cy-h/2,d,h,d*.14)}else ctx.arc(cx,cy,d/2,0,Math.PI*2);
   ctx.clip();ctx.fillStyle=dark?'rgba(255,255,255,.16)':rgba(S.main,.12);ctx.fillRect(cx-d/2,cy-h/2,d,h);
-  if(im){var iw=im.naturalWidth,ih=im.naturalHeight,s=Math.max(d/iw,h/ih);ctx.drawImage(im,cx-iw*s/2,cy-h/2-(ih*s-h)*.12,iw*s,ih*s)}
+  if(im){var s=Math.max(d/im.naturalWidth,h/im.naturalHeight),pr=tpPlace(im,cx-d/2,cy-h/2,d,h,o,s,50,12);ctx.drawImage(im,pr.x,pr.y,pr.w,pr.h)}
   else{var ic=fxIconImg('user','fill',dark?'rgba(255,255,255,.75)':S.main,'#000',null);if(ic)ctx.drawImage(ic,cx-d*.3,cy-d*.34,d*.6,d*.6)}
   ctx.restore();
   ctx.beginPath();if(shape==='round')rrect(cx-d/2,cy-h/2,d,h,d*.14);else ctx.arc(cx,cy,d/2,0,Math.PI*2);ctx.lineWidth=3;ctx.strokeStyle=dark?'rgba(255,255,255,.5)':S.main;ctx.stroke();
@@ -7555,7 +7596,7 @@ tplReg({id:'portrait',name:'شخصية رسمية + نقاط التصريح',lay
     var ph=avail,py=top,im=S.hero.pimg||null;
     HI.tag('hero','photo','الصورة');HI.box(px,py,px+pw,py+ph);
     ctx.save();rrect(px,py,pw,ph,28);ctx.clip();ctx.fillStyle=S.theme==='dark'?'rgba(255,255,255,.12)':rgba(S.main,.1);ctx.fillRect(px,py,pw,ph);
-    if(im){var iw=im.naturalWidth,ih=im.naturalHeight,s=Math.max(pw/iw,ph/ih);ctx.drawImage(im,px+(pw-iw*s)/2,py+ph-ih*s+(ih*s>ph?Math.min(0,0):0),iw*s,ih*s)}
+    if(im){var s=Math.max(pw/im.naturalWidth,ph/im.naturalHeight),pr=tpPlace(im,px,py,pw,ph,S.hero,s,50,100);ctx.drawImage(im,pr.x,pr.y,pr.w,pr.h)}
     else{var ic=fxIconImg('user','fill',S.theme==='dark'?'rgba(255,255,255,.6)':S.main,'#000',null);if(ic)ctx.drawImage(ic,px+pw*.2,py+ph*.25,pw*.6,pw*.6)}
     ctx.restore();HI.tag();
     /* name badge */
@@ -7622,15 +7663,15 @@ tplReg({id:'portrait-center',name:'شخصية في المنتصف + نقاط ع�
     var boxC=hr.boxC||'#8C7E73',im=hr.pimg||null;
     HI.tag('hero','photo','الصورة');HI.box(px,py,px+pw,py+ph);
     ctx.save();rrect(px,py,pw,ph,14);ctx.clip();ctx.fillStyle=boxC;ctx.fillRect(px,py,pw,ph);
-    if(im){var iw=im.naturalWidth,ih=im.naturalHeight,s=tcHasAlpha(im)?Math.max(pw/iw,ph*.82/ih):Math.max(pw/iw,ph/ih);ctx.drawImage(im,px+(pw-iw*s)/2,py+ph-ih*s,iw*s,ih*s)}
+    if(im){var iw=im.naturalWidth,ih=im.naturalHeight,s=tcHasAlpha(im)?Math.max(pw/iw,ph*.82/ih):Math.max(pw/iw,ph/ih),pr=tpPlace(im,px,py,pw,ph,hr,s,50,100);ctx.drawImage(im,pr.x,pr.y,pr.w,pr.h)}
     else{var ic=fxIconImg('user','fill','rgba(255,255,255,.7)','#000',null);if(ic)ctx.drawImage(ic,px+pw*.2,py+ph*.18,pw*.6,pw*.6)}
     ctx.restore();HI.tag();
     /* the extra picture overlapping the lower part of the box */
     var cu=hr.cut;
     if(cu&&cu.naturalWidth){
-      var cz=Math.max(.6,Math.min(2,(hr.cz||120)/100)),cw=pw*cz,chh=cw*cu.naturalHeight/cu.naturalWidth;
-      if(chh>ph*.55){chh=ph*.55;cw=chh*cu.naturalWidth/cu.naturalHeight}
-      var cx0=px+(pw-cw)/2,cy0=py+ph-chh+(hr.cy||0);
+      var cz=Math.max(.3,Math.min(3,(hr.cz||120)/100)),cw=pw*cz,chh=cw*cu.naturalHeight/cu.naturalWidth;
+      if(!hr.czs&&chh>ph*.55){chh=ph*.55;cw=chh*cu.naturalWidth/cu.naturalHeight}
+      var cx0=px+(pw-cw)/2+pw*(hr.cox||0)/100,cy0=py+ph-chh+(hr.cy||0)+ph*(hr.coy||0)/100;
       HI.tag('hero','','الصورة الإضافية');HI.box(cx0,cy0,cx0+cw,cy0+chh,3);
       ctx.drawImage(hr.cfade===false?cu:tcFaded(cu,.34),cx0,cy0,cw,chh);HI.tag();
     }
@@ -7711,7 +7752,7 @@ tplReg({id:'callouts',name:'صورة مركزية + نقاط مرقّمة',layou
     HI.tag('hero','photo','الصورة المركزية');HI.box(px,py,px+pw,py+ph);
     ctx.save();rrect(px,py,pw,ph,40);ctx.clip();ctx.fillStyle=dark?'rgba(255,255,255,.12)':rgba(S.main,.1);ctx.fillRect(px,py,pw,ph);
     var im=S.hero.pimg;
-    if(im){var iw=im.naturalWidth,ih=im.naturalHeight,sc=Math.max(pw/iw,ph/ih);ctx.drawImage(im,px+(pw-iw*sc)/2,py+(ph-ih*sc)/2,iw*sc,ih*sc)}
+    if(im){var sc=Math.max(pw/im.naturalWidth,ph/im.naturalHeight),pr=tpPlace(im,px,py,pw,ph,S.hero,sc,50,50);ctx.drawImage(im,pr.x,pr.y,pr.w,pr.h)}
     else{var ic=fxIconImg(fxAutoIcon({t:'num',text:(S.title||'')+' '+(S.subtitle||''),sub:''}),'line',dark?'rgba(255,255,255,.7)':S.main,'#000',null);if(ic)ctx.drawImage(ic,px+pw*.2,py+ph/2-pw*.3,pw*.6,pw*.6)}
     ctx.restore();HI.tag();
     ctx.beginPath();rrect(px,py,pw,ph,40);ctx.lineWidth=3;ctx.strokeStyle=dark?'rgba(255,255,255,.5)':S.main;ctx.stroke();
@@ -8993,7 +9034,7 @@ function epBodyCH(g,p){
     var oi=CH.imgs[+p];t='صورة على التشارت';acc='img';
     if(oi){var q='imgs.'+p+'.';h=cRng(q+'s',3,150,1,'الحجم %')+'<div class="two">'+cRng(q+'x',-20,120,1,'أفقياً')+cRng(q+'y',-20,120,1,'رأسياً')+'</div><div class="two">'+cRng(q+'rot',-180,180,1,'الدوران °')+cRng(q+'op',10,100,1,'الشفافية %')+'</div>'+cF('الطبقة',cSeg(q+'layer',[['front','فوق التشارت'],['back','خلف التشارت']]))+'<div class="chks">'+cChk(q+'flip','قلب أفقي')+cChk(q+'shadow','ظل خفيف')+'</div><div class="epf"><button type="button" class="tool danger" data-chovdel="'+p+'">حذف الصورة</button></div>'}
   }
-  else if(k==='pic'){t='الصورة';acc='txt';h=cF('الصورة',cImgCtl('pic'))}
+  else if(k==='pic'){t='الصورة';acc='txt';h=cF('الصورة',cImgCtl('pic'))+cPicPos()}
   else if(k==='big'){t='الرقم الكبير';acc='txt';h=cF('الرقم',cIn('big.value',''))+cF('الوصف',cIn('big.label',''))+cCol('col.main',chC('main'),'اللون')}
   else if(k==='sum'){var i=+p;t='بطاقة ملخص';acc='txt';h=cF('العنوان',cIn('sum.'+i+'.label',''))+cF('الرقم',cIn('sum.'+i+'.value',''))+cF('سطر صغير',cIn('sum.'+i+'.sub',''))+cCol('sum.'+i+'.color',CH.sum[i].color||chC('main'),'لون البطاقة')}
   else{t='الخلفية';acc='bg';h=chBodyBg()+cF('نمط النص (فاتح/داكن)',cSeg('theme',[['','تلقائي'],['dark','داكن'],['light','فاتح']]))}
