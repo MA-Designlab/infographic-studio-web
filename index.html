@@ -1196,6 +1196,13 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
       <div class="step">
         <h2><i>1</i> النص</h2>
         <textarea id="src" dir="auto" placeholder="الصق هنا نص الخبر أو المادة، وسنستخرج منها العناوين والأرقام ونقترح القالب المناسب."></textarea>
+        <div class="field" id="srcPhotoF">
+          <label>صورة مرفقة (اختياري): شخصية أو مبنى أو منتج</label>
+          <div class="inrow"><button type="button" class="tool" id="srcPhotoBtn">رفع صورة</button><img id="srcPhotoTh" alt="" hidden><button type="button" class="tool ghost" id="srcPhotoRm" hidden>إزالة</button></div>
+          <div id="srcPhotoKind" hidden><label for="srcPhotoK">نوع الصورة</label><select id="srcPhotoK"><option value="auto">تلقائي حسب النص</option><option value="person">شخصية (قالب شخصية في المنتصف)</option><option value="object">مبنى أو منتج أو شعار (صورة مركزية + نقاط مرقّمة)</option></select></div>
+          <p class="hint" id="srcPhotoHint">مع الصورة يختار التطبيق قالباً فيه صورة ويضعها في مكانها.</p>
+          <input type="file" id="srcPhotoFile" accept="image/*" hidden>
+        </div>
         <div class="two">
           <div class="field"><label for="lang">لغة التصميم</label>
             <select id="lang"><option value="auto">تلقائي حسب النص</option><option value="ar">العربية</option><option value="en">English</option></select></div>
@@ -2418,6 +2425,7 @@ function applyData(d){
   var hv=d.hero&&(d.hero.value||d.hero.label)?d.hero:null;
   S.hero=hv?{value:clean(hv.value,12),label:clean(hv.label,40),text:clean(hv.text,110)}:{value:'',label:'',text:''};
   S.tpl=tplValid(d.template,S.layout)?d.template:'';
+  if(typeof igpApply==='function')igpApply();
   S.stats=(d.stats||[]).slice(0,S.tpl?8:6).map(function(s){return{value:clean(s.value,12),label:clean(s.label,40),text:clean(s.text,110)}});
   S.items=(d.items||[]).slice(0,8).map(function(s){var o={title:clean(s.title,60),text:clean(s.text,150)};if(s.value)o.value=clean(s.value,12);return o});
   S.bars=(d.bars||[]).slice(0,10).map(function(b){return{label:clean(b.label,40),value:clean(b.value!=null?b.value:b.display,16),note:clean(b.note,12)}});
@@ -2462,9 +2470,10 @@ async function generate(){
   if(!text){status('الصق النص أولاً.',true);return}
   ctl=new AbortController();$('#gen').disabled=true;$('#stopGen').hidden=false;status('جارٍ قراءة النص وترتيب التصميم…',false,true);
   try{
-    var j=await callFn('generate',{text:text,lang:$('#lang').value,layout:$('#layoutSel').value},ctl.signal);
+    var ph=typeof igpOn==='function'&&igpOn();
+    var j=await callFn('generate',{text:text,lang:$('#lang').value,layout:ph?'cards':$('#layoutSel').value},ctl.signal);
     if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
-    rvIg(j.data);
+    rvIg(ph?igpShape(j.data,text):j.data);
     status('راجع البيانات في النافذة وعدّلها، وبعدين اضغط «ارسم التصميم».');
   }catch(e){
     var c=e&&e.code;status(errText(c),c!=='cancelled');
@@ -2717,7 +2726,7 @@ function initUI(){
   S0=JSON.parse(JSON.stringify(S));
   var en=$('#exampleNote');if(en)en.hidden=true;
   syncControls();buildEditor();bindControls();bindEditor();
-  $('#gen').addEventListener('click',function(){pgGate('ig',function(){generate()})});
+  $('#gen').addEventListener('click',function(){if(typeof igpOn==='function'&&igpOn()){generate();return}pgGate('ig',function(){generate()})});
   $('#stopGen').addEventListener('click',function(){if(ctl)ctl.abort()});
   cliPickInit();clInit();mpInit();libInit();epInit();pvInit();ttInit();desInit();
   try{if(window.ResizeObserver){new ResizeObserver(fit).observe($('.sheetwrap'))}}catch(e){}
@@ -6945,12 +6954,23 @@ function rvSection(k,title,hint,addLabel){
   if(list.length<RV_MAX[k])h+='<button type="button" class="mini" data-rvact="add" data-k="'+k+'">'+addLabel+'</button>';
   return h+'</div>';
 }
+/* the fixed template (the AI's pick, changeable) and, for picture templates, the name / role / caption that go with the photo */
+function rvTplHtml(d){
+  var L=d.layout,list=tplList(L);if(!list.length)return '';
+  var T=tplValid(d.template,L)?TPL[d.template]:null,h='<div class="field"><label for="rvTpl">التصميم الثابت</label><select id="rvTpl" data-rvtpl><option value="">بدون (الشكل الأساسي)</option>'+list.map(function(o){return '<option value="'+o.id+'"'+(T&&T.id===o.id?' selected':'')+'>'+esc(o.name)+'</option>'}).join('')+'</select></div>';
+  if(T&&(T.person||T.heroPhoto||T.center||T.club)){
+    var f=T.club?[['label','اسم النادي أو الجهة','pll'],['value','الرقم الرئيسي','plv'],['text','وصف الرقم','plt']]:T.heroPhoto?[['label','تعليق أسفل الصورة (اختياري)','pll']]:[['label','الاسم','pll'],['text','الصفة أو المنصب','plt']];
+    h+='<div class="grp"><div class="head"><b>'+(T.heroPhoto?'الصورة المركزية':'الشخصية')+'</b>'+(typeof igpOn==='function'&&igpOn()?'<span class="hint">ستوضع الصورة المرفقة هنا</span>':'<span class="hint">ارفع الصورة بعد الرسم من نافذة الصورة</span>')+'</div>'+rvBox('hero',0,f,false)+'</div>';
+  }
+  return h;
+}
 function rvPaintIg(){
   var d=RV.d,L=d.layout,h='<p class="hint">النظام قرأ نصك وقسّمه للخانات دي. عدّل أي خانة أو احذفها أو أضف غيرها، وبعدين اضغط «ارسم التصميم».</p>';
   h+='<div class="field"><label for="rvLay">القالب</label><select id="rvLay" data-rvlay>'+RV_LAY.map(function(o){return '<option value="'+o[0]+'"'+(L===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
   h+='<div class="grp"><div class="head"><b>العنوان</b></div><div class="field"><label>السترابة (سطر صغير فوق العنوان)</label>'+rvIn('kicker',d.kicker,'السترابة')+'</div>'
     +'<div class="field"><label>العنوان الرئيسي</label><input type="text" id="rvTitle" dir="auto" data-rv="title" value="'+esc(d.title||'')+'" aria-label="العنوان الرئيسي"></div>'
     +'<div class="field"><label>العنوان الثانوي (تحت الرئيسي)</label>'+rvIn('subtitle',d.subtitle,'العنوان الثانوي')+'</div></div>';
+  h+=rvTplHtml(d);
   if(L==='stats'){
     h+='<div class="grp"><div class="head"><b>الرقم الرئيسي</b><span class="hint">اختياري</span></div>'+rvBox('hero',0,RV_F.stats,false)+'</div>';
     h+=rvSection('stats','الأرقام والجمل الداعمة','كل رقم مع جملته في بوكس لوحده.','+ إضافة رقم');
@@ -6966,7 +6986,7 @@ function rvPaintIg(){
 }
 function rvApplyIg(){
   var d=RV.d,filled=function(o){return Object.keys(o).some(function(k){return String(o[k]==null?'':o[k]).trim()!==''})};
-  var out={lang:d.lang,layout:d.layout,kicker:d.kicker,title:d.title,subtitle:d.subtitle,hero:d.layout==='stats'?d.hero:null,
+  var out={lang:d.lang,layout:d.layout,template:tplValid(d.template,d.layout)?d.template:'',kicker:d.kicker,title:d.title,subtitle:d.subtitle,hero:(d.layout==='stats'||(tplValid(d.template,d.layout)&&filled(d.hero)))?d.hero:null,
     stats:d.stats.filter(filled),items:d.items.filter(filled),bars:d.bars.filter(filled),legend:d.layout==='bars'?d.legend:[]};
   if(!String(out.title||'').trim()&&!out.stats.length&&!out.items.length&&!out.bars.length&&!(out.hero&&out.hero.value)){$('#plBody').insertAdjacentHTML('afterbegin','<p class="dlg-msg" role="alert">ما فيه بيانات تتصمم. اكتب عنواناً أو رقماً على الأقل.</p>');return}
   applyData(out);$('#exampleNote').hidden=true;buildEditor();syncControls();render();
@@ -7078,7 +7098,8 @@ function rvInput(e){
 }
 function rvChange(e){
   var t=e.target;
-  if(RV.kind==='ig'&&t.dataset&&t.dataset.rvlay!==undefined){RV.d.layout=t.value;rvScroll(rvPaintIg)}
+  if(RV.kind==='ig'&&t.dataset&&t.dataset.rvlay!==undefined){RV.d.layout=t.value;if(!tplValid(RV.d.template,RV.d.layout))RV.d.template='';rvScroll(rvPaintIg)}
+  if(RV.kind==='ig'&&t.dataset&&t.dataset.rvtpl!==undefined){RV.d.template=t.value;rvScroll(rvPaintIg)}
 }
 function rvClick(e){
   var b=e.target.closest('[data-rvact]');if(!b)return;
@@ -8774,6 +8795,56 @@ function roBind(m){
 }
 function roInit(){roBind('ig');roBind('cz')}
 
+/* ===== picture + text -> a finished template: the attached photo goes into a template that has a picture slot ===== */
+var IGP={img:null,kind:'auto'};
+function igpOn(){return !!IGP.img}
+var IGP_PERSON=['portrait','portrait-center','people-row','people-list','club-card'];
+var IGP_WORDS=/معالي|سمو|الشيخ|الشيخة|الدكتور|الدكتورة|وزير|رئيس|مدير|قال|صرّح|صرح|أكد|أكدت|الرئيس|السفير|المهندس/;
+/* fit the AI answer (layout "cards") to a picture template */
+function igpShape(data,text){
+  var d=JSON.parse(JSON.stringify(data||{})),k=IGP.kind,t=String(d.template||'');
+  if(k==='auto'){
+    if(t==='callouts')k='object';
+    else if(IGP_PERSON.indexOf(t)>-1||(d.hero&&d.hero.label&&d.hero.text))k='person';
+    else k=IGP_WORDS.test(String(text||'').slice(0,600))?'person':'object';
+  }
+  d.layout='cards';
+  d.template=k==='person'?'portrait-center':'callouts';
+  d.hero=d.hero&&typeof d.hero==='object'?{value:'',label:String(d.hero.label||''),text:String(d.hero.text||'')}:{value:'',label:'',text:''};
+  d.items=Array.isArray(d.items)?d.items.filter(function(x){return x&&(x.title||x.text)}):[];
+  if(!d.items.length&&Array.isArray(d.stats)){
+    /* the AI read the text as figures: turn each one into a point */
+    d.items=d.stats.filter(function(x){return x&&(x.value||x.label||x.text)}).map(function(x){
+      var tt=[x.value,x.label].filter(Boolean).join(' ');return{title:tt,text:x.text||''}});
+  }
+  if(!d.items.length&&Array.isArray(d.bars))d.items=d.bars.filter(function(x){return x&&(x.label||x.value)}).map(function(x){return{title:x.label||'',text:x.value||''}});
+  d.stats=[];d.bars=[];d.legend=[];
+  if(k==='object')d.hero.text='';
+  return d;
+}
+/* the picture is set after the design data is applied (applyData rebuilds S.hero) */
+function igpApply(){
+  if(!IGP.img||!S.tpl)return;
+  var T=tplCur();if(!T||!(T.person||T.heroPhoto||T.center))return;
+  S.hero.pimg=IGP.img;igpClear();
+}
+function igpPaint(){
+  var th=$('#srcPhotoTh'),rm=$('#srcPhotoRm'),kd=$('#srcPhotoKind'),bt=$('#srcPhotoBtn');if(!bt)return;
+  if(IGP.img){th.src=IGP.img.src;th.hidden=false;rm.hidden=false;kd.hidden=false;bt.textContent='تغيير الصورة'}
+  else{th.hidden=true;th.removeAttribute('src');rm.hidden=true;kd.hidden=true;bt.textContent='رفع صورة'}
+}
+function igpClear(){IGP.img=null;var f=$('#srcPhotoFile');if(f)f.value='';igpPaint()}
+function igpInit(){
+  var bt=$('#srcPhotoBtn'),f=$('#srcPhotoFile');if(!bt||!f)return;
+  bt.addEventListener('click',function(){f.click()});
+  $('#srcPhotoRm').addEventListener('click',igpClear);
+  $('#srcPhotoK').addEventListener('change',function(){IGP.kind=this.value});
+  f.addEventListener('change',function(){
+    var file=f.files&&f.files[0];if(!file)return;
+    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){IGP.img=im;igpPaint()};im.onerror=function(){toast('تعذر قراءة الصورة.',true)};im.src=fr.result};fr.readAsDataURL(file);
+  });
+}
+
 /* ===== click any element in the design to edit it live ===== */
 var EP={on:false,mode:'',g:'',p:'',box:null,down:null,card:null};
 var EP_ACC={title:'head',subtitle:'head',lede:'head',kicker:'kick',hero:'hero',stats:'stats',bars:'list',items:'list',legend:'list',footer:'foot',sec:'style',band:'style',bg:'bg'};
@@ -9230,7 +9301,7 @@ function epHint(){
   });
 }
 function epInit(){
-  bandOptsInit();fxInit();sdInit();roInit();rfInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
+  bandOptsInit();fxInit();sdInit();roInit();igpInit();rfInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EP.on)epClose()});
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){epClose()})});
   ['#chRead','#chDemo','#chDl'].forEach(function(s){var b=$(s);if(b)b.addEventListener('click',function(){epClose()})});
