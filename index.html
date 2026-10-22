@@ -1852,7 +1852,7 @@ var PRESETS={
 
 var S={
   size:'4:5',lang:'ar',layout:'stats',sec:'eco',theme:'light',main:'#1B1F78',titleC:'#1B1F78',strap:'#D8560B',strapPos:'top',labelPos:'above',numGray:false,
-  kicker:'',title:'',subtitle:'',lede:'',ledeSize:100,ledeHi:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',titleFont:'',titleScale:100,
+  kicker:'',title:'',subtitle:'',lede:'',ledeSize:100,ledeHi:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',titleFont:'',titleScale:100,titleNum:false,titleNumC:'',
   hero:{value:'',label:'',text:''},stats:[],items:[],bars:[],legend:[],fx:[],tpl:'',ticons:true,tpanel:false,
   bgMode:'preset',bgC1:'#1B1F78',bgC2:'#7B35C6',bgAngle:180,bgPreset:0,bgImg:null,anchor:'bottom',photoZ:100,photoX:50,photoY:null,photoH:100,photoFade:'auto',photoFadeAmt:45,veil:.35,band:true,bandCol:'',bandTr:null,bandSize:100,bandShape:'full'
 };
@@ -2000,7 +2000,8 @@ function titleBlock(y0){
     }else if(part==='title'&&S.title){
       var tsc=(S.titleScale||100)/100;for(size=Math.round(116*tsc);size>=Math.round(60*Math.min(1,tsc));size-=4){lines=wrapBal(S.title,f.title(size),W-2*M-30);if(lines.length<=2||(size<=76*tsc&&lines.length<=3))break}
       var step=size*(S.lang==='en'?1.06:1.14);
-      HI.tag('title','','العنوان');lines.forEach(function(l,i){put(l,W/2,y+size*.9+i*step,f.title(size),S.titleC,'center')});HI.tag();
+      var tnS={};
+      HI.tag('title','','العنوان');lines.forEach(function(l,i){put(l,W/2,y+size*.9+i*step,f.title(size),S.titleC,'center');if(typeof tnOver==='function')tnOver(l,W/2,y+size*.9+i*step,f.title(size),size,tnS)});HI.tag();
       y+=lines.length*step+14;
     }else if(part==='subtitle'&&S.subtitle){
       var ss=S.lang==='en'?40:44,sl=limit(wrapBal(fixPct(S.subtitle),f.sub(ss),W-2*M-60),2);
@@ -2299,7 +2300,7 @@ function colRow(path,o){
 function addRow(k,label){return '<button type="button" class="tool add" data-add="'+k+'">+ '+label+'</button>'}
 function buildEditor(){
   var L=S.layout,h;
-  $('#edTitle').innerHTML='<div class="field"><label>العنوان الكبير</label>'+inp('title',S.title,'العنوان الكبير')+'</div><div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>'+(window.__ldHtml?window.__ldHtml():'')+(window.__ttHtml?window.__ttHtml('ig'):'');
+  $('#edTitle').innerHTML='<div class="field"><label>العنوان الكبير</label>'+inp('title',S.title,'العنوان الكبير')+'</div><div class="field"><label>العنوان الثانوي</label>'+inp('subtitle',S.subtitle,'العنوان الثانوي')+'</div>'+(window.__tnHtml?window.__tnHtml():'')+(window.__ldHtml?window.__ldHtml():'')+(window.__ttHtml?window.__ttHtml('ig'):'');
   $('#edKick').innerHTML='<div class="field"><label>نص السترابة</label>'+inp('kicker',S.kicker,'السترابة')+'</div>';
   $('#edFoot').innerHTML='<div class="field"><label>نص السطر (إعداد أو مصدر)</label>'+inp('footer',S.footer,'إعداد: الاسم، تصميم: الاسم')+'</div>';
   $('#edHero').innerHTML=tplHeroHtml()||('<div class="two">'+inp('hero.value',S.hero.value,'الرقم')+inp('hero.label',S.hero.label,'الكلمة المميزة')+'</div>'+inp('hero.text',S.hero.text,'جملة قصيرة تحت الرقم')+colRow('hero',S.hero));
@@ -10959,6 +10960,39 @@ document.addEventListener('click',function(e){
   if(b.hasAttribute('data-ldai'))ldSmart();
   else if(b.hasAttribute('data-ldsel'))ldSelection();
   else if(!b.disabled){LD.prev=S.lede;ldSet(ldPlain(S.lede))}
+});
+
+/* ===== highlight the first number of the big title in its own colour (like "50" in a ChatGPT-style poster) ===== */
+var TN_RE=/[0-9٠-٩]+(?:[.,٫][0-9٠-٩]+)*[%٪]?/;
+/* called after a title line is drawn: paints the first number of the title again, clipped to its box, in the highlight colour */
+function tnOver(line,cx,yb,font,size,st){
+  if(!S.titleNum||st.done)return;
+  var m=TN_RE.exec(line);if(!m)return;
+  st.done=true;
+  var rt=dirOf()==='rtl';
+  ctx.save();
+  ctx.font=font;ctx.direction=dirOf();
+  var w=ctx.measureText(line).width,pre=ctx.measureText(line.slice(0,m.index)).width,nw=ctx.measureText(m[0]).width;
+  var x1=rt?cx+w/2-pre-nw:cx-w/2+pre;
+  ctx.beginPath();ctx.rect(x1-3,yb-size*1.15,nw+6,size*1.6);ctx.clip();
+  ctx.fillStyle=S.titleNumC||S.strap;ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.fillText(line,cx,yb);
+  ctx.restore();
+}
+function tnHtml(){
+  var has=TN_RE.test(S.title||'');
+  return '<div class="field tnrow"><label><input type="checkbox" data-tn'+(S.titleNum?' checked':'')+'> تمييز الرقم الأول في العنوان بلون مختلف</label>'
+    +'<div class="colrow"><label>لون الرقم</label><input type="color" data-tnc value="'+String(S.titleNumC||S.strap||'#D8560B').toLowerCase()+'" aria-label="لون رقم العنوان">'
+    +'<span class="hint" data-tnh>'+(has?'':'لا يوجد رقم في العنوان حالياً')+'</span></div></div>';
+}
+window.__tnHtml=tnHtml;
+document.addEventListener('change',function(e){
+  var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-tn'))return;
+  S.titleNum=!!t.checked;schedule();
+});
+document.addEventListener('input',function(e){
+  var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-tnc'))return;
+  S.titleNumC=t.value.toUpperCase();if(!S.titleNum){S.titleNum=true;var c=$('#acc [data-tn]');if(c)c.checked=true}schedule();
 });
 
 /* ===== independent control of the number, the highlighted word and the caption of every stat: size, colour, font, position ===== */
