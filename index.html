@@ -2422,8 +2422,9 @@ function applyData(d){
   var lay=['stats','list','bars','cards'];
   S.layout=lay.indexOf(d.layout)>-1?d.layout:'stats';
   S.kicker=clean(d.kicker,60);S.title=clean(d.title,60);S.subtitle=clean(d.subtitle,90);S.lede=typeof d.lede==='string'?d.lede.slice(0,220):'';S.footer='';
-  var hv=d.hero&&(d.hero.value||d.hero.label)?d.hero:null;
+  var hv=d.hero&&(d.hero.value||d.hero.label||d.hero.a||d.hero.b||d.hero.sec)?d.hero:null;
   S.hero=hv?{value:clean(hv.value,12),label:clean(hv.label,40),text:clean(hv.text,110)}:{value:'',label:'',text:''};
+  if(hv&&(hv.a||hv.b||hv.sec)){S.hero.a=clean(hv.a,30);S.hero.b=clean(hv.b,30);S.hero.sec=clean(hv.sec,40)}
   S.tpl=tplValid(d.template,S.layout)?d.template:'';
   if(typeof igpApply==='function')igpApply();
   S.stats=(d.stats||[]).slice(0,S.tpl?8:6).map(function(s){return{value:clean(s.value,12),label:clean(s.label,40),text:clean(s.text,110)}});
@@ -2442,7 +2443,7 @@ var ERR={
   ai_timeout:'تأخر الرد. أعد المحاولة أو قصّر النص.',ai_failed:'تعذر الوصول للذكاء الاصطناعي الآن. أعد المحاولة بعد قليل.',invalid_json:'لم أستطع قراءة الرد. أعد المحاولة أو قصّر النص.',
   empty_text:'الصق النص أولاً.',weak_password:'كلمة السر لازم تكون 8 أحرف على الأقل.',bad_email:'الإيميل غير صحيح.',cannot_remove_self:'لا يمكنك حذف حسابك بنفسك.',
   user_not_found:'المستخدم غير موجود.',not_admin:'هذه الميزة للمسؤول فقط.',cancelled:'تم الإيقاف.',
-  bad_sheet_url:'الرابط ليس رابط Google Sheets. انسخه من شريط العنوان أو من زر «مشاركة».',sheet_private:'ما قدرت أفتح الجدول. في Google Sheets اضغط «مشاركة» ثم «أي شخص لديه الرابط» بصلاحية «مشاهد» وأعد المحاولة.',sheet_not_found:'لم أجد هذا الجدول. تأكد من الرابط.',sheet_timeout:'تأخر Google في الرد. أعد المحاولة.',sheet_too_big:'الجدول كبير جداً. اترك فيه الصفوف التي تحتاجها فقط.',sheet_empty:'الجدول فارغ.',sheet_failed:'تعذّر جلب الجدول الآن. أعد المحاولة.',bad_items:'لا توجد نصوص صالحة للترجمة.',removebg_not_configured:'تفريغ الخلفية غير مفعّل بعد. يلزم إضافة مفتاح PhotoRoom في إعدادات الخلفية.',removebg_bad_key:'مفتاح PhotoRoom مرفوض.',removebg_no_credit:'رصيد PhotoRoom خلص.',removebg_rate_limited:'ضغط كبير على خدمة التفريغ. أعد المحاولة بعد قليل.',removebg_bad_image:'تعذّر تفريغ هذه الصورة. جرّب صورة أخرى.',removebg_failed:'تعذّر تفريغ الخلفية الآن. أعد المحاولة.',removebg_timeout:'تأخرت خدمة التفريغ. أعد المحاولة.',bad_lang:'لغة الترجمة غير محددة.',
+  bad_sheet_url:'الرابط ليس رابط Google Sheets. انسخه من شريط العنوان أو من زر «مشاركة».',sheet_private:'ما قدرت أفتح الجدول. في Google Sheets اضغط «مشاركة» ثم «أي شخص لديه الرابط» بصلاحية «مشاهد» وأعد المحاولة.',sheet_not_found:'لم أجد هذا الجدول. تأكد من الرابط.',sheet_timeout:'تأخر Google في الرد. أعد المحاولة.',sheet_too_big:'الجدول كبير جداً. اترك فيه الصفوف التي تحتاجها فقط.',sheet_empty:'الجدول فارغ.',sheet_failed:'تعذّر جلب الجدول الآن. أعد المحاولة.',bad_items:'لا توجد نصوص صالحة للترجمة.',art_not_configured:'توليد الرسم بالذكاء الاصطناعي غير مفعّل بعد. لازم مفتاح OpenAI يتضاف في أسرار الخلفية.',art_failed:'تعذر توليد الرسم. أعد المحاولة بعد قليل.',art_bad_key:'مفتاح OpenAI غير مقبول. راجع OPENAI_API_KEY.',removebg_not_configured:'تفريغ الخلفية غير مفعّل بعد. يلزم إضافة مفتاح PhotoRoom في إعدادات الخلفية.',removebg_bad_key:'مفتاح PhotoRoom مرفوض.',removebg_no_credit:'رصيد PhotoRoom خلص.',removebg_rate_limited:'ضغط كبير على خدمة التفريغ. أعد المحاولة بعد قليل.',removebg_bad_image:'تعذّر تفريغ هذه الصورة. جرّب صورة أخرى.',removebg_failed:'تعذّر تفريغ الخلفية الآن. أعد المحاولة.',removebg_timeout:'تأخرت خدمة التفريغ. أعد المحاولة.',bad_lang:'لغة الترجمة غير محددة.',
   account_disabled:'هذا الحساب موقوف. تواصل مع المسؤول.',protected_super_admin:'هذا حساب المالك وهو محمي، لا يمكن تعديله أو إيقافه أو حذفه.',forbidden:'لا تملك صلاحية على هذا الحساب.',super_admin_only:'هذه الميزة للمالك فقط.',cannot_modify_self:'لا يمكن تطبيق هذا على حسابك.',
   empty_name:'اكتب الاسم.',ai_no_credit:'رصيد خدمة الذكاء الاصطناعي لم يُشحن أو انتهى. أضف رصيداً من صفحة الفوترة في لوحة الخدمة ثم أعد المحاولة.',ai_bad_key:'مفتاح خدمة الذكاء الاصطناعي غير صحيح أو انتهت صلاحيته.',ai_bad_model:'اسم النموذج غير مقبول من خدمة الذكاء الاصطناعي.',ai_rate_limited:'ضغط كبير على الخدمة الآن. أعد المحاولة بعد قليل.',not_found:'لم يُعثر عليه في المصادر العامة. ارفعه يدوياً.',unknown_country:'اسم الدولة غير معروف. ارفع العلم يدوياً.',store_failed:'تعذّر حفظ الملف في المكتبة.',bad_code:'رمز الدولة غير صحيح.'
 };
@@ -6931,7 +6932,7 @@ function rvIg(data){
   if(window.__lnRaw)window.__lnRaw('ig',data||{});
   var d=JSON.parse(JSON.stringify(data||{}));
   d.layout=['stats','list','bars','cards'].indexOf(d.layout)>-1?d.layout:'stats';
-  d.hero=d.hero&&typeof d.hero==='object'?{value:d.hero.value||'',label:d.hero.label||'',text:d.hero.text||''}:{value:'',label:'',text:''};
+  d.hero=d.hero&&typeof d.hero==='object'?{value:d.hero.value||'',label:d.hero.label||'',text:d.hero.text||'',a:d.hero.a||'',b:d.hero.b||'',sec:d.hero.sec||''}:{value:'',label:'',text:'',a:'',b:'',sec:''};
   ['stats','items','bars'].forEach(function(k){d[k]=Array.isArray(d[k])?d[k]:[]});
   d.legend=Array.isArray(d.legend)?d.legend:[];
   RV={kind:'ig',d:d};
@@ -6958,9 +6959,9 @@ function rvSection(k,title,hint,addLabel){
 function rvTplHtml(d){
   var L=d.layout,list=tplList(L);if(!list.length)return '';
   var T=tplValid(d.template,L)?TPL[d.template]:null,h='<div class="field"><label for="rvTpl">التصميم الثابت</label><select id="rvTpl" data-rvtpl><option value="">بدون (الشكل الأساسي)</option>'+list.map(function(o){return '<option value="'+o.id+'"'+(T&&T.id===o.id?' selected':'')+'>'+esc(o.name)+'</option>'}).join('')+'</select></div>';
-  if(T&&(T.person||T.heroPhoto||T.center||T.club)){
-    var f=T.club?[['label','اسم النادي أو الجهة','pll'],['value','الرقم الرئيسي','plv'],['text','وصف الرقم','plt']]:T.heroPhoto?[['label','تعليق أسفل الصورة (اختياري)','pll']]:[['label','الاسم','pll'],['text','الصفة أو المنصب','plt']];
-    h+='<div class="grp"><div class="head"><b>'+(T.heroPhoto?'الصورة المركزية':'الشخصية')+'</b>'+(typeof igpOn==='function'&&igpOn()?'<span class="hint">ستوضع الصورة المرفقة هنا</span>':'<span class="hint">ارفع الصورة بعد الرسم من نافذة الصورة</span>')+'</div>'+rvBox('hero',0,f,false)+'</div>';
+  if(T&&(T.person||T.heroPhoto||T.center||T.club||T.bilat)){
+    var f=T.bilat?[['a','الدولة الأولى (مثل: الإمارات)','pll'],['b','الدولة الثانية (مثل: اليونان)','pll'],['sec','عنوان البطاقات (مثل: محطات الشراكة)','pll']]:T.club?[['label','اسم النادي أو الجهة','pll'],['value','الرقم الرئيسي','plv'],['text','وصف الرقم','plt']]:T.heroPhoto?[['label','تعليق أسفل الصورة (اختياري)','pll']]:[['label','الاسم','pll'],['text','الصفة أو المنصب','plt']];
+    h+='<div class="grp"><div class="head"><b>'+(T.bilat?'العلاقة بين الدولتين':T.heroPhoto?'الصورة المركزية':'الشخصية')+'</b>'+(typeof igpOn==='function'&&igpOn()?'<span class="hint">ستوضع الصورة المرفقة هنا</span>':'<span class="hint">ارفع الصورة بعد الرسم من نافذة الصورة</span>')+'</div>'+rvBox('hero',0,f,false)+'</div>';
   }
   return h;
 }
@@ -7438,9 +7439,10 @@ tplReg({id:'donut',name:'دونات توزيع (مع قائمة)',layout:'bars',
   }});
 
 /* ---------- extra fields and photos for people / portraits ---------- */
-function tplHeroOn(){var T=tplCur();return !!(T&&(T.person||T.heroPhoto||T.club))}
+function tplHeroOn(){var T=tplCur();return !!(T&&(T.person||T.heroPhoto||T.club||T.bilat))}
 function tplHeroHtml(){
-  var T=tplCur();if(!T||!(T.person||T.heroPhoto||T.club))return '';
+  var T=tplCur();if(!T||!(T.person||T.heroPhoto||T.club||T.bilat))return '';
+  if(T.bilat)return tbBilatHtml('field',false);
   if(T.club)return '<div class="field"><label>اسم النادي / الجهة (يُجلب الشعار من المكتبة)</label>'+inp('hero.label',S.hero.label,'')+'</div><div class="field"><label>الرقم الرئيسي (مثل القيمة السوقية)</label>'+inp('hero.value',S.hero.value,'')+'</div><div class="field"><label>وصف الرقم</label>'+inp('hero.text',S.hero.text,'')+'</div>';
   if(T.center){var hh=S.hero,cz=hh.cz||120;
     return '<div class="field"><label>الاسم (يظهر في الإطار أعلى التصميم)</label>'+inp('hero.label',hh.label,'مثال: معالي أحمد جاسم الزعابي')+'</div><div class="field"><label>الصفة</label>'+inp('hero.text',hh.text,'المنصب أو الصفة')+'</div>'+
@@ -7463,7 +7465,7 @@ function tplItemExtra(i,it){
   return h;
 }
 /* size + position sliders for a picture (hero / item / the extra cut-out); cls is 'epf' in the card and 'field' in the side panel */
-function tpOwner(k){return k==='hero'||k==='cut'?S.hero:S.items[+k]}
+function tpOwner(k){return k==='hero'||k==='cut'||k==='art'?S.hero:S.items[+k]}
 function tpDefs(k){var T=tplCur(),id=T&&T.id;if(k==='hero')return{x:50,y:(id==='callouts')?50:100};return{x:50,y:12}}
 function tpRng(cls,key,k,lab,v,mn,mx,st){
   return '<div class="'+cls+'"><label>'+lab+' <b data-tpv="'+key+'.'+k+'">'+Math.round(v)+'</b>%</label><input type="range" data-tpz="'+k+'" data-tpo="'+key+'" min="'+mn+'" max="'+mx+'" step="'+(st||1)+'" value="'+Math.round(v)+'" aria-label="'+lab+'"></div>';
@@ -7485,7 +7487,8 @@ function tpPicRow(key,has,up,chg,rm){
   return '<div class="epf"><div class="row"><button type="button" class="tool" data-tphoto="'+key+'">'+(has?chg:up)+'</button>'+(has?'<button type="button" class="tool ghost" data-tphoto-rm="'+key+'">'+rm+'</button>':'')+'</div></div>';
 }
 function tplPopHero(){
-  var T=tplCur();if(!T||!(T.person||T.heroPhoto||T.center))return null;
+  var T=tplCur();if(T&&T.bilat)return{t:'العلاقة بين الدولتين',h:tbBilatHtml('epf',true),acc:'style'};
+  if(!T||!(T.person||T.heroPhoto||T.center))return null;
   var hh=S.hero,h=tpPicRow('hero',!!hh.pimg,'رفع صورة','تغيير الصورة','إزالة الصورة')+tpPosHtml('hero','epf');
   h+=epField('hero.label',T.heroPhoto?'تعليق أسفل الصورة (اختياري)':'الاسم',T.heroPhoto?'':'الاسم',{part:'label'});
   if(!T.heroPhoto)h+=epField('hero.text','الصفة','المنصب أو الصفة',{part:'text'});
@@ -7523,23 +7526,25 @@ function tplPhotoInit(){
   /* the side panel (#acc) and the click-to-edit card (#ep) share these controls */
   var inPanel=function(t){return !!(t&&t.closest&&t.closest('#acc,#ep'))};
   document.addEventListener('click',function(e){
+    var ab=e.target.closest&&e.target.closest('[data-tart]');if(ab&&inPanel(ab)){tbArtGen(ab);return}
     var rb=e.target.closest&&e.target.closest('[data-tpreset]');
-    if(rb&&inPanel(rb)){var ro=tpOwner(rb.dataset.tpreset);if(ro){if(rb.dataset.tpreset==='cut'){delete ro.cz;delete ro.czs;delete ro.cox;delete ro.coy;delete ro.cy}else{delete ro.iz;delete ro.ix;delete ro.iy}tpRefresh()}return}
+    if(rb&&inPanel(rb)){var ro=tpOwner(rb.dataset.tpreset);if(ro){if(rb.dataset.tpreset==='art'){delete ro.az;delete ro.ax;delete ro.ay}else if(rb.dataset.tpreset==='cut'){delete ro.cz;delete ro.czs;delete ro.cox;delete ro.coy;delete ro.cy}else{delete ro.iz;delete ro.ix;delete ro.iy}tpRefresh()}return}
     var b=e.target.closest&&e.target.closest('[data-tphoto],[data-tphoto-rm],[data-tcrb]');if(!b||!inPanel(b))return;
     if(b.dataset.tcrb){tcRmBg();return}
     if(b.dataset.tphotoRm==='cut'){delete S.hero.cut;tpRefresh();return}
+    if(b.dataset.tphotoRm==='art'){delete S.hero.art;tpRefresh();return}
     if(b.dataset.tphotoRm){var o=b.dataset.tphotoRm==='hero'?S.hero:S.items[+b.dataset.tphotoRm];if(o)delete o.pimg;tpRefresh();return}
     TP_PH=b.dataset.tphoto;fi.value='';fi.click();
   });
   document.addEventListener('input',function(e){var t=e.target;
-    if(t&&t.dataset&&t.dataset.tpz&&inPanel(t)){var o=tpOwner(t.dataset.tpo);if(!o)return;var k=t.dataset.tpz,v=+t.value;o[k]=v;if(k==='cz')o.czs=1;
+    if(t&&t.dataset&&t.dataset.tpz&&inPanel(t)){var o=tpOwner(t.dataset.tpo);if(!o)return;var k=t.dataset.tpz,v=+t.value;o[t.dataset.tpo==='art'?'a'+k.slice(1):k]=v;if(k==='cz')o.czs=1;
       Array.prototype.forEach.call(document.querySelectorAll('[data-tpv="'+t.dataset.tpo+'.'+k+'"]'),function(b){b.textContent=Math.round(v)});schedule();return}
     if(!t||!t.dataset||!t.dataset.tc||!inPanel(t))return;var k=t.dataset.tc;
-    if(k==='boxC')S.hero.boxC=t.value;else if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()});
-  document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.tc&&inPanel(t)){var k=t.dataset.tc;if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()}});
+    if(k==='boxC')S.hero.boxC=t.value;else if(k==='gold')S.hero.gold=t.value;else if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()});
+  document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.tc&&inPanel(t)){var k=t.dataset.tc;if(k==='artMode'){S.hero.artMode=t.value;tpRefresh();return}if(k==='cz')S.hero.cz=+t.value;else if(k==='cfade')S.hero.cfade=t.checked;schedule()}});
   fi.addEventListener('change',function(){
     var file=fi.files&&fi.files[0];if(!file||TP_PH==null)return;var k=TP_PH;
-    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){if(k==='cut'){S.hero.cut=im}else{var o=k==='hero'?S.hero:S.items[+k];if(o)o.pimg=im}tpRefresh()};im.src=fr.result};fr.readAsDataURL(file);
+    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){if(k==='cut'){S.hero.cut=im}else if(k==='art'){S.hero.art=im;S.hero.artMode='art';delete S.hero.az;delete S.hero.ax;delete S.hero.ay}else{var o=k==='hero'?S.hero:S.items[+k];if(o)o.pimg=im}tpRefresh()};im.src=fr.result};fr.readAsDataURL(file);
   });
 }
 /* a person's picture: uploaded one, else from the library by name; circle (or rounded) crop; placeholder when missing */
@@ -7949,6 +7954,168 @@ tplReg({id:'versus',name:'مواجهة: فريق ضد فريق (الأسماء �
   }});
 
 window.__tpl={LIB:LIB,TLI:TLI,libRebuild:libRebuild,S:S,render:function(){render()},buildEditor:function(){buildEditor()},syncControls:function(){syncControls()}};
+
+/* ===== template "bilateral": the relation between two countries - crossed flags over a golden ring, a heading with rules, and 3-4 cards with round icons ===== */
+var TB_GOLD='#B8892E';
+function tbGold(){var g=S.hero&&S.hero.gold;return /^#[0-9a-f]{6}$/i.test(g||'')?g:TB_GOLD}
+function tbA(){return String(S.hero.a||'').trim()||'الإمارات'}
+function tbB(){return String(S.hero.b||'').trim()}
+function tbHex(c,a){var h=c.replace('#','');return 'rgba('+parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)+','+a+')'}
+
+/* flags: the library one if it exists, else a hand-drawn UAE / Greece, else a plain banner with the name */
+function tbFlagCanvas(name,w,h){
+  var c=document.createElement('canvas');c.width=Math.round(w);c.height=Math.round(h);var g=c.getContext('2d'),n=fxNorm(name);
+  var a=tBarAsset(name),im=a?tLibIm(a,false):null;
+  if(im){var iw=im.naturalWidth,ih=im.naturalHeight,s=Math.max(w/iw,h/ih);g.drawImage(im,(w-iw*s)/2,(h-ih*s)/2,iw*s,ih*s);return c}
+  if(n.indexOf('امارات')>-1){
+    g.fillStyle='#FFFFFF';g.fillRect(0,0,w,h);g.fillStyle='#00732F';g.fillRect(0,0,w,h/3);g.fillStyle='#000000';g.fillRect(0,h*2/3,w,h/3);g.fillStyle='#FF0000';g.fillRect(0,0,w*.25,h);return c}
+  if(n.indexOf('يونان')>-1){
+    var sh=h/9;g.fillStyle='#FFFFFF';g.fillRect(0,0,w,h);g.fillStyle='#0D5EAF';for(var i=0;i<9;i+=2)g.fillRect(0,i*sh,w,sh+.5);
+    var cw=sh*5;g.fillStyle='#0D5EAF';g.fillRect(0,0,cw,cw);g.fillStyle='#FFFFFF';g.fillRect(cw*.4,0,cw*.2,cw);g.fillRect(0,cw*.4,cw,cw*.2);return c}
+  g.fillStyle=tbHex(tbGold(),.18);g.fillRect(0,0,w,h);g.strokeStyle=tbGold();g.lineWidth=4;g.strokeRect(2,2,w-4,h-4);
+  g.fillStyle=S.theme==='dark'?'#FFFFFF':S.main;g.font=F().head(Math.round(h*.2));g.textAlign='center';g.direction='rtl';g.fillText(limit(wrapBal(name,F().head(Math.round(h*.2)),w*.86),1)[0],w/2,h*.56);
+  return c;
+}
+/* a flag hanging from the top of a tilted pole and waving; side -1 = flag extends to the left of the pole, +1 = to the right */
+function tbFlag(name,T,B,side,fw,fh){
+  var src=tbFlagCanvas(name,fw,fh),dx=B.x-T.x,dy=B.y-T.y,ang=Math.atan2(-dx,dy),n=Math.max(30,Math.round(fw/3)),sw=fw/n;
+  var wave=function(i){var t=(side>0?i:n-1-i)/n;return{t:t,y:Math.sin(t*Math.PI*2.1+(side>0?0:1.2))*fh*.07*(.25+t),s:Math.cos(t*Math.PI*2.1+(side>0?0:1.2))}};
+  ctx.save();ctx.translate(T.x,T.y);ctx.rotate(ang);
+  /* one soft shadow under the whole flag, then the flag in thin overlapping strips */
+  ctx.fillStyle='rgba(0,0,0,.16)';ctx.filter='blur(10px)';ctx.fillRect(side>0?4:-fw+4,10,fw,fh);ctx.filter='none';
+  for(var i=0;i<n;i++){
+    var w0=wave(i),sx=Math.floor(i*sw*(src.width/fw)),sW=Math.ceil(sw*(src.width/fw))+1,x=(side>0?i*sw:-fw+i*sw);
+    ctx.drawImage(src,sx,0,sW,src.height,x,w0.y,sw+1.2,fh);
+    ctx.fillStyle=w0.s>0?'rgba(255,255,255,'+(.14*w0.s)+')':'rgba(0,0,0,'+(-.14*w0.s)+')';ctx.fillRect(x,w0.y,sw+1.2,fh);
+  }
+  ctx.restore();
+}
+function tbPole(T,B,gold){
+  var dx=B.x-T.x,dy=B.y-T.y,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,tx=T.x-ux*16,ty=T.y-uy*16;
+  var g=ctx.createLinearGradient(T.x-6,0,T.x+6,0);g.addColorStop(0,tbHex(gold,.7));g.addColorStop(.5,'#F3DE9C');g.addColorStop(1,tbHex(gold,.9));
+  ctx.save();ctx.lineCap='round';ctx.strokeStyle=g;ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(B.x,B.y);ctx.stroke();
+  var bg=ctx.createRadialGradient(tx-3,ty-3,1,tx,ty,11);bg.addColorStop(0,'#FFF3C4');bg.addColorStop(1,gold);ctx.fillStyle=bg;ctx.beginPath();ctx.arc(tx,ty,11,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+/* the art drawn in code: glow, golden ring, dotted orbits */
+function tbCodeArt(cx,cy,r,gold,dark){
+  var g=ctx.createRadialGradient(cx,cy,r*.2,cx,cy,r*1.9);g.addColorStop(0,tbHex(gold,dark?.2:.16));g.addColorStop(1,tbHex(gold,0));
+  ctx.fillStyle=g;ctx.fillRect(cx-r*2,cy-r*2,r*4,r*4);
+  ctx.save();ctx.lineWidth=3.5;ctx.strokeStyle=tbHex(gold,.85);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  ctx.lineWidth=1.5;ctx.strokeStyle=tbHex(gold,.35);ctx.beginPath();ctx.arc(cx,cy,r*.9,0,Math.PI*2);ctx.stroke();
+  ctx.setLineDash([2,10]);ctx.lineCap='round';ctx.lineWidth=2.5;ctx.strokeStyle=tbHex(gold,.7);
+  [[-1,.3],[1,-.3]].forEach(function(o){ctx.beginPath();ctx.ellipse(cx,cy+r*.15,r*1.55,r*.8,o[1],Math.PI*(o[0]<0?.95:-.45),Math.PI*(o[0]<0?1.55:.05));ctx.stroke()});
+  ctx.setLineDash([]);ctx.fillStyle=tbHex(gold,.9);[[-1.46,-.22],[1.46,-.2]].forEach(function(p){ctx.beginPath();ctx.arc(cx+p[0]*r,cy+p[1]*r,5,0,Math.PI*2);ctx.fill()});
+  ctx.restore();
+}
+/* the picture (uploaded or generated) behind the flags: faded at the edges, blended into a light background */
+function tbArtImg(im,y,hz){
+  var iw=im.naturalWidth,ih=im.naturalHeight,hr=S.hero,sc=Math.max(W/iw,hz/ih),pr=tpPlace(im,0,y,W,hz,{iz:hr.az,ix:hr.ax,iy:hr.ay},sc,50,50);
+  var c=document.createElement('canvas');c.width=W;c.height=Math.ceil(hz);var g=c.getContext('2d');
+  g.drawImage(im,pr.x,pr.y-y,pr.w,pr.h);
+  g.globalCompositeOperation='destination-in';
+  var v=g.createLinearGradient(0,0,0,c.height);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(.18,'rgba(0,0,0,1)');v.addColorStop(.82,'rgba(0,0,0,1)');v.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=v;g.fillRect(0,0,W,c.height);
+  var hz2=g.createLinearGradient(0,0,W,0);hz2.addColorStop(0,'rgba(0,0,0,0)');hz2.addColorStop(.06,'rgba(0,0,0,1)');hz2.addColorStop(.94,'rgba(0,0,0,1)');hz2.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=hz2;g.fillRect(0,0,W,c.height);
+  ctx.save();if(S.theme!=='dark')ctx.globalCompositeOperation='multiply';ctx.drawImage(c,0,y);ctx.restore();
+}
+function tbRules(cx,y,textW,gold,gap){
+  ctx.save();ctx.strokeStyle=tbHex(gold,.9);ctx.lineWidth=3;ctx.lineCap='round';
+  [[cx-textW/2-gap,-1],[cx+textW/2+gap,1]].forEach(function(o){ctx.beginPath();ctx.moveTo(o[0],y);ctx.lineTo(o[0]+o[1]*Math.min(150,(W/2-textW/2-gap-M-10)),y);ctx.stroke()});ctx.restore();
+}
+tplReg({id:'bilateral',name:'علاقات بين دولتين: علمان متقاطعان + بطاقات بأيقونات',layout:'cards',bilat:true,max:4,lib:true,
+  names:function(){return [{label:tbA()},{label:tbB()}].filter(function(r){return r.label})},
+  draw:function(top,bottom){
+    var f=F(),th=TH[S.theme],R=rtl(),dark=S.theme==='dark',gold=tbGold(),hr=S.hero,its=tItems(4),avail=bottom-top,n=its.length;
+    var tcol=dark?th.ink:S.main;
+    /* sizes: the picture band, the heading, the cards */
+    var secH=(hr.sec||'').trim()?78:0,cardsH=n?Math.min(380,Math.max(250,avail*.34)):0,hz=Math.max(220,avail-secH-cardsH-24);
+    if(hz>avail*.62){hz=avail*.62;cardsH=Math.min(380,avail-secH-hz-24)}
+    var y0=top+4,r=Math.min(hz*.45,W*.25),cx=W/2,cy=y0+hz*.5;
+    /* the art */
+    var mode=hr.artMode||'code',art=hr.art&&hr.art.naturalWidth?hr.art:null;
+    HI.tag('hero','art','الرسم الخلفي');HI.box(0,y0,W,y0+hz,-1);
+    if(mode==='art'&&art)tbArtImg(art,y0,hz);
+    else if(mode!=='none')tbCodeArt(cx,cy,r,gold,dark);
+    HI.tag();
+    /* the flags */
+    var first=R?1:-1,A=tbA(),B2=tbB(),poleTop=cy-r*1.0,poleBot=cy+r*1.1,fw=Math.min(r*1.45,W*.31),fh=fw*.68;
+    HI.tag('hero','flags','العلمان');HI.box(cx-fw-r*.2,poleTop-20,cx+fw+r*.2,poleBot+10,2);
+    if(B2){
+      var pairs=[[A,first],[B2,-first]];
+      pairs.forEach(function(p){var s=p[1],T={x:cx+s*r*.17,y:poleTop},Bm={x:cx-s*r*.1,y:poleBot};tbPole(T,Bm,gold)});
+      pairs.forEach(function(p){var s=p[1],T={x:cx+s*r*.17,y:poleTop},Bm={x:cx-s*r*.1,y:poleBot};tbFlag(p[0],T,Bm,s,fw,fh)});
+    }else{
+      var T1={x:cx-r*.1,y:poleTop},B1={x:cx-r*.1,y:poleBot};tbPole(T1,B1,gold);tbFlag(A,T1,B1,1,fw*1.1,fh*1.1);
+    }
+    HI.tag();
+    /* the heading with rules */
+    var y=y0+hz+6;
+    if(secH){
+      var sf=f.head(46),sw=ctx.measureText?(function(){ctx.font=sf;return ctx.measureText(hr.sec).width})():300;
+      HI.tag('hero','sec','عنوان البطاقات');HI.box(M,y,W-M,y+secH);
+      put(limit(wrapBal(hr.sec,sf,W-2*M-340),1)[0],cx,y+50,sf,gold,'center');HI.tag();
+      tbRules(cx,y+34,Math.min(sw,W-2*M-340),gold,22);
+      y+=secH;
+    }
+    if(!n)return;
+    /* the cards */
+    var gap=22,cw=Math.floor((W-2*M-(n-1)*gap)/n),ch=Math.min(cardsH,bottom-y-8),dI=Math.min(118,cw*.46),top0=y+dI*.5+6,cardH=ch-dI*.5-6;
+    if(cardH<150)return;
+    var tz=38,bz=30,meas,pad=18;
+    for(;tz>=20;tz-=2,bz-=1.5){
+      meas=its.map(function(it){return{a:it.title?limit(wrapBal(fixPct(it.title),f.head(tz),cw-2*pad),2):[],b:it.text?limit(wrapBal(fixPct(it.text),f.body(bz),cw-2*pad),5):[]}});
+      var mh=Math.max.apply(null,meas.map(function(m){return m.a.length*tz*1.22+m.b.length*bz*1.42+(m.a.length&&m.b.length?26:0)}));
+      if(mh<=cardH-dI*.5-30)break;
+    }
+    its.forEach(function(it,i){
+      var col=R?n-1-i:i,x=M+col*(cw+gap),m=meas[i],ig='items.'+S.items.indexOf(it),ccx=x+cw/2;
+      HI.tag(ig,'','البطاقة');HI.box(x,top0-dI*.5,x+cw,top0+cardH,-1);
+      ctx.save();ctx.shadowColor=dark?'rgba(0,0,0,.3)':tbHex(gold,.18);ctx.shadowBlur=22;ctx.shadowOffsetY=6;rrect(x,top0,cw,cardH,26);ctx.fillStyle=dark?'rgba(7,12,42,.7)':'rgba(255,255,255,.96)';ctx.fill();ctx.restore();
+      rrect(x,top0,cw,cardH,26);ctx.lineWidth=2;ctx.strokeStyle=tbHex(gold,.75);ctx.stroke();
+      /* round icon on the top edge */
+      ctx.beginPath();ctx.arc(ccx,top0,dI/2,0,Math.PI*2);ctx.fillStyle=dark?'#101650':'#FFFFFF';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle=tbHex(gold,.9);ctx.stroke();
+      ctx.beginPath();ctx.arc(ccx,top0,dI/2-7,0,Math.PI*2);ctx.lineWidth=1.2;ctx.strokeStyle=tbHex(gold,.4);ctx.stroke();
+      var ic=fxIconImg(it.icon||tIconName({label:it.title,text:it.text}),'line',gold,gold,null);if(ic){var is=dI*.5;ctx.drawImage(ic,ccx-is/2,top0-is/2,is,is)}
+      var ty=top0+dI*.5+pad,bh=m.a.length*tz*1.22+(m.a.length&&m.b.length?26:0)+m.b.length*bz*1.42,sy=ty+Math.max(0,(cardH-dI*.5-2*pad-bh)/2);
+      HI.tag(ig,'title','العنوان');m.a.forEach(function(l,k){put(l,ccx,sy+tz*.95+k*tz*1.22,f.head(tz),tcol,'center')});HI.tag();
+      var yy=sy+m.a.length*tz*1.22;
+      if(m.a.length&&m.b.length){ctx.strokeStyle=tbHex(gold,.9);ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ccx-30,yy+6);ctx.lineTo(ccx+30,yy+6);ctx.stroke();yy+=26}
+      HI.tag(ig,'text','النص');m.b.forEach(function(l,k){put(l,ccx,yy+bz*.95+k*bz*1.42,f.body(bz),th.body,'center')});HI.tag();
+    });
+  }});
+
+/* ----- controls (side panel: cls 'field', click-to-edit card: cls 'epf') ----- */
+function tbFld(cls,path,label,ph,pop){
+  var k=path.split('.')[1];
+  return pop?epField(path,label,ph,{part:k}):'<div class="field"><label>'+label+'</label>'+inp(path,S.hero[k]||'',ph)+'</div>';
+}
+function tbBilatHtml(cls,pop){
+  var hh=S.hero,mode=hh.artMode||'code',art=hh.art&&hh.art.naturalWidth;
+  var h=tbFld(cls,'hero.a','الدولة الأولى (علمها على جهة القراءة)','الإمارات',pop)+tbFld(cls,'hero.b','الدولة الثانية','مثال: اليونان',pop)+tbFld(cls,'hero.sec','عنوان البطاقات','مثال: محطات الشراكة',pop);
+  h+='<div class="'+cls+'"><label>اللون الذهبي للزخارف</label><input type="color" data-tc="gold" value="'+tbGold()+'" aria-label="اللون الذهبي"></div>';
+  h+='<div class="'+cls+'"><label>الرسم خلف العلمين</label><select data-tc="artMode" aria-label="الرسم خلف العلمين"><option value="code"'+(mode==='code'?' selected':'')+'>مرسوم بالكود (حلقة ذهبية ومدارات)</option><option value="art"'+(mode==='art'?' selected':'')+'>صورة (أرفعها أو أولّدها بالذكاء الاصطناعي)</option><option value="none"'+(mode==='none'?' selected':'')+'>بدون رسم</option></select></div>';
+  if(mode==='art'){
+    h+='<div class="'+cls+'"><div class="row"><button type="button" class="tool" data-tphoto="art">'+(art?'تغيير الصورة':'رفع صورة المعالم')+'</button><button type="button" class="tool hl" data-tart="gen">توليد بالذكاء الاصطناعي</button>'+(art?'<button type="button" class="tool ghost" data-tphoto-rm="art">إزالة</button>':'')+'</div><p class="hint" id="tbArtMsg">صورة عريضة للمعالم بخلفية بيضاء تندمج مع التصميم. التوليد يرسم معالم '+esc(tbA())+(tbB()?' و'+esc(tbB()):'')+' بدون نصوص.</p></div>';
+    if(art)h+=tbArtPos(cls);
+  }
+  return h;
+}
+function tbArtPos(cls){
+  var h=S.hero;
+  return tpRng(cls,'art','iz','حجم الصورة',h.az||100,30,300,5)+tpRng(cls,'art','ix','الموضع أفقياً',h.ax==null?50:h.ax,0,100)+tpRng(cls,'art','iy','الموضع رأسياً',h.ay==null?50:h.ay,0,100)
+    +'<div class="'+cls+'"><button type="button" class="tool ghost" data-tpreset="art">إعادة ضبط الصورة</button></div>';
+}
+var TB_BUSY=false;
+async function tbArtGen(btn){
+  if(TB_BUSY)return;TB_BUSY=true;var msg=document.querySelectorAll('#tbArtMsg'),set=function(t){Array.prototype.forEach.call(msg,function(m){m.textContent=t})};
+  if(btn)btn.disabled=true;set('جارٍ توليد الرسم… قد يستغرق دقيقة.');
+  try{
+    var j=await callFn('art',{a:tbA(),b:tbB()});
+    var d=j&&j.data;if(!d||!d.b64)throw{code:'art_failed'};
+    var im=await new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i)};i.onerror=function(){rej({code:'art_failed'})};i.src='data:'+(d.type||'image/png')+';base64,'+d.b64});
+    S.hero.art=im;S.hero.artMode='art';delete S.hero.az;delete S.hero.ax;delete S.hero.ay;tpRefresh();toast('تم توليد الرسم.');
+  }catch(x){var c=x&&x.code;toast(errText(c),true);set(errText(c));if(c==='not_signed_in')showLogin(true)}
+  finally{TB_BUSY=false;if(btn)btn.disabled=false}
+}
 
 /* ===== free elements: click an empty spot on any design to drop a text, a number, an icon or an image there ===== */
 var FX={open:{g:1},pick:null,at:null,q:'',res:[],icNet:{},svg:{},icImg:{},pend:[],uid:0,busy:0};
@@ -8825,7 +8992,8 @@ function igpShape(data,text){
 /* the picture is set after the design data is applied (applyData rebuilds S.hero) */
 function igpApply(){
   if(!IGP.img||!S.tpl)return;
-  var T=tplCur();if(!T||!(T.person||T.heroPhoto||T.center))return;
+  var T=tplCur();if(T&&T.bilat){S.hero.art=IGP.img;S.hero.artMode='art';igpClear();return}
+  if(!T||!(T.person||T.heroPhoto||T.center))return;
   S.hero.pimg=IGP.img;igpClear();
 }
 function igpPaint(){
@@ -9407,7 +9575,7 @@ function desPack(o,reg,fmt){
   if(Array.isArray(o))return o.map(function(v){return desPack(v,reg,fmt)});
   if(o&&typeof o==='object'){
     var r={};
-    Object.keys(o).forEach(function(k){if(k==='geo'||typeof o[k]==='function')return;r[k]=desPack(o[k],reg,k==='pimg'||k==='cut'?'png':fmt)});
+    Object.keys(o).forEach(function(k){if(k==='geo'||typeof o[k]==='function')return;r[k]=desPack(o[k],reg,k==='pimg'||k==='cut'||k==='art'?'png':fmt)});
     return r;
   }
   return o;
