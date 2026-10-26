@@ -1212,6 +1212,8 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <div class="field" id="igSizeF"><label for="igSize">مقاس المنصة</label><select id="igSize"><option value="4:5">4:5 إنستغرام / لينكدإن</option><option value="1:1">1:1 مربع (إكس / فيسبوك)</option><option value="9:16">9:16 ستوري</option></select></div>
         <div class="field" id="tplF"><label for="tplSel">القالب</label><select id="tplSel"></select></div>
         <div id="tplOpts" hidden><label class="check"><input type="checkbox" id="tIcons"> أيقونات بجانب الأرقام</label><label class="check"><input type="checkbox" id="tPanel"> لوحة شفافة خلف الأرقام</label><div id="tFetchBox" hidden><button type="button" class="tool" id="tFetch">جلب الأعلام والشعارات للأسماء</button> <span class="hint" id="tFetchMsg"></span></div></div>
+        <div class="field" id="vbF"><label class="check"><input type="checkbox" id="vbEdit"> اسمح للذكاء الاصطناعي بتحرير النص (اختصار وإعادة صياغة) ليناسب القوالب</label><p class="hint" id="vbHint"></p>
+          <div id="vbRest" hidden><p class="hint" id="vbRestMsg"></p><button type="button" class="tool" id="vbRestBtn">ضع الباقي في خانة النص لتصميم ثانٍ</button></div></div>
         <div class="cta"><button class="primary block" id="gen" type="button">حوّل النص إلى تصميم</button><button id="stopGen" type="button" class="tool" hidden>إيقاف</button></div>
         <div class="tools" id="tools"><button id="demo" type="button" class="tool">نص تجريبي</button>
           <button id="plBtn" type="button" class="tool" title="يوزّع نصك على خانات القالب بدون تغيير أي كلمة ويقترح القالب الأنسب">وزّع كما هو</button>
@@ -1879,7 +1881,8 @@ function fmtVal(v){
   return (pct?'%':'')+core+(neg?'-':plus?'+':'');
 }
 function lum(hex){var h=hex.replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');var r=parseInt(h.slice(0,2),16)/255,g=parseInt(h.slice(2,4),16)/255,b=parseInt(h.slice(4,6),16)/255;return .2126*r+.7152*g+.0722*b}
-function clean(s,max){return String(s==null?'':s).replace(/\s+/g,' ').trim().slice(0,max)}
+function clean0(s,max){return String(s==null?'':s).replace(/\s+/g,' ').trim().slice(0,max)}
+var clean=clean0;
 function F0(){
   if(S.lang==='en')return{kicker:function(s){return '700 '+s+'px Acumin'},title:function(s){return '800 '+s+'px Acumin'},sub:function(s){return '700 '+s+'px Acumin'},head:function(s){return '700 '+s+'px Acumin'},num:function(s){return s+'px DINCond'},label:function(s){return '700 '+s+'px Acumin'},body:function(s){return '400 '+s+'px Acumin'}};
   return{kicker:function(s){return s+'px BahijBold'},title:function(s){return s+'px AlIttihad, BahijXBold'},sub:function(s){return s+'px BahijXBold'},head:function(s){return s+'px BahijBold'},num:function(s){return s+'px DINCond'},label:function(s){return s+'px BahijBold'},body:function(s){return s+'px BahijPlain'}};
@@ -2420,7 +2423,7 @@ var me={email:'',role:'member'},ctl=null,inited=false;
 function status(msg,err,busy){var s=$('#status');s.className=err?'err':'';s.innerHTML=(busy?'<span class="spin"></span>':'')+esc(msg||'')}
 function applyData(d){
   if(window.__lnApplied)setTimeout(function(){window.__lnApplied('ig')},0);
-  var lay=['stats','list','bars','cards'];
+  var lay=['stats','list','bars','cards'],clean=d.vb?function(x,m){return clean0(x,Math.max(m,600))}:clean0;
   S.layout=lay.indexOf(d.layout)>-1?d.layout:'stats';
   S.kicker=clean(d.kicker,60);S.title=clean(d.title,60);S.subtitle=clean(d.subtitle,90);S.lede=typeof d.lede==='string'?d.lede.slice(0,220):'';S.footer='';
   var hv=d.hero&&(d.hero.value||d.hero.label||d.hero.a||d.hero.b||d.hero.sec)?d.hero:null;
@@ -2444,7 +2447,7 @@ var ERR={
   ai_timeout:'تأخر الرد. أعد المحاولة أو قصّر النص.',ai_failed:'تعذر الوصول للذكاء الاصطناعي الآن. أعد المحاولة بعد قليل.',invalid_json:'لم أستطع قراءة الرد. أعد المحاولة أو قصّر النص.',
   empty_text:'الصق النص أولاً.',weak_password:'كلمة السر لازم تكون 8 أحرف على الأقل.',bad_email:'الإيميل غير صحيح.',cannot_remove_self:'لا يمكنك حذف حسابك بنفسك.',
   user_not_found:'المستخدم غير موجود.',not_admin:'هذه الميزة للمسؤول فقط.',cancelled:'تم الإيقاف.',
-  bad_sheet_url:'الرابط ليس رابط Google Sheets. انسخه من شريط العنوان أو من زر «مشاركة».',sheet_private:'ما قدرت أفتح الجدول. في Google Sheets اضغط «مشاركة» ثم «أي شخص لديه الرابط» بصلاحية «مشاهد» وأعد المحاولة.',sheet_not_found:'لم أجد هذا الجدول. تأكد من الرابط.',sheet_timeout:'تأخر Google في الرد. أعد المحاولة.',sheet_too_big:'الجدول كبير جداً. اترك فيه الصفوف التي تحتاجها فقط.',sheet_empty:'الجدول فارغ.',sheet_failed:'تعذّر جلب الجدول الآن. أعد المحاولة.',bad_items:'لا توجد نصوص صالحة للترجمة.',art_not_configured:'توليد الرسم بالذكاء الاصطناعي غير مفعّل بعد. لازم مفتاح OpenAI يتضاف في أسرار الخلفية.',art_failed:'تعذر توليد الرسم. أعد المحاولة بعد قليل.',art_bad_key:'مفتاح OpenAI غير مقبول. راجع OPENAI_API_KEY.',removebg_not_configured:'تفريغ الخلفية غير مفعّل بعد. يلزم إضافة مفتاح PhotoRoom في إعدادات الخلفية.',removebg_bad_key:'مفتاح PhotoRoom مرفوض.',removebg_no_credit:'رصيد PhotoRoom خلص.',removebg_rate_limited:'ضغط كبير على خدمة التفريغ. أعد المحاولة بعد قليل.',removebg_bad_image:'تعذّر تفريغ هذه الصورة. جرّب صورة أخرى.',removebg_failed:'تعذّر تفريغ الخلفية الآن. أعد المحاولة.',removebg_timeout:'تأخرت خدمة التفريغ. أعد المحاولة.',bad_lang:'لغة الترجمة غير محددة.',
+  bad_sheet_url:'الرابط ليس رابط Google Sheets. انسخه من شريط العنوان أو من زر «مشاركة».',sheet_private:'ما قدرت أفتح الجدول. في Google Sheets اضغط «مشاركة» ثم «أي شخص لديه الرابط» بصلاحية «مشاهد» وأعد المحاولة.',sheet_not_found:'لم أجد هذا الجدول. تأكد من الرابط.',sheet_timeout:'تأخر Google في الرد. أعد المحاولة.',sheet_too_big:'الجدول كبير جداً. اترك فيه الصفوف التي تحتاجها فقط.',sheet_empty:'الجدول فارغ.',sheet_failed:'تعذّر جلب الجدول الآن. أعد المحاولة.',bad_items:'لا توجد نصوص صالحة للترجمة.',text_too_long:'النص أطول من أن يُوزَّع كما هو. قصّره أو فعّل «اسمح بتحرير النص».',art_not_configured:'توليد الرسم بالذكاء الاصطناعي غير مفعّل بعد. لازم مفتاح OpenAI يتضاف في أسرار الخلفية.',art_failed:'تعذر توليد الرسم. أعد المحاولة بعد قليل.',art_bad_key:'مفتاح OpenAI غير مقبول. راجع OPENAI_API_KEY.',removebg_not_configured:'تفريغ الخلفية غير مفعّل بعد. يلزم إضافة مفتاح PhotoRoom في إعدادات الخلفية.',removebg_bad_key:'مفتاح PhotoRoom مرفوض.',removebg_no_credit:'رصيد PhotoRoom خلص.',removebg_rate_limited:'ضغط كبير على خدمة التفريغ. أعد المحاولة بعد قليل.',removebg_bad_image:'تعذّر تفريغ هذه الصورة. جرّب صورة أخرى.',removebg_failed:'تعذّر تفريغ الخلفية الآن. أعد المحاولة.',removebg_timeout:'تأخرت خدمة التفريغ. أعد المحاولة.',bad_lang:'لغة الترجمة غير محددة.',
   account_disabled:'هذا الحساب موقوف. تواصل مع المسؤول.',protected_super_admin:'هذا حساب المالك وهو محمي، لا يمكن تعديله أو إيقافه أو حذفه.',forbidden:'لا تملك صلاحية على هذا الحساب.',super_admin_only:'هذه الميزة للمالك فقط.',cannot_modify_self:'لا يمكن تطبيق هذا على حسابك.',
   empty_name:'اكتب الاسم.',ai_no_credit:'رصيد خدمة الذكاء الاصطناعي لم يُشحن أو انتهى. أضف رصيداً من صفحة الفوترة في لوحة الخدمة ثم أعد المحاولة.',ai_bad_key:'مفتاح خدمة الذكاء الاصطناعي غير صحيح أو انتهت صلاحيته.',ai_bad_model:'اسم النموذج غير مقبول من خدمة الذكاء الاصطناعي.',ai_rate_limited:'ضغط كبير على الخدمة الآن. أعد المحاولة بعد قليل.',not_found:'لم يُعثر عليه في المصادر العامة. ارفعه يدوياً.',unknown_country:'اسم الدولة غير معروف. ارفع العلم يدوياً.',store_failed:'تعذّر حفظ الملف في المكتبة.',bad_code:'رمز الدولة غير صحيح.'
 };
@@ -2470,6 +2473,7 @@ async function callFn(name,payload,signal){
 async function generate(){
   var text=$('#src').value.trim();
   if(!text){status('الصق النص أولاً.',true);return}
+  if(typeof vbEditOn==='function'&&!vbEditOn())return vbGenerate(text);
   ctl=new AbortController();$('#gen').disabled=true;$('#stopGen').hidden=false;status('جارٍ قراءة النص وترتيب التصميم…',false,true);
   try{
     var ph=typeof igpOn==='function'&&igpOn();
@@ -6968,6 +6972,8 @@ function rvTplHtml(d){
 }
 function rvPaintIg(){
   var d=RV.d,L=d.layout,h='<p class="hint">النظام قرأ نصك وقسّمه للخانات دي. عدّل أي خانة أو احذفها أو أضف غيرها، وبعدين اضغط «ارسم التصميم».</p>';
+  if(d.vb)h='<p class="hint">النص منقول من مادتك كما هو بالحرف، والذكاء الاصطناعي وزّعه على الخانات فقط. أي تعديل تعمله هنا هو منك.</p>';
+  if(d.vbNote&&d.vbNote.rest&&d.vbNote.rest.length)h+='<div class="dlg-msg" role="alert"><b>لم تتسع كل السطور:</b> هذا الترتيب يستوعب '+NF.format(d.vbNote.cap)+' والنص فيه '+NF.format(d.vbNote.total)+'. السطور التالية لن تظهر في هذا التصميم (ستبقى محفوظة لتصميم ثانٍ):<ul>'+d.vbNote.rest.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>اختر قالباً أوسع من «القالب» أو «التصميم الثابت»، أو ارسم هذا ثم اضغط «ضع الباقي في خانة النص».</div>';
   h+='<div class="field"><label for="rvLay">القالب</label><select id="rvLay" data-rvlay>'+RV_LAY.map(function(o){return '<option value="'+o[0]+'"'+(L===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
   h+='<div class="grp"><div class="head"><b>العنوان</b></div><div class="field"><label>السترابة (سطر صغير فوق العنوان)</label>'+rvIn('kicker',d.kicker,'السترابة')+'</div>'
     +'<div class="field"><label>العنوان الرئيسي</label><input type="text" id="rvTitle" dir="auto" data-rv="title" value="'+esc(d.title||'')+'" aria-label="العنوان الرئيسي"></div>'
@@ -6988,10 +6994,11 @@ function rvPaintIg(){
 }
 function rvApplyIg(){
   var d=RV.d,filled=function(o){return Object.keys(o).some(function(k){return String(o[k]==null?'':o[k]).trim()!==''})};
-  var out={lang:d.lang,layout:d.layout,template:tplValid(d.template,d.layout)?d.template:'',kicker:d.kicker,title:d.title,subtitle:d.subtitle,hero:(d.layout==='stats'||(tplValid(d.template,d.layout)&&filled(d.hero)))?d.hero:null,
+  var out={vb:d.vb,lang:d.lang,layout:d.layout,template:tplValid(d.template,d.layout)?d.template:'',kicker:d.kicker,title:d.title,subtitle:d.subtitle,hero:(d.layout==='stats'||(tplValid(d.template,d.layout)&&filled(d.hero)))?d.hero:null,
     stats:d.stats.filter(filled),items:d.items.filter(filled),bars:d.bars.filter(filled),legend:d.layout==='bars'?d.legend:[]};
   if(!String(out.title||'').trim()&&!out.stats.length&&!out.items.length&&!out.bars.length&&!(out.hero&&out.hero.value)){$('#plBody').insertAdjacentHTML('afterbegin','<p class="dlg-msg" role="alert">ما فيه بيانات تتصمم. اكتب عنواناً أو رقماً على الأقل.</p>');return}
   applyData(out);$('#exampleNote').hidden=true;buildEditor();syncControls();render();
+  if(typeof vbSetRest==='function')vbSetRest(d.vbNote&&d.vbNote.rest);
   closeDlg('#dlgPlace');status('تم. راجع الحقول في الخطوة 3 وعدّل ما تريد، ثم نزّل الصورة.');
 }
 
@@ -9092,6 +9099,99 @@ function igpInit(){
   });
 }
 
+/* ===== "approved text" mode (the default): the AI only says which line goes where; the design is built from the original lines, never rewritten.
+   The switch "allow editing" turns the old behaviour (the AI shortens and rephrases to fit the template) back on. ===== */
+var VB={rest:[]};
+function vbEditOn(){var c=$('#vbEdit');return !!(c&&c.checked)}
+function vbLines(text){return String(text||'').split(/\r?\n/).map(function(l){return l.trim()}).filter(function(l){return l&&/[^\s\-_*=.•·]/.test(l)})}
+/* an exact piece of a line, or '' */
+function vbPiece(line,p){p=String(p==null?'':p).trim();return p&&line.indexOf(p)>-1?p:''}
+var VB_NUM=/[0-9\u0660-\u0669]+(?:[.,\u066B][0-9\u0660-\u0669]+)*\s*[%\u066A]?/;
+/* the figure of a line as a display value (digits only, optional %): the sentence itself is never changed */
+function vbNum(line,pc){
+  var m=VB_NUM.exec(vbPiece(line,pc)||line);if(!m)return '';
+  return m[0].replace(/\s+/g,'').replace(/[\u0660-\u0669]/g,function(d){return '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669'.indexOf(d)}).replace(/\u066A/g,'%').replace(/\u066B/g,'.');
+}
+/* how many rows each arrangement can show without cutting anything */
+function vbCaps(layout,tpl){
+  if(layout==='bars')return{rows:10};
+  if(layout==='stats')return tpl==='grid-sides'?{rows:8,hero:false}:tpl==='hero-sides'?{rows:7,hero:true}:{rows:6,hero:true};
+  var m={'blocks-stack':5,'blocks-grid':6,'portrait':4,'portrait-center':8,'callouts':6,'timeline':6,'steps':6,'cards-row':4};
+  return{rows:m[tpl]||6};
+}
+/* plan (line numbers and exact pieces) -> the data object the review dialog and applyData already understand */
+function vbBuild(plan,lines){
+  var n=lines.length,L=function(k){return Number.isInteger(k)&&k>=1&&k<=n?lines[k-1]:''};
+  var layout=['stats','list','bars','cards'].indexOf(plan.layout)>-1?plan.layout:'cards';
+  var tpl=tplValid(plan.template,layout)?plan.template:'';
+  var d={vb:true,lang:plan.lang==='en'?'en':'ar',layout:layout,template:tpl,kicker:L(plan.kicker),title:L(plan.title),subtitle:L(plan.subtitle),hero:null,stats:[],items:[],bars:[],legend:[]};
+  var T=tpl?TPL[tpl]:null;
+  if(plan.person){
+    var pl=L(plan.person.line);
+    if(pl&&T&&(T.person||T.center))d.hero={value:'',label:vbPiece(pl,plan.person.name)||pl,text:vbPiece(pl,plan.person.role)};
+    else if(pl&&T&&T.heroPhoto)d.hero={value:'',label:pl,text:''};
+    else if(pl&&!d.kicker)d.kicker=pl;
+    else if(pl&&!d.subtitle)d.subtitle=pl;
+    else if(pl)d.vbExtra=[pl];
+  }
+  var caps=vbCaps(layout,tpl),rows=(plan.rows||[]).filter(function(r){return L(r.line)}),kept=rows.slice(0,caps.rows),rest=rows.slice(caps.rows);
+  var heroRow=null;
+  if(layout==='stats'&&caps.hero){heroRow=kept.filter(function(r){return r.hero})[0]||(tpl==='hero-sides'?kept[0]:null)}
+  kept.forEach(function(r){
+    var l=L(r.line);
+    if(layout==='stats'){
+      var o={value:vbNum(l,r.value),label:vbPiece(l,r.label),text:l};
+      if(r===heroRow)d.hero=o;else d.stats.push(o);
+    }else if(layout==='bars'){
+      d.bars.push({label:vbPiece(l,r.label)||l,value:vbNum(l,r.value),note:''});
+    }else{
+      var sp=vbPiece(l,r.split),it={title:'',text:l};
+      if(sp&&l.indexOf(sp)===0){var rem=l.slice(sp.length).replace(/^[\s:\u060C\u061B,\-\u2013\u2014]+/,'');if(rem){it.title=sp;it.text=rem}}
+      d.items.push(it);
+    }
+  });
+  var restLines=rest.map(function(r){return L(r.line)});
+  if(d.vbExtra)restLines=d.vbExtra.concat(restLines);
+  d.vbNote={rest:restLines,cap:caps.rows,total:rows.length};
+  return d;
+}
+async function vbGenerate(text){
+  var lines=vbLines(text);
+  if(!lines.length){status('الصق النص أولاً.',true);return}
+  if(lines.length>60){status('النص أطول من أن يُوزَّع كما هو (أكثر من 60 سطراً). قصّره أو فعّل «اسمح بتحرير النص».',true);return}
+  ctl=new AbortController();$('#gen').disabled=true;$('#stopGen').hidden=false;status('جارٍ توزيع النص على التصميم دون أي تعديل عليه…',false,true);
+  try{
+    var ph=typeof igpOn==='function'&&igpOn(),lay=$('#layoutSel').value;
+    var j=await callFn('plan',{lines:lines,lang:$('#lang').value,layout:ph?'cards':lay,photo:!!ph},ctl.signal);
+    if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
+    var d=vbBuild(j.data,lines);
+    rvIg(ph?igpShape(d,text):d);
+    status('راجع البيانات في النافذة وعدّلها، وبعدين اضغط «ارسم التصميم».');
+  }catch(e){
+    var c=e&&e.code;
+    status(c==='text_too_long'?'النص أطول من أن يُوزَّع كما هو. قصّره أو فعّل «اسمح بتحرير النص».':errText(c),c!=='cancelled');
+    if(c==='not_signed_in')showLogin();
+  }finally{$('#gen').disabled=false;$('#stopGen').hidden=true;ctl=null}
+}
+/* lines that did not fit the chosen arrangement are never dropped silently: they wait for a second design */
+function vbSetRest(list){
+  VB.rest=Array.isArray(list)?list.slice():[];
+  var b=$('#vbRest');if(!b)return;
+  b.hidden=!VB.rest.length;
+  if(VB.rest.length)$('#vbRestMsg').textContent='بقي '+NF.format(VB.rest.length)+' '+(VB.rest.length===1?'سطر':'سطور')+' من نصك لم تتسع لها خانات هذا التصميم، وهي محفوظة كما هي.';
+}
+function vbInit(){
+  var c=$('#vbEdit');if(!c||c.__b)return;c.__b=1;
+  try{c.checked=localStorage.getItem('vbEdit')==='1'}catch(e){}
+  c.addEventListener('change',function(){try{localStorage.setItem('vbEdit',c.checked?'1':'0')}catch(e){}vbHint()});
+  vbHint();
+  var rb=$('#vbRestBtn');if(rb)rb.addEventListener('click',function(){
+    if(!VB.rest.length)return;
+    $('#src').value=VB.rest.join('\n');vbSetRest([]);$('#src').focus();status('وُضع الباقي في خانة النص. اضغط «حوّل النص إلى تصميم» لتصميم ثانٍ.');
+  });
+}
+function vbHint(){var h=$('#vbHint');if(h)h.textContent=vbEditOn()?'مفعّل: الذكاء الاصطناعي يختصر النص ويعيد صياغته ليناسب القالب (للإنفوجراف). الكاروسيل والتشارت مستقلان.':'الافتراضي: النص المعتمد يُستخدم كما هو بالحرف، والذكاء الاصطناعي يوزّعه على الخانات فقط. (ينطبق على الإنفوجراف.)'}
+
 /* ===== click any element in the design to edit it live ===== */
 var EP={on:false,mode:'',g:'',p:'',box:null,down:null,card:null};
 var EP_ACC={title:'head',subtitle:'head',lede:'head',kicker:'kick',hero:'hero',stats:'stats',bars:'list',items:'list',legend:'list',footer:'foot',sec:'style',band:'style',bg:'bg'};
@@ -9548,7 +9648,7 @@ function epHint(){
   });
 }
 function epInit(){
-  bandOptsInit();fxInit();sdInit();roInit();igpInit();rfInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
+  bandOptsInit();fxInit();sdInit();roInit();igpInit();vbInit();rfInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EP.on)epClose()});
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){epClose()})});
   ['#chRead','#chDemo','#chDl'].forEach(function(s){var b=$(s);if(b)b.addEventListener('click',function(){epClose()})});
