@@ -1223,7 +1223,12 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 
       <div class="step">
         <h2><i>2</i> تعديل التصميم</h2>
-        <p class="hint" id="exampleNote">هذا مثال من موادك. الصق نصك واضغط التحويل، أو افتح أي صندوق وعدّل مباشرة.</p>
+        <div class="field" id="aiEd"><label for="aiEdTxt">اكتب تعليماتك بأسلوبك وأنا أعدّل التصميم</label>
+<textarea id="aiEdTxt" rows="3" dir="auto" placeholder="مثال: خلّي اللون أورنج، أو: حط ٣ أرقام تحت وصورة في المنتصف وعلى يمينها وشمالها جمل نصية"></textarea>
+<div class="inrow"><button type="button" class="primary" id="aiEdGo">نفّذ التعليمات</button><button type="button" class="tool ghost" id="aiEdUndo" disabled>تراجع عن آخر تعليمات</button></div>
+<div class="chips" id="aiEdEx"><button type="button" class="chip" data-aiex="غيّر اللون الأساسي إلى أورنج">اللون أورنج</button><button type="button" class="chip" data-aiex="خلّي الزوايا حادة بدون أي استدارة">زوايا حادة</button><button type="button" class="chip" data-aiex="اخفِ الأيقونات">إخفاء الأيقونات</button><button type="button" class="chip" data-aiex="خلّي الخلفية داكنة">خلفية داكنة</button></div>
+<p class="hint" id="aiEdMsg">النص المعتمد لا يتغير إلا لو طلبت تغييره صراحةً. ولو غلط التنفيذ اضغط «تراجع».</p></div>
+<p class="hint" id="exampleNote">هذا مثال من موادك. الصق نصك واضغط التحويل، أو افتح أي صندوق وعدّل مباشرة.</p>
         <div class="acc" id="acc">
         <section class="ac open" data-ac="head">
           <button type="button" class="ac-h" aria-expanded="true"><span class="ac-t">العنوان</span><span class="ac-s" data-sum="head"></span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -8302,6 +8307,195 @@ document.addEventListener('input',function(e){
   var g=t.closest('.tirow').querySelector('[data-tic-grid]');if(g)g.innerHTML=tiGrid(t.value);
 });
 
+/* ===== edit the design with instructions written in the user's own words =====
+   The model returns operations from a fixed list; every one is checked here against a whitelist (paths, types, ranges) before it touches the design,
+   and everything that was applied can be undone. */
+var AIED={hist:[],undo:[],busy:false};
+var AI_TXT={kicker:120,title:240,subtitle:260,lede:320,footer:220};
+var AI_COLK=['main','titleC','strap','footC','bgC1','bgC2','bandCol','titleNumC'];
+var AI_ENUM={theme:['light','dark'],bgMode:['preset','solid','grad'],strapPos:['top','bottom'],labelPos:['above','below'],bandShape:['full','card']};
+var AI_NUM={corner:[0,200],sideSpread:[0,100],titleScale:[60,140],ledeSize:[70,140],footSize:[14,44],footY:[10,110],bgAngle:[0,360]};
+var AI_BOOL=['ticons','tpanel','band','statMid','ndNum','titleNum'];
+var AI_ROW={stats:{value:'s',label:'s',text:'s',color:'c',noIcon:'b'},items:{title:'s',text:'s',value:'s',color:'c',noIcon:'b'},bars:{label:'s',value:'s',note:'s'}};
+var AI_MAX={stats:8,items:8,bars:10};
+function aiHex(v){
+  v=String(v==null?'':v).trim();
+  if(/^#[0-9a-f]{3}$/i.test(v))v='#'+v.slice(1).split('').map(function(c){return c+c}).join('');
+  return /^#[0-9a-f]{6}$/i.test(v)?v.toUpperCase():null;
+}
+function aiStr(v,n){return v==null||typeof v==='object'?null:String(v).slice(0,n)}
+function aiClamp(v,lo,hi){v=+v;return isFinite(v)?Math.max(lo,Math.min(hi,v)):null}
+/* a path -> {get,put(v)} with the value already validated by check(v) (returns the clean value or undefined) */
+function aiPath(p){
+  p=String(p||'');var a=p.split('.'),m;
+  if(AI_TXT[p])return{check:function(v){return aiStr(v,AI_TXT[p])},o:S,k:p};
+  if(AI_COLK.indexOf(p)>-1)return{check:function(v){return v===''&&p==='bandCol'?'':aiHex(v)},o:S,k:p};
+  if(AI_ENUM[p])return{check:function(v){return AI_ENUM[p].indexOf(v)>-1?v:null},o:S,k:p,after:p==='theme'?'theme':''};
+  if(AI_NUM[p])return{check:function(v){return aiClamp(v,AI_NUM[p][0],AI_NUM[p][1])},o:S,k:p};
+  if(AI_BOOL.indexOf(p)>-1)return{check:function(v){return typeof v==='boolean'?v:null},o:S,k:p};
+  if(a[0]==='hero'&&a.length===2&&/^(value|label|text)$/.test(a[1]))return{check:function(v){return aiStr(v,a[1]==='text'?300:80)},o:S.hero,k:a[1]};
+  if((m=/^(stats|items|bars)\.(\d+)\.(\w+)$/.exec(p))){
+    var kind=AI_ROW[m[1]][m[3]],row=S[m[1]]&&S[m[1]][+m[2]];if(!kind||!row)return null;
+    return{check:function(v){return kind==='c'?aiHex(v):kind==='b'?(typeof v==='boolean'?v:null):aiStr(v,m[3]==='text'?300:120)},o:row,k:m[3]};
+  }
+  if((m=/^hp\.(title|subtitle|kicker|lede)\.(dx|dy|al)$/.exec(p))){
+    return{check:function(v){return m[2]==='al'?(['c','r','l'].indexOf(v)>-1?v:null):aiClamp(v,m[2]==='dx'?-500:-300,m[2]==='dx'?500:300)},
+      get o(){S.hp=S.hp||{};return S.hp[m[1]]=S.hp[m[1]]||{}},k:m[2]};
+  }
+  return null;
+}
+function aiTheme(){
+  S.bgPreset=0;
+  if(S.theme==='dark'&&lum(S.main)<.2)S.main='#FFFFFF';
+  if(S.theme==='light'&&lum(S.main)>.8)S.main='#1B1F78';
+  if(S.theme==='dark'&&lum(S.titleC)<.2)S.titleC='#FFFFFF';
+  if(S.theme==='light'&&lum(S.titleC)>.8)S.titleC='#1B1F78';
+}
+/* rows that exist in the old arrangement are carried over to the new one when it has none of its own */
+function aiConvert(from,to){
+  if(to==='bars'&&!S.bars.length){
+    var src=(S.hero&&S.hero.value?[S.hero]:[]).concat(S.stats);
+    S.bars=src.filter(function(x){return x.value}).slice(0,10).map(function(x){return{label:x.label||x.text||'',value:x.value,note:''}});
+  }else if(to==='stats'&&!S.stats.length){
+    S.stats=S.items.slice(0,8).map(function(it){return{value:it.value||'',label:it.title||'',text:it.text||''}});
+  }else if((to==='cards'||to==='list')&&!S.items.length){
+    var s2=(S.hero&&S.hero.value?[S.hero]:[]).concat(S.stats);
+    S.items=s2.slice(0,8).map(function(x){var o={title:x.label||'',text:x.text||''};if(x.value)o.value=x.value;return o});
+  }
+}
+function aiOne(op,undo){
+  var o;
+  if(op.op==='set'){
+    var pp=aiPath(op.path);if(!pp)return 'مسار غير مسموح: '+op.path;
+    var v=pp.check(op.value);if(v===null||v===undefined)return 'قيمة غير صالحة: '+op.path;
+    var tgt=pp.o,k=pp.k,had=Object.prototype.hasOwnProperty.call(tgt,k),old=tgt[k];
+    var th=pp.after==='theme'?{main:S.main,titleC:S.titleC,bgPreset:S.bgPreset}:null;
+    tgt[k]=v;if(pp.after==='theme')aiTheme();
+    undo.push(function(){if(had)tgt[k]=old;else delete tgt[k];if(th){S.main=th.main;S.titleC=th.titleC;S.bgPreset=th.bgPreset}});
+    return '';
+  }
+  if(op.op==='layout'){
+    var L=['stats','list','bars','cards'];if(L.indexOf(op.layout)<0)return 'تخطيط غير معروف';
+    var was={layout:S.layout,tpl:S.tpl,stats:S.stats,items:S.items,bars:S.bars};
+    S.stats=S.stats.slice();S.items=S.items.slice();S.bars=S.bars.slice();
+    S.layout=op.layout;S.tpl=tplValid(op.template,op.layout)?op.template:'';aiConvert(was.layout,op.layout);
+    undo.push(function(){S.layout=was.layout;S.tpl=was.tpl;S.stats=was.stats;S.items=was.items;S.bars=was.bars});
+    return '';
+  }
+  if(op.op==='add'||op.op==='remove'){
+    var ln=op.list;if(!AI_ROW[ln])return 'قائمة غير معروفة';
+    var arr=S[ln],before=arr.slice();
+    if(op.op==='add'){
+      if(arr.length>=AI_MAX[ln])return 'وصلت القائمة للحد الأقصى';
+      var it={},src=op.item||{};
+      Object.keys(AI_ROW[ln]).forEach(function(f){if(f==='color'||f==='noIcon'||src[f]==null)return;var sv=aiStr(src[f],f==='text'?300:120);if(sv!==null)it[f]=sv});
+      if(ln!=='items'&&!('label' in it)&&ln==='stats')it.label=it.label||'';
+      if(ln==='stats'){it.value=it.value||'';it.label=it.label||'';it.text=it.text||''}
+      if(ln==='bars'){it.label=it.label||'';it.value=it.value||'';it.note=it.note||''}
+      if(ln==='items'){it.title=it.title||'';it.text=it.text||''}
+      arr.push(it);
+    }else{
+      var ix=+op.index;if(!(ix>=0&&ix<arr.length))return 'رقم الصف غير موجود';arr.splice(ix,1);
+    }
+    undo.push(function(){S[ln].length=0;before.forEach(function(x){S[ln].push(x)})});
+    return '';
+  }
+  if(op.op==='fx_add'){
+    if(['text','num','img'].indexOf(op.type)<0)return 'نوع عنصر غير معروف';
+    var x=aiClamp(op.x,0,100),y=aiClamp(op.y,0,100);if(x===null||y===null)return 'موضع غير صالح';
+    var e=fxMake(op.type,x/100*W);e.x=Math.round(x*10)/10;e.y=Math.round(y*10)/10;e.pos='free';
+    var tx=aiStr(op.text,300);if(tx&&op.type!=='img')e.text=tx;
+    var sb=aiStr(op.sub,200);if(sb&&op.type==='num')e.sub=sb;
+    var sz=aiClamp(op.size,op.type==='num'?40:18,op.type==='num'?300:160);if(sz!==null&&op.type!=='img')e.size=Math.round(sz);
+    var wd=aiClamp(op.w,60,1080);if(wd!==null)e.w=Math.round(wd);
+    var cc=aiHex(op.col);if(cc&&op.type!=='img')e.col=cc;
+    if(op.type==='img'){e.box.on=false;e.box.pad=0}
+    var list=fxList('ig',true);list.push(e);
+    undo.push(function(){var i=list.indexOf(e);if(i>-1)list.splice(i,1)});
+    if(op.type==='img')AIED.needPhoto=true;
+    return '';
+  }
+  if(op.op==='fx_set'||op.op==='fx_remove'){
+    var el=fxFind('ig',op.id);if(!el)return 'عنصر غير موجود';
+    if(op.op==='fx_remove'){var lst=fxList('ig'),i2=lst.indexOf(el);lst.splice(i2,1);undo.push(function(){lst.splice(Math.min(i2,lst.length),0,el)});return ''}
+    var pr=op.props||{},old2={};
+    var rng={x:[0,100],y:[0,100],size:[18,300],w:[60,1080],h:[40,1600],lo:[5,100]};
+    Object.keys(pr).forEach(function(k){
+      var nv=null;
+      if(rng[k])nv=aiClamp(pr[k],rng[k][0],rng[k][1]);
+      else if(k==='text'||k==='sub')nv=aiStr(pr[k],300);
+      else if(k==='col')nv=pr[k]===''?'':aiHex(pr[k]);
+      else if(k==='shape')nv=FX_SHAPES.some(function(s){return s[0]===pr[k]})?pr[k]:null;
+      if(nv===null||nv===undefined)return;
+      old2[k]=el[k];el[k]=nv;if(k==='x'||k==='y')el.pos='free';
+    });
+    undo.push(function(){Object.keys(old2).forEach(function(k){if(old2[k]===undefined)delete el[k];else el[k]=old2[k]})});
+    return '';
+  }
+  return 'عملية غير معروفة';
+}
+function aiApply(ops){
+  var undo=[],skipped=[],n=0;AIED.needPhoto=false;
+  (ops||[]).slice(0,40).forEach(function(op){var r='';try{r=aiOne(op,undo)}catch(x){r='تعذر التنفيذ'}if(r)skipped.push(r);else n++});
+  return{n:n,skipped:skipped,undo:undo};
+}
+function aiState(){
+  var tp={};['stats','list','bars','cards'].forEach(function(l){tp[l]=tplList(l).map(function(t){return{id:t.id,name:t.name,max:t.max||null,picture:!!(t.heroPhoto||t.person||t.center||t.cpic)}})});
+  var pick=function(o,ks){var r={};ks.forEach(function(k){if(o[k]!==undefined&&o[k]!==''&&o[k]!==null)r[k]=o[k]});return r};
+  return{layout:S.layout,template:S.tpl||'',lang:S.lang,theme:S.theme,
+    colors:pick(S,['main','titleC','strap','footC','bgMode','bgC1','bgC2','bgAngle','bandCol']),
+    texts:pick(S,['kicker','title','subtitle','lede','footer']),
+    hero:pick(S.hero||{},['value','label','text']),
+    stats:S.stats.map(function(s,i){return Object.assign({i:i},pick(s,['value','label','text','color','noIcon']))}),
+    items:S.items.map(function(s,i){return Object.assign({i:i},pick(s,['title','text','value','color','noIcon']))}),
+    bars:S.bars.map(function(s,i){return Object.assign({i:i},pick(s,['label','value','note']))}),
+    settings:pick(S,['ticons','tpanel','band','bandShape','corner','sideSpread','titleScale','strapPos','labelPos','statMid','ndNum','titleNum','titleNumC']),
+    hp:S.hp||{},
+    free:(S.fx||[]).map(function(e){return pick({id:e.id,type:e.t,x:e.x,y:e.y,size:e.size,w:e.w,h:e.h,text:e.text,sub:e.sub,col:e.col},['id','type','x','y','size','w','h','text','sub','col'])}),
+    templates:tp,canvas:{w:W,h:H},
+    hints:['The headline block (kicker, title, subtitle, lede) occupies roughly the top 28% of the canvas height.',
+      'The normal rows (hero, stats, items, bars) are drawn by the template in the middle and lower part of the canvas (about 30%-90% of the height) and WILL overlap free elements placed there.',
+      'When the user asks for an arrangement that a catalogue template cannot give, build it with free elements: first clear the normal rows (set hero.value/label/text to empty strings and remove stats/items/bars rows) and re-create their figures and sentences as free elements using EXACTLY the same words and numbers, then place everything without overlap.',
+      'A free text element is centred on x,y and its width w wraps the sentence; keep x between w/2 and 1080-w/2 (in percent: x from w/21.6 to 100-w/21.6).']};
+}
+function aiMsg(t,err,busy){var m=$('#aiEdMsg');if(!m)return;m.className='hint'+(err?' err':'');m.innerHTML=(busy?'<span class="spin"></span>':'')+esc(t||'')}
+function aiRefresh(){
+  try{if(typeof epClose==='function')epClose()}catch(e){}
+  buildEditor();syncControls();render();
+}
+async function aiRun(){
+  if(AIED.busy)return;
+  var ta=$('#aiEdTxt'),txt=ta.value.trim();
+  if(!txt){aiMsg('اكتب التعليمات أولاً.',true);return}
+  AIED.busy=true;$('#aiEdGo').disabled=true;aiMsg('جارٍ تنفيذ التعليمات…',false,true);
+  try{
+    var j=await callFn('design-edit',{instruction:txt,state:aiState(),history:AIED.hist.slice(-4)});
+    var d=j&&j.data;if(!d||!Array.isArray(d.ops))throw{code:'invalid_json'};
+    var r=aiApply(d.ops);
+    if(r.n){AIED.undo.push(r.undo);aiRefresh()}
+    AIED.hist.push({user:txt,say:d.say||''});if(AIED.hist.length>8)AIED.hist.shift();
+    $('#aiEdUndo').disabled=!AIED.undo.length;
+    var say=d.say||(r.n?'تم التنفيذ.':'لم أجد ما أغيّره.');
+    if(AIED.needPhoto)say+=' اضغط على إطار الصورة الفارغ في التصميم لرفع صورتك.';
+    if(r.skipped.length)say+=' (تعذر تنفيذ '+NF.format(r.skipped.length)+' من الخطوات.)';
+    aiMsg(say,!r.n&&!d.say);
+    if(r.n)ta.value='';
+  }catch(e){
+    var c=e&&e.code;aiMsg(errText(c),c!=='cancelled');if(c==='not_signed_in')showLogin();
+  }finally{AIED.busy=false;$('#aiEdGo').disabled=false}
+}
+function aiUndo(){
+  var u=AIED.undo.pop();if(!u)return;
+  for(var i=u.length-1;i>=0;i--){try{u[i]()}catch(e){}}
+  aiRefresh();$('#aiEdUndo').disabled=!AIED.undo.length;aiMsg('تم التراجع عن آخر تعليمات.');
+}
+function aiInit(){
+  var go=$('#aiEdGo');if(!go||go.__b)return;go.__b=1;
+  go.addEventListener('click',aiRun);$('#aiEdUndo').addEventListener('click',aiUndo);
+  $('#aiEdTxt').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();aiRun()}});
+  $$('#aiEd [data-aiex]').forEach(function(b){b.addEventListener('click',function(){$('#aiEdTxt').value=b.getAttribute('data-aiex');$('#aiEdTxt').focus()})});
+}
+
 /* ===== free elements: click an empty spot on any design to drop a text, a number, an icon or an image there ===== */
 var FX={open:{g:1},pick:null,at:null,q:'',res:[],icNet:{},svg:{},icImg:{},pend:[],uid:0,busy:0};
 var FX_URL='https://api.iconify.design/ph/';
@@ -9801,7 +9995,7 @@ function epHint(){
   });
 }
 function epInit(){
-  bandOptsInit();fxInit();sdInit();roInit();igpInit();vbInit();rfInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
+  bandOptsInit();fxInit();sdInit();roInit();igpInit();vbInit();aiInit();rfInit();rvInit();tplInit();epHint();epBind('ig');epBind('cz');epBind('ch');
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EP.on)epClose()});
   $$('input[name="mode"]').forEach(function(r){r.addEventListener('change',function(){epClose()})});
   ['#chRead','#chDemo','#chDl'].forEach(function(s){var b=$(s);if(b)b.addEventListener('click',function(){epClose()})});
@@ -12023,7 +12217,7 @@ function plBoot(){
 }
 plBoot();
 
-window.__app={S:S,render:render,applyData:applyData,buildEditor:buildEditor,syncControls:syncControls,DEMO:DEMO,igSyncSize:igSyncSize,fit:fit,fixPct:fixPct,ndTxt:ndTxt,tIconName:tIconName};
+window.__app={S:S,render:render,applyData:applyData,buildEditor:buildEditor,syncControls:syncControls,DEMO:DEMO,igSyncSize:igSyncSize,fit:fit,fixPct:fixPct,ndTxt:ndTxt,tIconName:tIconName,aiApply:aiApply,aiState:aiState};
 Object.defineProperty(window.__app,'CZ',{get:function(){return typeof CZ!=='undefined'?CZ:null}});
 boot();
 })();
