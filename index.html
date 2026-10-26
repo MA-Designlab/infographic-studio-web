@@ -1212,7 +1212,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         <div class="field" id="igSizeF"><label for="igSize">مقاس المنصة</label><select id="igSize"><option value="4:5">4:5 إنستغرام / لينكدإن</option><option value="1:1">1:1 مربع (إكس / فيسبوك)</option><option value="9:16">9:16 ستوري</option></select></div>
         <div class="field" id="tplF"><label for="tplSel">القالب</label><select id="tplSel"></select></div>
         <div id="tplOpts" hidden><label class="check"><input type="checkbox" id="tIcons"> أيقونات بجانب الأرقام</label><label class="check"><input type="checkbox" id="tPanel"> لوحة شفافة خلف الأرقام</label><div id="tFetchBox" hidden><button type="button" class="tool" id="tFetch">جلب الأعلام والشعارات للأسماء</button> <span class="hint" id="tFetchMsg"></span></div></div>
-        <div class="field" id="vbF"><label class="check"><input type="checkbox" id="vbEdit"> اسمح للذكاء الاصطناعي بتحرير النص (اختصار وإعادة صياغة) ليناسب القوالب</label><p class="hint" id="vbHint"></p>
+        <div class="field" id="vbF"><label class="check"><input type="checkbox" id="vbEdit" class="vbedit"> اسمح للذكاء الاصطناعي بتحرير النص (اختصار وإعادة صياغة) ليناسب القوالب</label><p class="hint vbhint"></p>
           <div id="vbRest" hidden><p class="hint" id="vbRestMsg"></p><button type="button" class="tool" id="vbRestBtn">ضع الباقي في خانة النص لتصميم ثانٍ</button></div></div>
         <div class="cta"><button class="primary block" id="gen" type="button">حوّل النص إلى تصميم</button><button id="stopGen" type="button" class="tool" hidden>إيقاف</button></div>
         <div class="tools" id="tools"><button id="demo" type="button" class="tool">نص تجريبي</button>
@@ -1360,6 +1360,8 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           <div class="field"><label for="czSize">مقاس المنصة</label>
             <select id="czSize"><option value="4:5">4:5 إنستغرام / لينكدإن</option><option value="1:1">1:1 مربع</option><option value="9:16">9:16 ستوري</option></select></div>
         </div>
+        <div class="field"><label class="check"><input type="checkbox" id="vbEditCz" class="vbedit"> اسمح للذكاء الاصطناعي بتحرير النص (اختصار وإعادة صياغة) ليناسب الشرائح</label><p class="hint vbhint"></p>
+          <div id="vbRestCz" hidden><p class="hint" id="vbRestCzMsg"></p><button type="button" class="tool" id="vbRestCzBtn">ضع الباقي في خانة النص لكاروسيل ثانٍ</button></div></div>
         <div class="cta"><button class="primary block" id="czGen" type="button">حوّل النص إلى شرائح</button><button id="czStop" type="button" class="tool" hidden>إيقاف</button></div>
         <div class="tools two-t"><button type="button" id="czPfBtn" class="tool">مراجعة لغوية</button><button id="czDemo" type="button" class="tool">مثال جاهز</button><button type="button" id="czBrics" class="tool wide">مثال بستايل «سماء» (قمة بريكس)</button></div>
         <div id="czStatus" role="status" aria-live="polite"></div>
@@ -4257,26 +4259,29 @@ function czBlank(type){
   if(type==='closing')return{type:'closing',title:'',text:'',cta:'',handle:'',photo:null,pa:'center'};
   return{type:'content',title:'',subtitle:'',text:'',foot:'',tz:'',lay:'',stats:[],points:[],pills:'',photo:null,pa:'center'};
 }
-function czFix(t,max){t=clean(t,max);if((t.match(/\*\*/g)||[]).length%2)t=t.replace(/\*\*(?!.*\*\*)/,'');return t}
+var CZ_VB=false;
+function czFix(t,max){t=clean(t,CZ_VB?Math.max(max,600):max);if((t.match(/\*\*/g)||[]).length%2)t=t.replace(/\*\*(?!.*\*\*)/,'');return t}
 /* keeps the line breaks (paragraphs) of a text box */
-function czFixM(t,max){return String(t==null?'':t).split(/\r?\n/).map(function(l){return czFix(l,max)}).filter(function(l){return l!==''}).join('\n').slice(0,max*3)}
+function czFixM(t,max){return String(t==null?'':t).split(/\r?\n/).map(function(l){return czFix(l,max)}).filter(function(l){return l!==''}).join('\n').slice(0,CZ_VB?4000:max*3)}
 function czLoad(d,keepPhotos){
-  var old=CZ.slides,cover=Object.assign(czBlank('cover'),{kicker:clean(d.cover&&d.cover.kicker,40),title:czFix(d.cover&&d.cover.title,70),text:czFix(d.cover&&d.cover.text,140),cta:clean(d.cover&&d.cover.cta,20)||'اسحب للمزيد'});
+  CZ_VB=!!d.vb;var cc=CZ_VB?function(x,m){return clean(x,Math.max(m,600))}:clean;
+  var old=CZ.slides,cover=Object.assign(czBlank('cover'),{kicker:cc(d.cover&&d.cover.kicker,40),title:czFix(d.cover&&d.cover.title,70),text:czFix(d.cover&&d.cover.text,140),cta:cc(d.cover&&d.cover.cta,20)||'اسحب للمزيد'});
   var arr=[cover];
   (d.slides||[]).slice(0,10).forEach(function(s){
-    var c=czBlank('content');c.title=czFix(s.title,60);c.subtitle=clean(s.subtitle,90);c.text=skyOn()||s.look==='sky'||d.look==='sky'?czFixM(s.text,260):czFix(s.text,260);c.foot=czFix(s.foot,90);c.tz=s.tz==='s'||s.tz==='l'?s.tz:'';c.lay=/^(single|duo|trio|hero3|flags)$/.test(s.lay)?s.lay:'';
-    c.stats=(s.stats||[]).slice(0,4).map(function(t){return{value:clean(t.value,12),label:clean(t.label,60),text:clean(t.text,90),flag:clean(t.flag,30)}});
-    c.points=(s.points||[]).slice(0,4).map(function(t){return{title:clean(t.title,50),text:clean(t.text,110)}});
+    var c=czBlank('content');c.title=czFix(s.title,60);c.subtitle=cc(s.subtitle,90);c.text=skyOn()||s.look==='sky'||d.look==='sky'?czFixM(s.text,260):czFix(s.text,260);c.foot=czFix(s.foot,90);c.tz=s.tz==='s'||s.tz==='l'?s.tz:'';c.lay=/^(single|duo|trio|hero3|flags)$/.test(s.lay)?s.lay:'';
+    c.stats=(s.stats||[]).slice(0,4).map(function(t){return{value:cc(t.value,12),label:cc(t.label,60),text:cc(t.text,90),flag:cc(t.flag,30)}});
+    c.points=(s.points||[]).slice(0,4).map(function(t){return{title:cc(t.title,50),text:cc(t.text,110)}});
     if(c.stats.length)c.points=[];
-    c.pills=Array.isArray(s.pills)?s.pills.slice(0,3).map(function(x){return clean(x,24)}).join('، '):clean(s.pills,60);
+    c.pills=Array.isArray(s.pills)?s.pills.slice(0,3).map(function(x){return cc(x,24)}).join('، '):cc(s.pills,60);
     arr.push(c);
   });
-  var cl=d.closing||{},closing=Object.assign(czBlank('closing'),{title:czFix(cl.title,60),text:czFix(cl.text,140),cta:clean(cl.cta,30),handle:clean(cl.handle,40)});
+  var cl=d.closing||{},closing=Object.assign(czBlank('closing'),{title:czFix(cl.title,60),text:czFix(cl.text,140),cta:cc(cl.cta,30),handle:cc(cl.handle,40)});
   if(d.closing!==false)arr.push(closing);
   if(keepPhotos&&old.length){arr[0].photo=old[0].photo;arr[0].pa=old[0].pa;arr[0].pm=old[0].pm;arr[0].cut=old[0].cut;arr[0].cutOf=old[0].cutOf;arr[0].pz=old[0].pz;arr[0].px=old[0].px;arr[0].py=old[0].py;var ol=old[old.length-1];if(ol.type==='closing'&&d.closing!==false){closing.photo=ol.photo;closing.pa=ol.pa;closing.pz=ol.pz;closing.px=ol.px;closing.py=ol.py}}
   CZ.slides=arr;CZ.cur=0;
   if(d.look==='sky'||d.look==='classic')CZ.look=d.look;
   if(d.lang==='en'||d.lang==='ar'){var sel=$('#czLang').value;CZ.lang=sel==='auto'?d.lang:sel}
+  CZ_VB=false;
   if(window.__lnApplied)window.__lnApplied('cz');
 }
 
@@ -4437,10 +4442,10 @@ async function czGenerate(imgs,opt){
   if(!text){czStatus('الصق النص أولاً.',true);return}
   czCtl=new AbortController();$('#czGen').disabled=true;$('#czStop').hidden=false;czStatus('جارٍ قراءة النص وتقسيمه إلى شرائح…',false,true);
   try{
-    var j=await callFn('generate',{text:text,lang:$('#czLang').value,mode:'carousel',look:CZ.look==='sky'?'sky':'classic'},czCtl.signal);
+    var verb=typeof vbEditOn==='function'&&!vbEditOn(),j=verb?{data:await vbPlanCz(text,czCtl.signal)}:await callFn('generate',{text:text,lang:$('#czLang').value,mode:'carousel',look:CZ.look==='sky'?'sky':'classic'},czCtl.signal);
     if(!j||!j.data||typeof j.data!=='object'||!j.data.cover)throw{code:'invalid_json'};
     var rdata=await rvCz(j.data);
-    czLoad(rdata,true);czDistribute(imgs);czShowPhotoNotes(null);
+    czLoad(rdata,true);if(typeof vbSetRest==='function')vbSetRest(rdata.vbNote&&rdata.vbNote.rest,'cz');czDistribute(imgs);czShowPhotoNotes(null);
     if(opt&&opt.smart&&imgs&&imgs.length){
       czBuildThumbs();czRenderAll();czBuildEditor();czNav();$('#czNote').hidden=true;
       czStatus('جارٍ توزيع الصور على الشرائح حسب المعنى…',false,true);
@@ -7074,6 +7079,8 @@ function rvCzRows(path,arr,fields,max,addLabel){
 }
 function rvPaintCz(){
   var d=RV.d,sky=skyOn(),h='<p class="hint">النظام قسّم نصك إلى غلاف وشرائح وختام. عدّل أي خانة أو احذف شريحة أو أضف، وبعدين اضغط «ارسم الكاروسيل».</p>';
+  if(d.vb)h='<p class="hint">النص منقول من مادتك كما هو بالحرف، والذكاء الاصطناعي وزّعه على الشرائح فقط. أي تعديل تعمله هنا هو منك.</p>';
+  if(d.vbNote&&d.vbNote.rest&&d.vbNote.rest.length)h+='<div class="dlg-msg" role="alert"><b>لم تتسع كل السطور:</b> الكاروسيل يستوعب '+NF.format(d.vbNote.cap)+' شرائح محتوى. السطور التالية لن تظهر (ستبقى محفوظة لكاروسيل ثانٍ):<ul>'+d.vbNote.rest.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul></div>';
   h+='<div class="grp"><div class="head"><b>الغلاف</b></div><div class="field"><label>السترابة</label>'+rvIn('cover.kicker',d.cover.kicker,'السترابة')+'</div>'
     +'<div class="field"><label>العنوان الرئيسي</label><input type="text" id="rvTitle" dir="auto" data-rv="cover.title" value="'+esc(d.cover.title)+'" aria-label="العنوان الرئيسي"></div>'
     +'<div class="field"><label>العنوان الثانوي (تحت الرئيسي)</label>'+rvIn('cover.text',d.cover.text,'العنوان الثانوي')+'</div>'
@@ -9101,8 +9108,8 @@ function igpInit(){
 
 /* ===== "approved text" mode (the default): the AI only says which line goes where; the design is built from the original lines, never rewritten.
    The switch "allow editing" turns the old behaviour (the AI shortens and rephrases to fit the template) back on. ===== */
-var VB={rest:[]};
-function vbEditOn(){var c=$('#vbEdit');return !!(c&&c.checked)}
+var VB={rest:[],restCz:[],edit:false};
+function vbEditOn(){return !!VB.edit}
 function vbLines(text){return String(text||'').split(/\r?\n/).map(function(l){return l.trim()}).filter(function(l){return l&&/[^\s\-_*=.•·]/.test(l)})}
 /* an exact piece of a line, or '' */
 function vbPiece(line,p){p=String(p==null?'':p).trim();return p&&line.indexOf(p)>-1?p:''}
@@ -9174,23 +9181,60 @@ async function vbGenerate(text){
   }finally{$('#gen').disabled=false;$('#stopGen').hidden=true;ctl=null}
 }
 /* lines that did not fit the chosen arrangement are never dropped silently: they wait for a second design */
-function vbSetRest(list){
-  VB.rest=Array.isArray(list)?list.slice():[];
-  var b=$('#vbRest');if(!b)return;
-  b.hidden=!VB.rest.length;
-  if(VB.rest.length)$('#vbRestMsg').textContent='بقي '+NF.format(VB.rest.length)+' '+(VB.rest.length===1?'سطر':'سطور')+' من نصك لم تتسع لها خانات هذا التصميم، وهي محفوظة كما هي.';
+function vbSetRest(list,where){
+  var cz=where==='cz',k=cz?'restCz':'rest';
+  VB[k]=Array.isArray(list)?list.slice():[];
+  var b=$(cz?'#vbRestCz':'#vbRest');if(!b)return;
+  b.hidden=!VB[k].length;
+  if(VB[k].length)$(cz?'#vbRestCzMsg':'#vbRestMsg').textContent='بقي '+NF.format(VB[k].length)+' '+(VB[k].length===1?'سطر':'سطور')+' من نصك لم تتسع لها خانات هذا التصميم، وهي محفوظة كما هي.';
 }
 function vbInit(){
-  var c=$('#vbEdit');if(!c||c.__b)return;c.__b=1;
-  try{c.checked=localStorage.getItem('vbEdit')==='1'}catch(e){}
-  c.addEventListener('change',function(){try{localStorage.setItem('vbEdit',c.checked?'1':'0')}catch(e){}vbHint()});
+  var boxes=$$('.vbedit');if(!boxes.length||boxes[0].__b)return;
+  try{VB.edit=localStorage.getItem('vbEdit')==='1'}catch(e){}
+  boxes.forEach(function(c){
+    c.__b=1;c.checked=VB.edit;
+    c.addEventListener('change',function(){VB.edit=c.checked;boxes.forEach(function(o){o.checked=VB.edit});try{localStorage.setItem('vbEdit',VB.edit?'1':'0')}catch(e){}vbHint()});
+  });
   vbHint();
-  var rb=$('#vbRestBtn');if(rb)rb.addEventListener('click',function(){
-    if(!VB.rest.length)return;
-    $('#src').value=VB.rest.join('\n');vbSetRest([]);$('#src').focus();status('وُضع الباقي في خانة النص. اضغط «حوّل النص إلى تصميم» لتصميم ثانٍ.');
+  [['#vbRestBtn','#src','rest','ig'],['#vbRestCzBtn','#czSrc','restCz','cz']].forEach(function(x){
+    var rb=$(x[0]);if(rb)rb.addEventListener('click',function(){
+      if(!VB[x[2]].length)return;
+      $(x[1]).value=VB[x[2]].join('\n');vbSetRest([],x[3]);$(x[1]).focus();
+      var m='وُضع الباقي في خانة النص. اضغط زر التحويل لتصميم ثانٍ.';if(x[3]==='cz')czStatus(m);else status(m);
+    });
   });
 }
-function vbHint(){var h=$('#vbHint');if(h)h.textContent=vbEditOn()?'مفعّل: الذكاء الاصطناعي يختصر النص ويعيد صياغته ليناسب القالب (للإنفوجراف). الكاروسيل والتشارت مستقلان.':'الافتراضي: النص المعتمد يُستخدم كما هو بالحرف، والذكاء الاصطناعي يوزّعه على الخانات فقط. (ينطبق على الإنفوجراف.)'}
+function vbHint(){$$('.vbhint').forEach(function(h){h.textContent=vbEditOn()?'مفعّل: الذكاء الاصطناعي يختصر النص ويعيد صياغته ليناسب القالب. الإعداد واحد للإنفوجراف والكاروسيل.':'الافتراضي: النص المعتمد يُستخدم كما هو بالحرف، والذكاء الاصطناعي يوزّعه على الخانات فقط. الإعداد واحد للإنفوجراف والكاروسيل.'})}
+
+/* ----- carousel: the plan (line numbers) -> slides built from the original lines ----- */
+function vbBuildCz(plan,lines,look){
+  var n=lines.length,sky=look==='sky',L=function(k){return Number.isInteger(k)&&k>=1&&k<=n?lines[k-1]:''};
+  var join=function(a){return(a||[]).map(L).filter(Boolean).join(sky?'\n':' ')};
+  var c=plan.cover||{},d={vb:true,look:look,lang:plan.lang==='en'?'en':'ar',cover:{kicker:L(c.kicker),title:L(c.title),text:L(c.text),cta:''},slides:[],closing:false},rest=[],total=0;
+  (plan.slides||[]).forEach(function(s,i){
+    var all=[s.title,s.subtitle,s.foot].concat(s.text||[],(s.stats||[]).map(function(x){return x.line}),(s.points||[]).map(function(x){return x.line})).filter(function(k){return L(k)});
+    total+=all.length;
+    if(d.slides.length>=10){all.forEach(function(k){rest.push(L(k))});return}
+    var stats=(s.stats||[]).filter(function(x){return L(x.line)}),points=(s.points||[]).filter(function(x){return L(x.line)});
+    stats.slice(4).concat(points.slice(4)).forEach(function(x){rest.push(L(x.line))});
+    d.slides.push({title:L(s.title),subtitle:L(s.subtitle),text:join(s.text),tz:s.tz==='s'?'s':'',lay:s.lay||'',foot:L(s.foot),pills:[],
+      stats:stats.slice(0,4).map(function(x){var l=L(x.line);return{value:vbNum(l,x.value),label:vbPiece(l,x.label),text:l,flag:vbPiece(l,x.flag)}}),
+      points:stats.length?[]:points.slice(0,4).map(function(x){
+        var l=L(x.line),sp=vbPiece(l,x.split),o={title:'',text:l};
+        if(sp&&l.indexOf(sp)===0){var rem=l.slice(sp.length).replace(/^[\s:\u060C\u061B,\-\u2013\u2014]+/,'');if(rem){o.title=sp;o.text=rem}}
+        return o})});
+  });
+  var cl=plan.closing;if(cl&&(L(cl.title)||L(cl.text)))d.closing={title:L(cl.title),text:L(cl.text),cta:''};
+  d.vbNote={rest:rest,cap:10,total:total};
+  return d;
+}
+async function vbPlanCz(text,signal){
+  var lines=vbLines(text);
+  if(lines.length>80)throw{code:'text_too_long'};
+  var j=await callFn('plan-carousel',{lines:lines,lang:$('#czLang').value,look:CZ.look==='sky'?'sky':'classic'},signal);
+  if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
+  return vbBuildCz(j.data,lines,CZ.look==='sky'?'sky':'classic');
+}
 
 /* ===== click any element in the design to edit it live ===== */
 var EP={on:false,mode:'',g:'',p:'',box:null,down:null,card:null};
@@ -11802,6 +11846,7 @@ function plBoot(){
 plBoot();
 
 window.__app={S:S,render:render,applyData:applyData,buildEditor:buildEditor,syncControls:syncControls,DEMO:DEMO,igSyncSize:igSyncSize,fit:fit};
+Object.defineProperty(window.__app,'CZ',{get:function(){return typeof CZ!=='undefined'?CZ:null}});
 boot();
 })();
 </script>
