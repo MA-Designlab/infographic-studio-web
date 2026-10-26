@@ -1211,7 +1211,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
         </div>
         <div class="field" id="igSizeF"><label for="igSize">مقاس المنصة</label><select id="igSize"><option value="4:5">4:5 إنستغرام / لينكدإن</option><option value="1:1">1:1 مربع (إكس / فيسبوك)</option><option value="9:16">9:16 ستوري</option></select></div>
         <div class="field" id="tplF"><label for="tplSel">القالب</label><select id="tplSel"></select></div>
-        <div id="tplOpts" hidden><label class="check"><input type="checkbox" id="tIcons"> أيقونات بجانب الأرقام</label><label class="check"><input type="checkbox" id="tPanel"> لوحة شفافة خلف الأرقام</label><div id="tFetchBox" hidden><button type="button" class="tool" id="tFetch">جلب الأعلام والشعارات للأسماء</button> <span class="hint" id="tFetchMsg"></span></div></div>
+        <div id="tplOpts" hidden><label class="check"><input type="checkbox" id="tIcons"> أيقونات بجانب الأرقام</label><label class="check"><input type="checkbox" id="tPanel"> لوحة شفافة خلف الأرقام</label><div class="field" id="tSpreadF" hidden><div class="rl"><label for="tSpread">توسيع المسافة في المنتصف</label><output id="tSpreadV"></output></div><input type="range" id="tSpread" min="0" max="100" step="5"><p class="hint">يحرّك الأرقام ناحية الحافتين يميناً وشمالاً ويضيّق عمودي الأرقام.</p></div><div id="tFetchBox" hidden><button type="button" class="tool" id="tFetch">جلب الأعلام والشعارات للأسماء</button> <span class="hint" id="tFetchMsg"></span></div></div>
         <div class="field" id="vbF"><label class="check"><input type="checkbox" id="vbEdit" class="vbedit"> اسمح للذكاء الاصطناعي بتحرير النص (اختصار وإعادة صياغة) ليناسب القوالب</label><p class="hint vbhint"></p>
           <div id="vbRest" hidden><p class="hint" id="vbRestMsg"></p><button type="button" class="tool" id="vbRestBtn">ضع الباقي في خانة النص لتصميم ثانٍ</button></div></div>
         <div class="cta"><button class="primary block" id="gen" type="button">حوّل النص إلى تصميم</button><button id="stopGen" type="button" class="tool" hidden>إيقاف</button></div>
@@ -1859,7 +1859,7 @@ var PRESETS={
 
 var S={
   size:'4:5',lang:'ar',layout:'stats',sec:'eco',theme:'light',main:'#1B1F78',titleC:'#1B1F78',strap:'#D8560B',strapPos:'top',labelPos:'above',numGray:false,
-  kicker:'',title:'',subtitle:'',lede:'',ledeSize:100,ledeHi:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',titleFont:'',titleScale:100,titleNum:false,titleNumC:'',corner:100,
+  kicker:'',title:'',subtitle:'',lede:'',ledeSize:100,ledeHi:'',footer:'',footC:'',footSize:22,footY:22,footAl:'center',titleFont:'',titleScale:100,titleNum:false,titleNumC:'',corner:100,sideSpread:0,
   hero:{value:'',label:'',text:''},stats:[],items:[],bars:[],legend:[],fx:[],tpl:'',ticons:true,tpanel:false,
   bgMode:'preset',bgC1:'#1B1F78',bgC2:'#7B35C6',bgAngle:180,bgPreset:0,bgImg:null,anchor:'bottom',photoZ:100,photoX:50,photoY:null,photoH:100,photoFade:'auto',photoFadeAmt:45,veil:.35,band:true,bandCol:'',bandTr:null,bandSize:100,bandShape:'full'
 };
@@ -7187,20 +7187,20 @@ function tplSync(){
   sel.innerHTML=h;sel.value=tplValid(S.tpl,S.layout)?S.tpl:'';
   $('#tplF').hidden=!l.length;
   var T=tplCur();$('#tplOpts').hidden=!T;
-  if(T){$('#tIcons').checked=!!S.ticons;$('#tPanel').checked=!!S.tpanel;$('#tIcons').parentNode.hidden=!T.icons;$('#tPanel').parentNode.hidden=!T.panel;$('#tFetchBox').hidden=!T.lib}
+  if(T){$('#tIcons').checked=!!S.ticons;$('#tPanel').checked=!!S.tpanel;$('#tIcons').parentNode.hidden=!T.icons;$('#tPanel').parentNode.hidden=!T.panel;$('#tFetchBox').hidden=!T.lib;var spf=$('#tSpreadF');if(spf){spf.hidden=!T.spread;$('#tSpread').value=Math.round(tSpread()*100);$('#tSpreadV').textContent=Math.round(tSpread()*100)+'%'}}
 }
 function tplInit(){
   var sel=$('#tplSel');if(!sel||sel.__b)return;sel.__b=1;
   sel.addEventListener('change',function(){S.tpl=this.value;tplSync();if(typeof buildEditor==='function')buildEditor();schedule()});
   $('#tIcons').addEventListener('change',function(){S.ticons=this.checked;schedule()});
   $('#tPanel').addEventListener('change',function(){S.tpanel=this.checked;schedule()});
+  var tsp=$('#tSpread');if(tsp)tsp.addEventListener('input',function(){S.sideSpread=+this.value;$('#tSpreadV').textContent=this.value+'%';schedule()});
   $('#tFetch').addEventListener('click',function(){tFetchIcons(this,function(m){$('#tFetchMsg').textContent=m||''})});
   tplPhotoInit();tplSync();
 }
 
 /* ---------- pieces ---------- */
 var TP_SZ=[{num:104,label:34,text:26,gap:10,ic:78,icg:12,tl:4},{num:92,label:31,text:24,gap:9,ic:70,icg:10,tl:4},{num:80,label:29,text:22,gap:8,ic:64,icg:8,tl:3},{num:68,label:26,text:20,gap:7,ic:56,icg:6,tl:3},{num:58,label:24,text:19,gap:6,ic:50,icg:5,tl:2}];
-function tIconName(st){return st.icon||fxAutoIcon({t:'num',text:(st.label||'')+' '+(st.text||''),sub:''})}
 function tIcon(st,cx,cy,d){
   var dark=S.theme==='dark',fg=dark?'#14196B':S.main,name=tIconName(st);
   ctx.save();ctx.beginPath();ctx.arc(cx,cy,d/2,0,Math.PI*2);ctx.fillStyle=dark?'#FFFFFF':rgba(S.main,.1);ctx.fill();
@@ -7212,6 +7212,7 @@ function tIcon(st,cx,cy,d){
 /* one figure cell: optional icon on top ('top') or beside the number ('side'); returns its height */
 function tStat(st,cx,y,cw,sz,draw,im,outer){
   var f=F(),th=TH[S.theme],nc=st.color||numColor(),numTxt=fmtVal(st.value),idx=S.stats.indexOf(st),hg=idx>-1?'stats.'+idx:null;
+  if(st.noIcon)im='';
   var side=im==='side',icW=side?sz.ic+14:0,ncw=cw-icW;
   var ns=sz.num;ctx.font=f.num(ns);ctx.direction='ltr';
   while(ns>34&&ctx.measureText(numTxt).width>ncw-12){ns-=4;ctx.font=f.num(ns)}
@@ -7252,13 +7253,16 @@ function tPickSz(cols,cw,avail,im){for(var i=0;i<TP_SZ.length;i++){var ok=cols.e
 function tSplit(list){var n=Math.ceil(list.length/2),a=list.slice(0,n),b=list.slice(n);return rtl()?{right:a,left:b}:{left:a,right:b}}
 
 /* ---------- 1) big hero figure with figures around it ---------- */
-tplReg({id:'hero-sides',name:'رقم عملاق + أرقام حوله',layout:'stats',max:7,icons:true,panel:true,
+/* the two outer columns can move toward the left and right edges (and get narrower), which widens the middle */
+function tSpread(){return Math.max(0,Math.min(100,+S.sideSpread||0))/100}
+function tSideDims(cw0){var v=tSpread();return{cw:Math.round(cw0*(1-.2*v)),m:Math.round(M-(M-12)*v)}}
+tplReg({id:'hero-sides',name:'رقم عملاق + أرقام حوله',layout:'stats',max:7,icons:true,panel:true,spread:true,
   split:function(st){var n=Math.min(4,st.length);return{main:st.slice(0,n),band:st.slice(n)}},
   draw:function(top,bottom,sides){
     if(!S.hero.value){TPL['grid-sides'].draw(top,bottom,sides);return}
-    var cw=252,gap=22,hw=W-2*M-2*cw-2*gap,sp=tSplit(sides),im=S.ticons?'top':'';
+    var sd=tSideDims(252),cw=sd.cw,gap=22,hw=W-2*sd.m-2*cw-2*gap,sp=tSplit(sides),im=S.ticons?'top':'';
     var sz=tPickSz([sp.right,sp.left],cw,bottom-top,im);
-    var cxR=W-M-cw/2,cxL=M+cw/2;
+    var cxR=W-sd.m-cw/2,cxL=sd.m+cw/2;
     var y0=tY0([sp.right,sp.left],top,bottom,cw,sz,im);
     drawHero(top,bottom,W/2,hw+30);
     if(sp.right.length)tCol(sp.right,cxR,top,bottom,cw,sz,im,'right',S.tpanel,y0);
@@ -7266,12 +7270,12 @@ tplReg({id:'hero-sides',name:'رقم عملاق + أرقام حوله',layout:'s
   }});
 
 /* ---------- 2) figures spread on both sides of a central picture ---------- */
-tplReg({id:'grid-sides',name:'أرقام على جانبي صورة',layout:'stats',max:8,icons:true,panel:true,
+tplReg({id:'grid-sides',name:'أرقام على جانبي صورة',layout:'stats',max:8,icons:true,panel:true,spread:true,
   draw:function(top,bottom,list){
     if(!list.length)return;
-    var cw=290,sp=tSplit(list),im=S.ticons?'side':'';
+    var sd=tSideDims(290),cw=sd.cw,sp=tSplit(list),im=S.ticons?'side':'';
     var sz=tPickSz([sp.right,sp.left],cw,bottom-top,im);
-    var cxR=W-M-cw/2+6,cxL=M+cw/2-6,y0=tY0([sp.right,sp.left],top,bottom,cw,sz,im);
+    var cxR=W-sd.m-cw/2+6,cxL=sd.m+cw/2-6,y0=tY0([sp.right,sp.left],top,bottom,cw,sz,im);
     if(sp.right.length)tCol(sp.right,cxR,top,bottom,cw,sz,im,'right',S.tpanel,y0);
     if(sp.left.length)tCol(sp.left,cxL,top,bottom,cw,sz,im,'left',S.tpanel,y0);
   }});
@@ -7769,19 +7773,20 @@ tplReg({id:'portrait-center',name:'شخصية في المنتصف + نقاط ع�
 
 /* ---------- 7) text distribution: blocks with a coloured title bar ---------- */
 function tBlkPal(){return S.theme==='dark'?[S.strap,'#2BA3FF','#2E8B3A','#8A4DCC','#E0A100','#14A39A']:[S.main,S.strap,'#2BA3FF','#2E8B3A','#8A4DCC','#14A39A']}
-function tBlkMeasure(its,w,tz,bz,maxL,ic){
-  var f=F(),iw=ic?tz*1.7:0;
-  return its.map(function(it){var a=it.title?limit(wrapBal(fixPct(it.title),f.head(tz),w-48-iw),2):[],b=it.text?limit(wrapBal(fixPct(ndTxt(it.text,it.value)),f.body(bz),w-56),maxL):[];
+function tBlkMeasure(its,w,tz,bz,maxL,ic0){
+  var f=F();
+  return its.map(function(it){var ic=ic0&&!it.noIcon,iw=ic?tz*1.7:0,a=it.title?limit(wrapBal(fixPct(it.title),f.head(tz),w-48-iw),2):[],b=it.text?limit(wrapBal(fixPct(ndTxt(it.text,it.value)),f.body(bz),w-56),maxL):[];
     return{a:a,b:b,bar:Math.max(a.length*tz*1.28+26,ic?tz*1.7+18:0),th:b.length*bz*1.45+(b.length?34:18)}});
 }
 function tBlock(it,m,x,y,w,h,col,tz,bz,ic){
+  if(it.noIcon)ic=false;
   var f=F(),th=TH[S.theme],R=rtl(),dark=S.theme==='dark',ig='items.'+S.items.indexOf(it);
   HI.tag(ig,'','البلوك');HI.box(x,y,x+w,y+h,-1);
   ctx.save();rrect(x,y,w,h,26);ctx.fillStyle=dark?'rgba(7,12,42,.62)':'rgba(255,255,255,.9)';ctx.fill();ctx.strokeStyle=th.line;ctx.lineWidth=1.2;ctx.stroke();ctx.clip();
   ctx.fillStyle=col;ctx.fillRect(x,y,w,m.bar);ctx.restore();
   var tc=lum(col)>.6?'#1A1A1A':'#FFFFFF',iw=ic?tz*1.7:0,ax=R?x+w-24:x+24,al=R?'right':'left';
   if(ic){var d=tz*1.45,icx=R?x+w-18-d/2:x+18+d/2,icy=y+m.bar/2;ctx.beginPath();ctx.arc(icx,icy,d/2,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.95)';ctx.fill();
-    var im=fxIconImg(tIconName({icon:it.icon,label:it.title,text:it.text}),'line',lum(col)>.6?col:col,col,null);if(im){var sz=d*.6;ctx.drawImage(im,icx-sz/2,icy-sz/2,sz,sz)}
+    var im=fxIconImg(tIconName(it),'line',lum(col)>.6?col:col,col,null);if(im){var sz=d*.6;ctx.drawImage(im,icx-sz/2,icy-sz/2,sz,sz)}
     ax=R?x+w-18-d-14:x+18+d+14}
   var ty=y+(m.bar-m.a.length*tz*1.28)/2;
   HI.tag(ig,'title','العنوان');m.a.forEach(function(l,k){put(l,ax,ty+tz*.98+k*tz*1.28,f.head(tz),tc,al)});HI.tag();
@@ -8113,7 +8118,7 @@ tplReg({id:'bilateral',name:'علاقات بين دولتين: علمان متق
       /* round icon on the top edge */
       ctx.beginPath();ctx.arc(ccx,top0,dI/2,0,Math.PI*2);ctx.fillStyle=dark?'#101650':'#FFFFFF';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle=tbHex(gold,.9);ctx.stroke();
       ctx.beginPath();ctx.arc(ccx,top0,dI/2-7,0,Math.PI*2);ctx.lineWidth=1.2;ctx.strokeStyle=tbHex(gold,.4);ctx.stroke();
-      var ic=fxIconImg(it.icon||tIconName({label:it.title,text:it.text}),'line',gold,gold,null);if(ic){var is=dI*.5;ctx.drawImage(ic,ccx-is/2,top0-is/2,is,is)}
+      var ic=fxIconImg(tIconName(it),'line',gold,gold,null);if(ic){var is=dI*.5;ctx.drawImage(ic,ccx-is/2,top0-is/2,is,is)}
       var ty=top0+dI*.5+pad,bh=m.a.length*tz*1.22+(m.a.length&&m.b.length?26:0)+m.b.length*bz*1.42,sy=ty+Math.max(0,(cardH-dI*.5-2*pad-bh)/2);
       HI.tag(ig,'title','العنوان');m.a.forEach(function(l,k){put(l,ccx,sy+tz*.95+k*tz*1.22,f.head(tz),tcol,'center')});HI.tag();
       var yy=sy+m.a.length*tz*1.22;
@@ -8203,7 +8208,7 @@ function crCards(its,y,h){
     ctx.save();ctx.shadowColor=dark?'rgba(0,0,0,.3)':rgba(S.main,.16);ctx.shadowBlur=20;ctx.shadowOffsetY=6;rrect(x,top0,cw,cardH,26);ctx.fillStyle=dark?'rgba(7,12,42,.7)':'rgba(255,255,255,.96)';ctx.fill();ctx.restore();
     rrect(x,top0,cw,cardH,26);ctx.lineWidth=2.5;ctx.strokeStyle=c;ctx.stroke();
     ctx.beginPath();ctx.arc(ccx,top0,dI/2,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.lineWidth=4;ctx.strokeStyle=dark?'#101650':'#FFFFFF';ctx.stroke();
-    var ic=fxIconImg(tIconName({icon:it.icon,label:it.title,text:it.text}),'line','#FFFFFF','#FFFFFF',null);if(ic){var is=dI*.52;ctx.drawImage(ic,ccx-is/2,top0-is/2,is,is)}
+    var ic=fxIconImg(tIconName(it),'line','#FFFFFF','#FFFFFF',null);if(ic){var is=dI*.52;ctx.drawImage(ic,ccx-is/2,top0-is/2,is,is)}
     var bh=m.a.length*tz*1.24+m.b.length*bz*1.42+(m.a.length&&m.b.length?22:0),sy=top0+dI*.5+pad+Math.max(0,(cardH-dI*.5-2*pad-bh)/2);
     HI.tag(ig,'title','العنوان');m.a.forEach(function(l,k){put(l,ccx,sy+tz*.95+k*tz*1.24,f.head(tz),dark?th.ink:S.main,'center')});HI.tag();
     var yy=sy+m.a.length*tz*1.24;
@@ -8231,6 +8236,71 @@ function crHtml(cls,pop){
   h+=pop?epField('hero.label','تعليق على الصورة (اختياري)','',{part:'label'}):'<div class="field"><label>تعليق على الصورة (اختياري)</label>'+inp('hero.label',S.hero.label,'')+'</div>';
   return h;
 }
+
+/* ===== the little icons next to the figures and on the cards: hide or change them one by one, and never repeat the same automatic icon ===== */
+var TIC={objs:null,sig:'',names:[]};
+function tIconObjs(){return [S.hero].concat(S.stats||[],S.items||[]).filter(function(o){return o&&(o.icon||o.label||o.title||o.text)})}
+function tIconTxt(o){return (o.label||o.title||'')+' '+(o.text||'')}
+/* explicit choices first, then the automatic ones in order, each skipping icons already taken */
+function tIconMap(){
+  var L=tIconObjs(),sig=L.map(function(o){return (o.icon||'')+'|'+tIconTxt(o)}).join('~');
+  if(TIC.objs&&TIC.sig===sig&&TIC.objs.length===L.length&&L.every(function(o,i){return o===TIC.objs[i]}))return TIC;
+  var used={},names=[];
+  L.forEach(function(o,i){if(o.icon){used[o.icon]=1;names[i]=o.icon}});
+  L.forEach(function(o,i){if(names[i])return;var n=fxAutoIcon({t:'num',text:tIconTxt(o),sub:''},used);used[n]=1;names[i]=n});
+  TIC={objs:L,sig:sig,names:names};return TIC;
+}
+function tIconName(st){
+  var m=tIconMap(),i=m.objs.indexOf(st);
+  if(i>-1)return m.names[i];
+  return st.icon||fxAutoIcon({t:'num',text:tIconTxt(st),sub:''});
+}
+/* ----- the editor part (stats, the main figure and the cards) ----- */
+function tiObj(g){
+  var a=String(g||'').split('.');
+  if(a[0]==='hero')return S.hero;
+  if(a[0]==='stats')return S.stats[+a[1]];
+  if(a[0]==='items')return S.items[+a[1]];
+  return null;
+}
+function tiGrid(q){
+  q=fxNorm(q||'').trim();
+  var list=FX_KW.filter(function(k){return !q||fxNorm(k[1]+' '+k[2]+' '+k[0]).indexOf(q)>-1}).slice(0,60);
+  return list.map(function(k){var s=fxIconSrc(k[0],'line');
+    return '<button type="button" class="fxi" data-tic="set" data-v="'+k[0]+'" title="'+k[0]+'">'+(s?'<svg viewBox="'+s.vb+'" aria-hidden="true">'+s.inner+'</svg>':'<span class="hint">…</span>')+'</button>'}).join('')||'<span class="hint">لا نتائج.</span>';
+}
+function tiShown(g){
+  var T=tplCur();if(!T||!T.icons||!S.ticons)return false;
+  return true;
+}
+function tiHtml(g,pop){
+  if(!tiShown(g))return '';
+  var o=tiObj(g);if(!o)return '';
+  var nm=tIconName(o),s=fxIconSrc(nm,'line'),cls=pop?'epf':'field';
+  return '<div class="'+cls+' tirow" data-tig="'+g+'"><label>الأيقونة بجانب الرقم</label>'
+    +'<div class="inrow"><span class="fxicbox">'+(s?'<svg viewBox="'+s.vb+'" class="fxpv big" aria-hidden="true">'+s.inner+'</svg>':'<span class="fxpv">…</span>')+'</span>'
+    +'<div class="fxicbtns"><label class="check"><input type="checkbox" data-tic="hide"'+(o.noIcon?' checked':'')+'> إخفاء هذه الأيقونة</label>'
+    +(o.icon?'<button type="button" class="mini" data-tic="auto">اختيار تلقائي</button>':'<span class="hint">مختارة تلقائياً ولا تتكرر</span>')+'</div></div>'
+    +'<details class="fxs"><summary>تغيير الأيقونة</summary><div class="fxb"><input type="search" dir="auto" data-tic-q placeholder="ابحث: عمال، طاقة، مال، health…"><div class="fxig" data-tic-grid>'+tiGrid('')+'</div></div></details></div>';
+}
+window.__tiHtml=tiHtml;
+function tiAfter(){schedule();if(typeof EP!=='undefined'&&EP.on&&typeof epBuild==='function'){var d=document.querySelector('.tirow details');var open=d&&d.open;epBuild();var d2=document.querySelector('.tirow details');if(d2&&open)d2.open=true}else if(typeof buildEditor==='function')buildEditor()}
+document.addEventListener('change',function(e){
+  var t=e.target;if(!t||!t.dataset||t.dataset.tic!=='hide')return;
+  var row=t.closest('[data-tig]'),o=row&&tiObj(row.getAttribute('data-tig'));if(!o)return;
+  if(t.checked)o.noIcon=true;else delete o.noIcon;schedule();
+});
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-tic]');if(!b||b.tagName==='INPUT')return;
+  var row=b.closest('[data-tig]'),o=row&&tiObj(row.getAttribute('data-tig'));if(!o)return;
+  var a=b.dataset.tic;
+  if(a==='set'){o.icon=b.dataset.v;delete o.noIcon;tiAfter()}
+  else if(a==='auto'){delete o.icon;tiAfter()}
+});
+document.addEventListener('input',function(e){
+  var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-tic-q'))return;
+  var g=t.closest('.tirow').querySelector('[data-tic-grid]');if(g)g.innerHTML=tiGrid(t.value);
+});
 
 /* ===== free elements: click an empty spot on any design to drop a text, a number, an icon or an image there ===== */
 var FX={open:{g:1},pick:null,at:null,q:'',res:[],icNet:{},svg:{},icImg:{},pend:[],uid:0,busy:0};
@@ -8270,18 +8340,21 @@ function fxMake(type,x,y){
 
 /* ---------- icons ---------- */
 function fxNorm(t){return String(t||'').toLowerCase().replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه')}
-function fxAutoIcon(e){
-  var t=fxNorm((e.text||'')+' '+(e.sub||'')),best='',bs=0;
+function fxAutoIcon(e,skip){
+  var t=fxNorm((e.text||'')+' '+(e.sub||'')),list=[];
   if(t.trim()){
     FX_KW.forEach(function(k){
       var sc=0;
       fxNorm(k[1]).split(/\s+/).forEach(function(w){if(w&&t.indexOf(w)>-1)sc+=w.length});
       k[2].split(/\s+/).forEach(function(w){if(w&&new RegExp('(^|[^a-z])'+w.replace(/-/g,'[- ]'),'i').test(t))sc+=w.length});
-      if(sc>bs){bs=sc;best=k[0]}
+      if(sc>0)list.push([sc,k[0]]);
     });
   }
-  if(best)return best;
-  return e.t==='num'||/[\d%]/.test(t)?'chart-line-up':e.t==='icon'?'star':'sparkle';
+  list.sort(function(a,b){return b[0]-a[0]});
+  for(var i=0;i<list.length;i++)if(!skip||!skip[list[i][1]])return list[i][1];
+  var d=e.t==='num'||/[\d%]/.test(t)?'chart-line-up':e.t==='icon'?'star':'sparkle';
+  if(skip&&skip[d]){var alt=['chart-line-up','target','lightbulb','rocket-launch','star','sparkle','globe-hemisphere-east','handshake','trophy','flag'];for(var j=0;j<alt.length;j++)if(!skip[alt[j]])return alt[j]}
+  return d;
 }
 function fxIconName(e){return e.ic.auto||!e.ic.name?fxAutoIcon(e):e.ic.name}
 var FX_SUF=['','-fill','-duotone'];
@@ -9416,12 +9489,12 @@ function epBodyIG(g,p){
   else if(k==='hero'||k==='stats'){
     t=k==='hero'?'الرقم المميز':'رقم';
     h=epField(g+'.value','الرقم','الرقم',{part:'value'})+epField(g+'.label','الكلمة المميزة','الكلمة المميزة',{part:'label'})+epField(g+'.text','النص تحت الرقم','جملة قصيرة',{part:'text'})
-      +epCol(g+'.color','لون هذا الرقم')+epSwatches('main','اللون العام للأرقام')+epLpHtml(g)+(window.__tyPanelHtml?window.__tyPanelHtml(g,p):'');
+      +epCol(g+'.color','لون هذا الرقم')+tiHtml(g,true)+epSwatches('main','اللون العام للأرقام')+epLpHtml(g)+(window.__tyPanelHtml?window.__tyPanelHtml(g,p):'');
     if(k==='stats')h+=epDel(g,'حذف هذا الرقم');
   }
   else if(k==='bars'){t='عمود';h=epField(g+'.label','الاسم','الاسم',{part:'label'})+epField(g+'.value','القيمة','القيمة',{part:'value'})+epField(g+'.note','النسبة','النسبة',{part:'note'})+epSwatches('main','لون الأعمدة')+epDel(g,'حذف هذا العمود')}
   else if(k==='legend'){t='مفتاح الأعمدة';h=epField(g,'نص المفتاح','وصف قصير')}
-  else if(k==='items'){t=S.layout==='cards'?'بطاقة':'نقطة';var ii=+g.split('.')[1];h=tplPopItemPhoto(ii)+epField(g+'.title','العنوان الفرعي','العنوان الفرعي',{part:'title'})+tplPopItemValue(ii,g)+epField(g+'.text','النص','النص',{part:'text'})+epSwatches('main','لون العناوين والأرقام')+epDel(g,'حذف')}
+  else if(k==='items'){t=S.layout==='cards'?'بطاقة':'نقطة';var ii=+g.split('.')[1];h=tplPopItemPhoto(ii)+epField(g+'.title','العنوان الفرعي','العنوان الفرعي',{part:'title'})+tplPopItemValue(ii,g)+epField(g+'.text','النص','النص',{part:'text'})+tiHtml(g,true)+epSwatches('main','لون العناوين والأرقام')+epDel(g,'حذف')}
   else if(k==='footer'){t='السطر السفلي';h=epField('footer','النص','إعداد: الاسم، تصميم: الاسم')+epRange('footSize','الحجم',10,60)+epRange('footY','البعد عن الحافة',6,140)+epRadio('footAl','المحاذاة',[['right','يمين'],['center','وسط'],['left','يسار']])+epSwatches('footC','اللون',true)}
   else if(k==='sec'){
     t='القالب والشعار';
@@ -9749,7 +9822,7 @@ function pvEnsure(){
   $('.prv-x',d).addEventListener('click',pvClose);
   $('#pvPrev').addEventListener('click',function(){pvStep(-1)});$('#pvNext').addEventListener('click',function(){pvStep(1)});
   $('#pvEdit').addEventListener('click',function(){var i=PV.i;pvClose();if(PV.mode==='cz')czSelect(i)});
-  $('#pvDl').addEventListener('click',function(){if(PV.mode==='ch'){chDownload()}else if(PV.mode==='cz'){var i=PV.i;czPng(i).then(function(b){czDrawSlide(CZ.cur);if(b)czSave(b,czBase()+'-'+String(i+1).padStart(2,'0')+'.png')})}else{$('#dl').click()}});
+  $('#pvDl').addEventListener('click',function(){if(PV.mode==='ch'){chDownload()}else if(PV.mode==='cz'){var i=PV.i;czPng(i).then(function(b){czDrawSlide(CZ.cur);if(b)czSave(b,czBase()+'-'+String(i+1).padStart(2,'0')+'.png')})}else{var qo=window.__qa&&window.__qa.check?window.__qa.check('ig'):[];if(qo.some(function(x){return x.lv==='warn'}))pvClose();$('#dl').click()}});
   /* swipe between slides */
   var st=$('.prv-stage',d),dr=null;
   st.addEventListener('pointerdown',function(e){dr={x:e.clientX,y:e.clientY}});
@@ -11950,7 +12023,7 @@ function plBoot(){
 }
 plBoot();
 
-window.__app={S:S,render:render,applyData:applyData,buildEditor:buildEditor,syncControls:syncControls,DEMO:DEMO,igSyncSize:igSyncSize,fit:fit,fixPct:fixPct,ndTxt:ndTxt};
+window.__app={S:S,render:render,applyData:applyData,buildEditor:buildEditor,syncControls:syncControls,DEMO:DEMO,igSyncSize:igSyncSize,fit:fit,fixPct:fixPct,ndTxt:ndTxt,tIconName:tIconName};
 Object.defineProperty(window.__app,'CZ',{get:function(){return typeof CZ!=='undefined'?CZ:null}});
 boot();
 })();
