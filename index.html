@@ -4098,24 +4098,49 @@ function czBox(text,tier,w){
   }};
 }
 function czPoints(list,tier,w,sl){
-  var p=czP(),ts=[38,35,32,29,26][tier],bs=[30,28,26,24,22][tier],st=czPtSt(sl||czCurS),md=st==='none'?0:st==='dot'?22:st==='bar'?10:44,gp=st==='none'?0:30,tw=w-md-gp;
+  var lay=czPtLay(sl||czCurS);
+  if(lay==='cols'&&list.length>1)return czPointsCols(list,tier,w,sl);
+  var p=czP(),ts=[38,35,32,29,26][tier],bs=[30,28,26,24,22][tier],st=czPtSt(sl||czCurS),top=lay==='top',md=st==='none'?0:st==='dot'?22:st==='bar'?(top?52:10):44,gp=st==='none'||top?0:30,tw=w-md-gp;
   var icons=st==='icon'?czPtIcons(list):null;
   var rows=list.map(function(it){
-    var a=it.title?czCut(czBal(fixPct(it.title),function(){return czFont('head',ts)},tw),2):[],b=it.text?czCut(czWrap(it.text,function(){return czFont('body',bs)},tw),2):[];
-    var h=a.length*ts*1.3+(a.length&&b.length?6:0)+b.length*bs*1.5;return{a:a,b:b,h:Math.max(md,h)+34};
+    var a=it.title?czCut(czBal(fixPct(it.title),function(){return czFont('head',ts)},top?w:tw),2):[],b=it.text?czCut(czWrap(it.text,function(){return czFont('body',bs)},top?w:tw),2):[];
+    var h=a.length*ts*1.3+(a.length&&b.length?6:0)+b.length*bs*1.5;return{a:a,b:b,h:top?(md?md+12:0)+h+34:Math.max(md,h)+34,th:h};
   });
   var total=rows.reduce(function(s,r){return s+r.h},0);
   return{h:total,draw:function(y,x0){
     var R=czR(),yy=y;
     rows.forEach(function(r,i){
       var cy=yy+r.h/2,mx=R?x0+w-md/2:x0+md/2,ax=R?x0+w-md-gp:x0+md+gp,ty=cy-(r.h-34)/2;
+      if(top){mx=R?x0+w-md/2:x0+md/2;ax=R?x0+w:x0;ty=yy+17+(md?md+12:0);cy=yy+17+md/2}
       var pg='points.'+((czCurS&&czCurS.points||[]).indexOf(list[i]));HC.tag(pg,'','النقطة');HC.box(x0,yy+2,x0+w,yy+r.h-2,-1);HC.tag();
-      if(md)czPtMark(st,i,icons&&icons[i],mx,cy,md,p.main);
+      if(md){if(top&&st==='bar'){cx.fillStyle=p.accent;czRR(R?x0+w-md:x0,cy-5,md,10,5);cx.fill()}else czPtMark(st,i,icons&&icons[i],mx,cy,md,p.main)}
       HC.tag(pg,'title','عنوان النقطة');czDraw(r.a,ax,ty+ts*.92,ts*1.3,function(){return czFont('head',ts)},function(){return p.main},czAl());HC.tag();
       var by=ty+r.a.length*ts*1.3+(r.a.length&&r.b.length?6:0);
       HC.tag(pg,'text','نص النقطة');czDraw(r.b,ax,by+bs*1.02,bs*1.5,function(){return czFont('body',bs)},function(){return p.gray},czAl());HC.tag();
       if(i<rows.length-1){cx.strokeStyle=p.line;cx.lineWidth=1.6;cx.beginPath();cx.moveTo(x0,yy+r.h);cx.lineTo(x0+w,yy+r.h);cx.stroke()}
       yy+=r.h;
+    });
+  }};
+}
+/* the points side by side as columns: the marker on top, then the heading, then the sentence */
+function czPointsCols(list,tier,w,sl){
+  var p=czP(),n=list.length,gap=26,cw=(w-(n-1)*gap)/n,k=n>=4?.78:n===3?.88:1,ts=Math.round([38,35,32,29,26][tier]*k),bs=Math.round([30,28,26,24,22][tier]*k),st=czPtSt(sl||czCurS);
+  var md=st==='none'?0:st==='dot'?22:st==='bar'?52:Math.round(n>=4?68:80),icons=st==='icon'?czPtIcons(list):null;
+  var cols=list.map(function(it){
+    var a=it.title?czCut(czBal(fixPct(it.title),function(){return czFont('head',ts)},cw-8),3):[],b=it.text?czCut(czWrap(it.text,function(){return czFont('body',bs)},cw-8),5):[];
+    return{a:a,b:b,h:(md?md+16:0)+a.length*ts*1.3+(a.length&&b.length?8:0)+b.length*bs*1.45};
+  });
+  var H=Math.max.apply(null,cols.map(function(c){return c.h}))+34;
+  return{h:H,draw:function(y,x0){
+    var R=czR();
+    cols.forEach(function(c,i){
+      var idx=R?n-1-i:i,cxm=x0+idx*(cw+gap)+cw/2,yy=y+17,pg='points.'+((czCurS&&czCurS.points||[]).indexOf(list[i]));
+      HC.tag(pg,'','النقطة');HC.box(cxm-cw/2,y+2,cxm+cw/2,y+H-2,-1);HC.tag();
+      if(md){if(st==='bar'){cx.fillStyle=p.accent;czRR(cxm-md/2,yy+md/2-5,md,10,5);cx.fill()}else czPtMark(st,i,icons&&icons[i],cxm,yy+md/2,md,p.main);yy+=md+16}
+      HC.tag(pg,'title','عنوان النقطة');czDraw(c.a,cxm,yy+ts*.92,ts*1.3,function(){return czFont('head',ts)},function(){return p.main},'center');HC.tag();
+      yy+=c.a.length*ts*1.3+(c.a.length&&c.b.length?8:0);
+      HC.tag(pg,'text','نص النقطة');czDraw(c.b,cxm,yy+bs*1.0,bs*1.45,function(){return czFont('body',bs)},function(){return p.gray},'center');HC.tag();
+      if(i<n-1){var sx=R?cxm-cw/2-gap/2:cxm+cw/2+gap/2;cx.strokeStyle=p.line;cx.lineWidth=1.6;cx.beginPath();cx.moveTo(sx,y+12);cx.lineTo(sx,y+H-12);cx.stroke()}
     });
   }};
 }
@@ -9077,6 +9102,8 @@ document.addEventListener('click',function(e){
 
 /* ---------- style of the middle sentences (points): check | numbers | icons | dot | bar | none ---------- */
 var CZ_PTS=[['check','علامة صح (الافتراضي)'],['num','ترقيم 1 2 3'],['icon','أيقونات تلقائية حسب المعنى'],['dot','نقطة صغيرة'],['bar','شريط جانبي'],['none','بدون علامة']];
+var CZ_PTLAY=[['list','قائمة رأسية، العلامة بجانب النص (الافتراضي)'],['top','قائمة رأسية، العلامة فوق النص'],['cols','أعمدة جنب بعض، العلامة فوق كل عمود']];
+function czPtLay(s){var v=s&&s.ptLay||CZ.ptLay||'list';return v==='top'||v==='cols'?v:'list'}
 function czPtSt(s){var v=s&&s.ptSt||CZ.ptSt||'check';return CZ_PTS.some(function(o){return o[0]===v})?v:'check'}
 /* the icon of one point: its own choice or one chosen by meaning, never repeating on a slide when avoidable */
 function czPtIcons(list){
@@ -9112,6 +9139,8 @@ function czPtsHtml(s,cls){
   var cur=s.ptSt||'',list=(s.points||[]).filter(function(t){return t.title||t.text});
   var h='<div class="'+cls+'"><label>شكل علامة النقاط</label><select data-czptst="slide"><option value="">مثل الإعداد العام</option>'+CZ_PTS.map(function(o){return '<option value="'+o[0]+'"'+(cur===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
     +'<div class="'+cls+'"><label>الإعداد العام لكل الشرائح</label><select data-czptst="all">'+CZ_PTS.map(function(o){return '<option value="'+o[0]+'"'+((CZ.ptSt||'check')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
+  h+='<div class="'+cls+'"><label>ترتيب النقاط</label><select data-czptlay="slide"><option value="">مثل الإعداد العام</option>'+CZ_PTLAY.map(function(o){return '<option value="'+o[0]+'"'+(s.ptLay===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
+    +'<div class="'+cls+'"><label>ترتيب النقاط لكل الشرائح</label><select data-czptlay="all">'+CZ_PTLAY.map(function(o){return '<option value="'+o[0]+'"'+((CZ.ptLay||'list')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
   if(czPtSt(s)==='icon'&&list.length){
     var auto=czPtIcons(list);
     h+=list.map(function(it,j){
@@ -9124,6 +9153,12 @@ function czPtsHtml(s,cls){
 function czIconLabel(nm){var k=FX_KW.filter(function(x){return x[0]===nm})[0];return k?String(k[1]).split(/\s+/)[0]:String(nm||'')}
 document.addEventListener('change',function(e){
   var t=e.target;if(!t||!t.hasAttribute)return;
+  if(t.hasAttribute('data-czptlay')){
+    var s3=CZ.slides[CZ.cur];if(!s3)return;
+    if(t.getAttribute('data-czptlay')==='all'){CZ.ptLay=t.value;CZ.slides.forEach(function(x){delete x.ptLay})}
+    else{if(t.value)s3.ptLay=t.value;else delete s3.ptLay}
+    czBuildEditor();if(window.EP&&EP.on&&typeof epBuild==='function')epBuild();czSchedule();return;
+  }
   if(t.hasAttribute('data-czptst')){
     var s=CZ.slides[CZ.cur];if(!s)return;
     if(t.getAttribute('data-czptst')==='all'){CZ.ptSt=t.value;CZ.slides.forEach(function(x){delete x.ptSt})}
@@ -9148,7 +9183,8 @@ function czaiRoot(){return [
  ['statMid','b',0,'centre the numbers vertically'],['statLay','e',['stack','side'],'figures stacked or label beside the figure (all figures)'],
  ['corner','n',[0,200],'softness of frames, 100 default, 0 sharp'],['titleFont','f',0,'font of all titles'],['titleScale','n',[50,160],'size of all titles %'],
  ['bgMode','e',['auto','solid','grad'],'background kind for cover/closing/empty pictures'],['bgC1','c',0,'background colour 1'],['bgC2','c',0,'background colour 2 (gradient end)'],['bgAngle','n',[0,360],'gradient angle'],['bgPlain','b',0,'plain background without decorative waves/circles'],
- ['ptSt','e',CZ_PTS.map(function(o){return o[0]}),'marker of the middle sentences (points) on ALL slides: check | num (1 2 3) | icon (icons chosen by meaning) | dot | bar | none']
+ ['ptSt','e',CZ_PTS.map(function(o){return o[0]}),'marker of the middle sentences (points) on ALL slides: check | num (1 2 3) | icon (icons chosen by meaning) | dot | bar | none'],
+ ['ptLay','e',['list','top','cols'],'arrangement of the points on ALL slides: list = vertical list with the marker beside the text | top = vertical list with the marker/icon above the text | cols = the points side by side as columns, marker/icon on top of each column (best with 2-4 points)']
 ]}
 var CZ_AI_SL=[
  ['kicker','t',120,'strap (cover)'],['title','t',240,'title'],['subtitle','t',260,'second title (content slides)'],['lede','t',320,'third title: a sentence under the second title (content slides), **words** are highlighted'],['text','t',500,'sentence / description'],['cta','t',60,'button text'],['handle','t',60,'account (closing)'],['pills','t',120,'tags text, comma separated'],['foot','t',200,'closing line (sky look)'],
@@ -9157,7 +9193,7 @@ var CZ_AI_SL=[
  ['pfd','e',['b','t','tb','v','l','r','diag','none'],'fade direction of the top picture: b white from below (default) | t template colour from top | tb both | v from all sides | l | r | diag | none'],['pfa','n',[10,100],'fade strength %'],['phh','n',[60,140],'picture height %'],
  ['ptn','e',['','bw','duo','sepia','warm','cool'],'colour treatment of the picture: bw black&white | duo template-colour tint | sepia | warm | cool'],['ptna','n',[10,100],'colour treatment strength %'],['pbr','n',[-50,50],'picture brightness'],
  ['psh','e',['round','sharp','arch','circle','diag','wave'],'shape of the picture frame (switches to box)'],['pbd','e',['','white','accent','main'],'frame border colour'],
- ['ptSt','e',['']. concat(CZ_PTS.map(function(o){return o[0]})),'marker of the points on this slide only ("" = follow the general one)'],['ledeSz','n',[70,150],'third title size %']
+ ['ptSt','e',['']. concat(CZ_PTS.map(function(o){return o[0]})),'marker of the points on this slide only ("" = follow the general one)'],['ptLay','e',['','list','top','cols'],'arrangement of the points on this slide only ("" = follow the general one)'],['ledeSz','n',[70,150],'third title size %']
 ];
 var CZ_AI_ROW={stats:{value:['t',12],label:['t',60],text:['t',90],flag:['t',30],lp:['e',['','above','below']],ly:['e',['','stack','side']]},points:{title:['t',50],text:['t',110],icon:['i']}};
 var CZ_AI_HP=['title','subtitle','lede','kicker','text'];
@@ -9173,6 +9209,7 @@ function czaiPath(p){
       else if(p==='statLay')CZ.statLay=v==='side'?'side':'';
       else if(p==='tags'){if(v==='hide')CZ.tags='hide';else delete CZ.tags}
       else if(p==='ptSt'){CZ.ptSt=v;CZ.slides.forEach(function(x){delete x.ptSt})}
+      else if(p==='ptLay'){CZ.ptLay=v;CZ.slides.forEach(function(x){delete x.ptLay})}
       else CZ[p]=v;
     }};
   }
@@ -9222,7 +9259,7 @@ function czaiOne(op){
   }
   if(op.op==='set_all'){
     var key=String(op.key||''),ty=/^(content|cover|closing)$/.test(op.type)?op.type:'all',n=0,bad=false;
-    if(key==='ptSt'||(czaiPath(key)&&!/^slides\./.test(key))){var g=czaiPath(key),gv=g&&g.check(op.value);if(!gv)return 'قيمة غير صالحة: '+key;g.set(gv.v);return ''}
+    if(key==='ptSt'||key==='ptLay'||(czaiPath(key)&&!/^slides\./.test(key))){var g=czaiPath(key),gv=g&&g.check(op.value);if(!gv)return 'قيمة غير صالحة: '+key;g.set(gv.v);return ''}
     CZ.slides.forEach(function(s,i){
       if(ty!=='all'&&s.type!==ty)return;
       var pp=czaiPath('slides.'+i+'.'+key);if(!pp){bad=true;return}
@@ -9276,16 +9313,16 @@ function czaiCatalog(){
 }
 function czaiState(){
   var pick=function(o,ks){var r={};ks.forEach(function(k){if(o[k]!==undefined&&o[k]!==''&&o[k]!==null)r[k]=o[k]});return r};
-  var sk=['kicker','title','subtitle','lede','text','cta','handle','pills','foot','tz','lay','ho','mo','pm','pa','pz','px','py','pfd','pfa','phh','ptn','ptna','pbr','psh','pbd','ptSt','ledeSz','hp'];
+  var sk=['kicker','title','subtitle','lede','text','cta','handle','pills','foot','tz','lay','ho','mo','pm','pa','pz','px','py','pfd','pfa','phh','ptn','ptna','pbr','psh','pbd','ptSt','ptLay','ledeSz','hp'];
   return{lang:CZ.lang,look:CZ.look||'classic',
-    settings:pick(CZ,['main','accent','size','sec','labelPos','pager','tags','statMid','statLay','corner','titleFont','titleScale','bgMode','bgC1','bgC2','bgAngle','bgPlain','ptSt']),
+    settings:pick(CZ,['main','accent','size','sec','labelPos','pager','tags','statMid','statLay','corner','titleFont','titleScale','bgMode','bgC1','bgC2','bgAngle','bgPlain','ptSt','ptLay']),
     slides:CZ.slides.map(function(s,i){return Object.assign({i:i,type:s.type,hasPhoto:!!s.photo,photoCutOut:czCutOk(s)},pick(s,sk),
       {stats:(s.stats||[]).map(function(t,j){return Object.assign({j:j},pick(t,['value','label','text','flag','lp','ly']))}),points:(s.points||[]).map(function(t,j){return Object.assign({j:j},pick(t,['title','text','icon']))})})}),
     canvas:{w:W,h:CZ_SIZES[CZ.size||'4:5']},catalog:czaiCatalog(),
     hints:['Slide 0 is the cover, the last one may be the closing slide; every other slide is a content slide.',
       'The classic look draws a picture at the top of content slides (fading into the white page), the title with a numbered badge below it, then the numbers or points and a tinted sentence box. Pictures can only be uploaded by the user; you can change how an existing picture is shown (hasPhoto true).',
       'Use set_all to apply one slide setting to many slides at once instead of repeating set (type = content | cover | closing | all).',
-      'For "numbering" or "icons" on the middle sentences use ptSt = num | icon (icons are chosen by meaning automatically).']};
+      'For "numbering" or "icons" on the middle sentences use ptSt = num | icon (icons are chosen by meaning automatically). For "icon above the name" use ptLay = top; for the sentences "side by side" / "in columns" use ptLay = cols (with icons: ptSt = icon).']};
 }
 function czaiMsg(t,err,busy){var m=$('#czAiMsg');if(!m)return;m.className='hint'+(err?' err':'');m.innerHTML=(busy?'<span class="spin"></span>':'')+esc(t||'')}
 function czaiRefresh(){
