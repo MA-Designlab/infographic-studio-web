@@ -1032,6 +1032,21 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .ch-sp[data-side=top] .ch-sph{bottom:-8px}.ch-sp[data-side=bottom] .ch-sph{top:-8px}
 .ch-sp[data-side=left] .ch-sph,.ch-sp[data-side=right] .ch-sph{top:calc(50% - 22px);width:14px;height:44px;cursor:ew-resize}
 .ch-sp[data-side=left] .ch-sph{right:-8px}.ch-sp[data-side=right] .ch-sph{left:-8px}
+
+/* head texts: one button per text, each opens its own options (one open at a time) */
+.sub{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.sub-h{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 12px;border:0;border-radius:0;background:none;font:600 13.5px/1.2 sans-serif;font-family:inherit;color:var(--ink);text-align:start;cursor:pointer}
+.sub-h:hover{background:var(--soft)}
+.sub-h:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.sub-t{flex:none}
+.sub-s{flex:1;min-width:0;color:var(--muted);font-weight:400;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac .sub .chv{margin-inline-start:auto;transform:none;stroke:var(--muted)}
+.ac .sub.open>.sub-h .chv{transform:rotate(180deg);stroke:var(--violet)}
+.sub.open{border-color:#D3C4EF}
+.sub-b{display:none;flex-direction:column;gap:12px;padding:6px 12px 14px}
+.sub.open>.sub-b{display:flex}
+.ac-b>.sub+.sub{margin-top:-6px}
+.ac .sub-b .inrow input[type=color]{flex:none;width:56px;min-width:56px;height:36px;padding:2px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4008,7 +4023,7 @@ function czCover(s,i,n){
   if(pm){if(pm==='box')czPhotoBox(s,y0-26);else czPhotoCut(s,y0-26,true);czLogo()}
   if(strapH){czStrap(s.kicker,y0,'start');y0+=strapH+38}
   HC.tag('title','','العنوان');czHpDraw(s,'title',tl,xs,y0+size*.92,lh,tf(size),colT,al);HC.tag();y0+=tl.length*lh;
-  if(dl.length){y0+=30;HC.tag('text','','العنوان الثانوي');czHpDraw(s,'text',dl,xs,y0+Math.round(tfs*.94),tlh,df,function(b){return b?p.accent:'rgba(255,255,255,.9)'},al);HC.tag();y0+=dl.length*tlh}
+  if(dl.length){y0+=30;HC.tag('text','','العنوان الثانوي');czHpDraw(s,'text',dl,xs,y0+Math.round(tfs*.94),tlh,df,function(b){return b?p.accent:'#FFFFFF'},al);HC.tag();y0+=dl.length*tlh}
   if(ld){y0+=26;ld.draw(y0,M)}
   // swipe pill at the end side
   var label=s.cta||'اسحب للمزيد',pf=czFont('strap',30),ph=74;cx.font=pf;cx.direction=R?'rtl':'ltr';var pw=cx.measureText(label).width+ph+54;
@@ -4327,7 +4342,7 @@ function czClosing(s,i,n){
   var lh2=size*(CZ.lang==='en'?1.1:1.2);
   HC.tag('title','','العنوان');czHpDraw(s,'title',tl,cxm,y+size*.92,lh2,tf(size),function(b){return b?p.accent:'#FFFFFF'},'center');HC.tag();y+=tl.length*lh2+26;
   cx.fillStyle=p.accent;cx.fillRect(cxm-42,y,84,6);y+=44;
-  if(s.text){var tsc=czSc(s,'text'),tfs=Math.round(38*tsc),tlh=Math.round(60*tsc),df=function(){return czPF(s,'text','body',tfs)},dl=czCut(czWrap(s.text,df,cw-60),3);HC.tag('text','','النص');czHpDraw(s,'text',dl,cxm,y+Math.round(tfs*.95),tlh,df,function(){return 'rgba(255,255,255,.9)'},'center');HC.tag();y+=dl.length*tlh+34}
+  if(s.text){var tsc=czSc(s,'text'),tfs=Math.round(38*tsc),tlh=Math.round(60*tsc),df=function(){return czPF(s,'text','body',tfs)},dl=czCut(czWrap(s.text,df,cw-60),3);HC.tag('text','','النص');czHpDraw(s,'text',dl,cxm,y+Math.round(tfs*.95),tlh,df,function(){return '#FFFFFF'},'center');HC.tag();y+=dl.length*tlh+34}
   if(s.cta){var pf=czFont('strap',34),ph=84;HC.tag('cta','','زر الختام');czPill(fixPct(s.cta),cxm,y,ph,p.accent,lum(p.accent)>.5?p.deep:'#fff',pf,null,'center');HC.tag();y+=ph+26}
   if(s.handle){HC.tag('handle','','الحساب');czPut(s.handle,cxm,y+34,czFont('strap',32),'rgba(255,255,255,.85)','center','ltr');HC.tag()}
   czCounter(i,n,W/2-60,ZH-104-czDb(),true,true);
@@ -4417,14 +4432,14 @@ function czBuildEditor(){
   var s=CZ.slides[CZ.cur],i=CZ.cur,pre='slides.'+i+'.',secs=[];
   var names={cover:'الغلاف',closing:'الختام',content:'شريحة'};
   $('#czWhich').textContent='تعديل '+names[s.type]+' ('+(i+1)+' من '+CZ.slides.length+')';
-  var f=function(lab,inner){return '<div class="field"><label>'+lab+'</label>'+inner+'</div>'};
+  var f=function(lab,inner){var m=/data-cz="[^"]*\.(kicker|title|subtitle|text|lede)"/.exec(inner),pk=m&&m[1];if(pk&&czHpParts(s).indexOf(pk)>-1)return czSub(pk,lab,inner,s);return '<div class="field"><label>'+lab+'</label>'+inner+'</div>'};
   var txt,sum=(s.title||'').replace(/\*\*/g,'');
   if(s.type==='cover')txt=f('السترابة',czIn(pre+'kicker',s.kicker,'السترابة'))+f('العنوان الكبير',czIn(pre+'title',s.title,'العنوان الكبير',1))+f('العنوان الثانوي (تحت الكبير)',czIn(pre+'text',s.text,'وصف قصير',1))+f('جملة إضافية (غير العناوين)',czIn(pre+'lede',s.lede||'','جملة تعريفية قصيرة',1))+f('نص زر السحب',czIn(pre+'cta',s.cta,'اسحب للمزيد'));
   else if(s.type==='closing')txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('النص',czIn(pre+'text',s.text,'جملة قصيرة',1))+'<div class="two">'+f('نص الزر',czIn(pre+'cta',s.cta,'تابعونا'))+f('الحساب (اختياري)',czIn(pre+'handle',s.handle,'@aletihad'))+'</div>';
   else if(skyOn())txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('سطر تحت العنوان (اختياري)',czIn(pre+'subtitle',s.subtitle,'جملة قصيرة'))+f('حجم العنوان',czSel('tz',s.tz,[['','عادي'],['s','أصغر'],['l','أكبر']]))+f('نص الشريحة (كل سطر فقرة)',czTa(pre+'text',s.text,'اكتب الفقرات، كل سطر في فقرة',1))+'<p class="hint">في أول السطر: <b>#</b> عنوان أزرق كبير، <b>+</b> نص غامق، <b>-</b> نص صغير خفيف، و<b>---</b> فاصل ذهبي. و«تلوين» يظهر الكلمات المحددة باللون الأزرق.</p>'+f('سطر ختامي أسفل الأرقام (اختياري)',czIn(pre+'foot',s.foot,'مثال: والأرقام تشرح…',1));
   else txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('العنوان الثانوي',czIn(pre+'subtitle',s.subtitle,'سطر رمادي قصير'))+f('نص داخل المربع الملون',czIn(pre+'text',s.text,'جملة أو جملتان',1))+f('وسوم أسفل الشريحة (افصل بفاصلة)',czIn(pre+'pills',s.pills,'مثال: التعليم، الإمارات'));
-  if(s.type==='content')txt=txt.replace(/(<div class="field"><label>(?:العنوان الثانوي|سطر تحت العنوان \(اختياري\))<\/label>.*?<\/div><\/div>)/,function(m){return m+f('العنوان الثالث (جملة تحت العنوان الثانوي)',czIn(pre+'lede',s.lede||'','جملة تعريفية قصيرة',1))});
-  txt+=czKwHtml(s,'field')+ttHtml('cz')+czHpHtml('all',s);
+  if(s.type==='content')txt=txt.replace('<!--/sub:subtitle-->',function(m){return m+f('العنوان الثالث (جملة تحت العنوان الثانوي)',czIn(pre+'lede',s.lede||'','جملة تعريفية قصيرة',1))});
+  txt+=czSubTt();
   secs.push(['txt','النصوص',sum,txt]);
   if(s.type==='content'){
     var h='';
@@ -8932,7 +8947,7 @@ function czKwHtml(s,cls){
 }
 document.addEventListener('input',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-czkw')||t.type!=='range')return;var s=CZ.slides[CZ.cur];if(!s)return;if(+t.value>0)s.kw=+t.value;else delete s.kw;$$('[data-czkwv="kw"]').forEach(function(o){o.textContent=t.value});czSchedule()});
 document.addEventListener('change',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-czkw')||t.tagName!=='SELECT')return;var s=CZ.slides[CZ.cur];if(!s)return;if(t.value)s.kfit=t.value;else delete s.kfit;czSchedule()});
-function czHpOf(s,p){var o=s&&s.hp&&s.hp[p]||{};return{dx:+o.dx||0,dy:+o.dy||0,al:o.al==='r'||o.al==='l'||o.al==='c'?o.al:'',sc:Math.max(50,Math.min(200,+o.sc||100)),f:typeof o.f==='string'?o.f:''}}
+function czHpOf(s,p){var o=s&&s.hp&&s.hp[p]||{};return{dx:+o.dx||0,dy:+o.dy||0,al:o.al==='r'||o.al==='l'||o.al==='c'?o.al:'',sc:Math.max(50,Math.min(200,+o.sc||100)),f:typeof o.f==='string'?o.f:'',col:typeof o.col==='string'&&/^#[0-9a-fA-F]{6}$/.test(o.col)?o.col:''}}
 /* size (percent) and typeface of one head text on one slide */
 function czSc(s,p){return czHpOf(s,p).sc/100}
 function czPF(s,p,kind,sz){var f=czHpOf(s,p).f;if(f){var t=ttFont(f,sz);if(t)return t}return czFont(kind,sz)}
@@ -8940,6 +8955,7 @@ function czPFo(s,p,sz,fb){var f=p?czHpOf(s,p).f:'';if(f){var t=ttFont(f,sz);if(t
 /* czDraw with the slide's own alignment / offset for this part (part null = plain) */
 function czHpDraw(s,p,lines,xs,yb,lh,fontOf,colOf,align){
   var o=p?czHpOf(s,p):null;
+  if(o&&o.col){var c0=colOf,oc=o.col;colOf=function(b){return b?c0(true):oc}}
   if(o&&(o.al||o.dx||o.dy)){
     var R=czR();
     if(o.al==='c'){xs=W/2;align='center'}
@@ -8949,13 +8965,13 @@ function czHpDraw(s,p,lines,xs,yb,lh,fontOf,colOf,align){
   }
   czDraw(lines,xs,yb,lh,fontOf,colOf,align);
 }
-function czHpOne(p,s,pop){
+function czHpOne(p,s,pop,bare){
   var o=czHpOf(s,p),cls=pop?'epf':'field',nm=p==='text'?(s.type==='cover'?'العنوان الثانوي':'النص'):CZ_HP_PARTS.filter(function(x){return x[0]===p})[0][1];
   var al='<div class="seg full">'+CZ_HP_AL.map(function(a){return '<label><input type="radio" name="czhp_'+p+(pop?'_p':'')+'" data-czhp="'+p+'.al" value="'+a[0]+'"'+(o.al===a[0]?' checked':'')+'><span>'+a[1]+'</span></label>'}).join('')+'</div>';
   function rg(k,lab,v,mn,mx,st){return '<div class="'+cls+'"><div class="rl"><label>'+lab+'</label><output data-czhpv="'+p+'.'+k+'">'+v+'</output></div><input type="range" data-czhp="'+p+'.'+k+'" min="'+mn+'" max="'+mx+'" step="'+(st||2)+'" value="'+v+'" aria-label="'+nm+' '+lab+'"></div>'}
-  var fs='<div class="'+cls+'"><label>الخط</label><select data-czhpf="'+p+'" aria-label="خط '+nm+'">'+ttOptions(o.f)+'</select></div>';
-  return '<div class="hpbox" data-czhpbox="'+p+'">'+(pop?'':'<span class="lab">'+nm+'</span>')+'<div class="'+cls+'"><label>المحاذاة</label>'+al+'</div>'
-    +rg('sc','الحجم %',o.sc,50,200,5)+fs+rg('dx','إزاحة أفقية (يمين / يسار)',o.dx,-500,500)+rg('dy','إزاحة رأسية (فوق / تحت)',o.dy,-400,400)
+  var fs='<div class="'+cls+'"><label>خط هذه الشريحة</label><select data-czhpf="'+p+'" aria-label="خط '+nm+'">'+ttOptions(o.f)+'</select></div>';
+  return '<div class="hpbox" data-czhpbox="'+p+'">'+(pop||bare?'':'<span class="lab">'+nm+'</span>')+'<div class="'+cls+'"><label>المحاذاة</label>'+al+'</div>'
+    +rg('sc','الحجم %',o.sc,50,200,5)+fs+'<div class="'+cls+'"><label>اللون (صريح بدون شفافية)</label><div class="inrow"><input type="color" data-czhpc="'+p+'" value="'+(o.col||'#ffffff')+'" aria-label="لون '+nm+'"><button type="button" class="mini" data-czhpcx="'+p+'"'+(o.col?'':' hidden')+'>لون تلقائي</button></div></div>'+rg('dx','إزاحة أفقية (يمين / يسار)',o.dx,-500,500)+rg('dy','إزاحة رأسية (فوق / تحت)',o.dy,-400,400)
     +'<div class="row"><button type="button" class="mini" data-czhpreset="'+p+'">إعادة الوضع الافتراضي</button><button type="button" class="mini" data-czhpall="'+p+'">تطبيق على كل الشرائح</button></div></div>';
 }
 /* part = 'all' for the side panel, or one part for a popup */
@@ -9004,7 +9020,7 @@ function czLedeBlock(s,w,dark){
   return{h:lines.length*lh+10,draw:function(y,x0){
     var xs=czR()?x0+w:x0;
     HC.tag('lede','','العنوان الثالث');
-    czHpDraw(s,'lede',lines,xs,y+fs*.98,lh,f,function(b){return dark?(b?p.accent:'rgba(255,255,255,.92)'):(b?p.main:p.ink)},czAl());
+    czHpDraw(s,'lede',lines,xs,y+fs*.98,lh,f,function(b){return dark?(b?p.accent:'#FFFFFF'):(b?p.main:p.ink)},czAl());
     HC.tag();
   }};
 }
@@ -9232,6 +9248,45 @@ document.addEventListener('change',function(e){
 });
 
 
+/* ---- each head text is a button that opens its own options; opening one closes the others ---- */
+var czSubOpen;
+function czHpParts(s){return CZ_HP_PARTS.filter(function(x){return x[0]==='kicker'?s.type!=='content':x[0]==='lede'?s.type!=='closing':x[0]==='text'?s.type!=='content':x[0]==='subtitle'?s.type==='content':true}).map(function(x){return x[0]})}
+function czSubBox(key,label,preview,body){
+  var open=czSubOpen===undefined?key==='title':czSubOpen===key;
+  return '<div class="sub'+(open?' open':'')+'" data-sub="'+key+'"><button type="button" class="sub-h" aria-expanded="'+open+'"><span class="sub-t">'+label+'</span><span class="sub-s">'+esc(preview||'')+'</span>'+CHV+'</button><div class="sub-b">'+body+'</div></div>';
+}
+function czSub(part,label,inner,s){
+  var pv=String(s[part]||'').replace(/\*\*/g,'').slice(0,30);
+  return czSubBox(part,label,pv,'<div class="field">'+inner+'</div>'+(part==='kicker'?czKwHtml(s,'field'):'')+czHpOne(part,s,false,true))+'<!--/sub:'+part+'-->';
+}
+function czSubTt(){return czSubBox('tt','خط وحجم العناوين (كل الشرائح)','',ttHtml('cz'))}
+document.addEventListener('click',function(e){
+  var h=e.target.closest&&e.target.closest('.sub-h');if(!h)return;
+  var sub=h.parentNode,on=!sub.classList.contains('open'),root=sub.parentNode;
+  Array.prototype.forEach.call(root.querySelectorAll(':scope>.sub.open'),function(o){if(o!==sub){o.classList.remove('open');o.querySelector('.sub-h').setAttribute('aria-expanded','false')}});
+  sub.classList.toggle('open',on);h.setAttribute('aria-expanded',String(on));
+  czSubOpen=on?sub.getAttribute('data-sub'):'';
+});
+document.addEventListener('input',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var sub=t.closest('.sub');if(sub&&t.hasAttribute('data-cz')){var o=sub.querySelector('.sub-s');if(o)o.textContent=String(t.value).replace(/\*\*/g,'').slice(0,30)}
+  if(t.hasAttribute('data-czhpc')){
+    var s=CZ.slides[CZ.cur];if(!s)return;var p=t.getAttribute('data-czhpc');s.hp=s.hp||{};(s.hp[p]=s.hp[p]||{}).col=t.value;
+    $$('[data-czhpcx="'+p+'"]').forEach(function(b){b.hidden=false});czSchedule();
+  }
+});
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-czhpcx]');if(!b)return;
+  var s=CZ.slides[CZ.cur],p=b.getAttribute('data-czhpcx');if(s&&s.hp&&s.hp[p])delete s.hp[p].col;
+  b.hidden=true;czSchedule();
+});
+/* option groups (details) inside one panel: opening one closes the others */
+document.addEventListener('toggle',function(e){
+  var d=e.target;if(!d||d.tagName!=='DETAILS'||!d.open||!d.classList.contains('hpdet')||!d.closest('#czEditor'))return;
+  var host=d.parentNode;if(!host)return;
+  Array.prototype.forEach.call(host.querySelectorAll(':scope>details.hpdet[open]'),function(o){if(o!==d)o.open=false});
+},true);
+
 /* ===== carousel: change the design with instructions written in the user's own words, and apply guidance written BEFORE the design ===== */
 var CZAI={hist:[],undo:[],busy:false};
 /* [path, type, spec, description] — types as in aiChk: t text | c colour | e list | n [lo,hi] | b boolean | f font | i icon */
@@ -9282,8 +9337,8 @@ function czaiPath(p){
     if(rest==='psh'&&v&&czPmRaw(s)!=='box')s.pm='box';
     if(rest==='pm'&&v==='box')czFrameReset(s);
   }}}
-  if((q=/^hp\.(title|subtitle|lede|kicker|text)\.(dx|dy|al|sc|f)$/.exec(rest))){
-    return{check:function(v){return q[2]==='al'?aiChk('e',['','c','r','l'],v):q[2]==='f'?aiChk('t',60,v):aiChk('n',q[2]==='sc'?[50,200]:q[2]==='dx'?[-500,500]:[-400,400],v)},set:function(v){
+  if((q=/^hp\.(title|subtitle|lede|kicker|text)\.(dx|dy|al|sc|f|col)$/.exec(rest))){
+    return{check:function(v){return q[2]==='col'?aiChk('c0',0,v):q[2]==='al'?aiChk('e',['','c','r','l'],v):q[2]==='f'?aiChk('t',60,v):aiChk('n',q[2]==='sc'?[50,200]:q[2]==='dx'?[-500,500]:[-400,400],v)},set:function(v){
       s.hp=s.hp||{};var o=s.hp[q[1]]=s.hp[q[1]]||{};if(v===''||v===null)delete o[q[2]];else o[q[2]]=v;
     }};
   }
@@ -9376,7 +9431,7 @@ function czaiCatalog(){
   var L=czaiRoot().map(function(r){return r[0]+' | '+czaiTypeText(r[1],r[2])+' | '+r[3]});
   CZ_AI_SL.forEach(function(r){L.push('slides.I.'+r[0]+' | '+czaiTypeText(r[1],r[2])+' | '+r[3])});
   L.push('ptO.is | number 40..220 | size % of the point markers / icons (all slides); slides.I.ptO.is for one slide','ptO.ts | number 50..200 | size % of the point headings and sentences','ptO.dx | number -400..400 | move the whole points block horizontally (positive = right)','ptO.dy | number -400..400 | move the whole points block vertically (positive = down)','ptO.mx | number -300..300 | move only the markers/icons horizontally','ptO.my | number -300..300 | move only the markers/icons vertically','ptO.col | hex colour or "" | colour of the markers/icons','ptO.tc | hex colour or "" | colour of the point headings','ptO.bc | hex colour or "" | colour of the point sentences');
-  L.push('slides.I.hp.PART.al | one of ""|c|r|l | alignment of a head text, PART = '+CZ_HP_PARTS.map(function(x){return x[0]}).join('|'),'slides.I.hp.PART.dx | number -500..500 | horizontal offset','slides.I.hp.PART.dy | number -400..400 | vertical offset','slides.I.hp.PART.sc | number 50..200 | size percent of that head text (100 = normal)','slides.I.hp.PART.f | text | typeface of that head text: "" default, AlIttihad, BahijXBold, BahijBold, BahijPlain, Acumin, DINCond, or g:<Google font name> e.g. g:Cairo');
+  L.push('slides.I.hp.PART.al | one of ""|c|r|l | alignment of a head text, PART = '+CZ_HP_PARTS.map(function(x){return x[0]}).join('|'),'slides.I.hp.PART.dx | number -500..500 | horizontal offset','slides.I.hp.PART.dy | number -400..400 | vertical offset','slides.I.hp.PART.sc | number 50..200 | size percent of that head text (100 = normal)','slides.I.hp.PART.col | hex colour #RRGGBB or "" for automatic | solid text colour of that head text (e.g. #FFFFFF = pure white)','slides.I.hp.PART.f | text | typeface of that head text: "" default, AlIttihad, BahijXBold, BahijBold, BahijPlain, Acumin, DINCond, or g:<Google font name> e.g. g:Cairo');
   Object.keys(CZ_AI_ROW).forEach(function(l){Object.keys(CZ_AI_ROW[l]).forEach(function(k){var f=CZ_AI_ROW[l][k];L.push('slides.I.'+l+'.J.'+k+' | '+czaiTypeText(f[0],f[1])+' | row J of '+l)})});
   return{paths:L,fonts:aiFonts(),icons:FX_KW.map(function(k){return k[0]}),sections:czaiSecs()};
 }
