@@ -3945,8 +3945,8 @@ function czLogoBig(cxm,y,scale){
 }
 
 /* ----- shared bits ----- */
-function czPill(txt,x,y,h,fill,col,font,stroke,align){
-  cx.font=font;cx.direction=czR()?'rtl':'ltr';var w=cx.measureText(txt).width+h*.95;
+function czPill(txt,x,y,h,fill,col,font,stroke,align,fixedW){
+  cx.font=font;cx.direction=czR()?'rtl':'ltr';var w=fixedW>0?fixedW:cx.measureText(txt).width+h*.95;
   var left=align==='right'?x-w:align==='center'?x-w/2:x;
   HC.box(left,y,left+w,y+h);czRR(left,y,w,h,h/2);cx.fillStyle=fill;cx.fill();if(stroke){cx.strokeStyle=stroke;cx.lineWidth=2;cx.stroke()}
   czPut(txt,left+w/2,y+h/2+czSz(font)*.34,font,col,'center');return w;
@@ -3982,8 +3982,11 @@ function czStrap(txt,y,align){
   var fill=p.accent,col=lum(p.accent)>.5?p.deep:'#fff';
   var xs=align==='center'?W/2:czEdge(),al=align==='center'?'center':(czR()?'right':'left'),o=czHpOf(czCurS,'kicker');
   if(o.al==='c'){xs=W/2;al='center'}else if(o.al==='r'){xs=W-M;al='right'}else if(o.al==='l'){xs=M;al='left'}
+  var kf=czCurS&&czCurS.kfit,kw=czCurS&&+czCurS.kw||0,fw=0,ph=czPhR||{x:M,w:W-2*M};
+  if(kf==='photo'){fw=ph.w;xs=ph.x;al='left'}else if(kf==='full'){fw=W-2*M;xs=M;al='left'}
+  if(kw>0)fw=kw;
   xs+=o.dx;y+=o.dy;
-  HC.tag('kicker','','السترابة');czPill(fixPct(txt),xs,y,h,fill,col,czFont('strap',fs),null,al);HC.tag();return h;
+  HC.tag('kicker','','السترابة');czPill(fixPct(txt),xs,y,h,fill,col,czFont('strap',fs),null,al,fw);HC.tag();return h;
 }
 
 /* ----- slide types ----- */
@@ -4160,6 +4163,7 @@ function czPmRaw(s){var v=s&&s.pm!=null?s.pm:(s&&s.type==='cover'?CZ.pmV:s&&s.ty
 function czPmOf(s){if(!s||!s.photo||skyOn())return '';var v=czPmRaw(s);return v==='box'?'box':v==='cut'&&czCutOk(s)?'cut':''}
 function czPhotoBox(s,ab){
   var p=czP(),x=40,y=czDy()+18,w=W-80,h=Math.max(120,ab-y),sh=s.psh||'round';
+  czPhR={x:x,y:y,w:w,h:h};
   cx.save();cx.shadowColor='rgba(0,0,0,.3)';cx.shadowBlur=36;cx.shadowOffsetY=10;cx.fillStyle=p.deep;czShapePath(sh,x,y,w,h);cx.fill();cx.restore();
   cx.save();czShapePath(sh,x,y,w,h);cx.clip();
   var r=czCrop(s.photo,x,y,w,h,s.pa,s.pf,.45);cx.drawImage(s.photo,r.x,r.y,r.w,r.h);
@@ -4177,7 +4181,7 @@ function czPhotoCut(s,ab,keepBg){
   cx.save();
   if(!keepBg){czRR(0,-80,W,ab+80,48);cx.clip();czArt(ab,2.4)}
   else{cx.beginPath();cx.rect(0,0,W,ab);cx.clip()}
-  var by=czDy()+100,r=czCutRect(s.cut,20,by,W-40,Math.max(120,ab-by),s);
+  var by=czDy()+100,r=czCutRect(s.cut,20,by,W-40,Math.max(120,ab-by),s);czPhR={x:r.x,y:r.y,w:r.w,h:r.h};
   cx.drawImage(s.cut,r.x,r.y,r.w,r.h);
   cx.restore();
 }
@@ -4336,7 +4340,7 @@ function czDrawSlide(i){
   var s=CZ.slides[i];if(!s)return;
   czSyncH();if(czcv&&czcv.height!==ZH*CZ_S){czcv.height=ZH*CZ_S;czThumbDims();czFit()}
   cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,czcv.width,czcv.height);cx.setTransform(CZ_S,0,0,CZ_S,0,0);cx.lineCap='butt';cx.lineJoin='miter';
-  var n=CZ.slides.length;czCurS=s;HC.on=(i===CZ.cur);
+  var n=CZ.slides.length;czCurS=s;czPhR=null;HC.on=(i===CZ.cur);
   var SG=spCalc(s.spaces,W,ZH),Z0=ZH;if(HC.on)SPG.cz=SG;
   if(HC.on){HC.reset();HC.tag('bg','','الخلفية والألوان');HC.box(0,0,W,ZH,-5);HC.tag()}
   if(SG){cx.fillStyle=czSpBase(s);cx.fillRect(0,0,W,ZH+1);spOn(cx,SG);spHit(HC,SG);ZH=SG.vh;SPG.on=true}
@@ -4346,6 +4350,7 @@ function czDrawSlide(i){
   else if(s.type==='closing')czClosing(s,i,n);
   else{var num=0;for(var k=0;k<=i;k++)if(CZ.slides[k].type==='content')num++;czContent(s,i,n,num)}
   if(SG){SPG.on=false;ZH=Z0;spOff(cx,SG);spHit(HC,null);spDraw('cz',cx,SG,s);fxDrawBack('cz',cx,s)}
+  if(czPhR)CZ_PHR.set(s,czPhR);else CZ_PHR.delete(s);
   fxDraw('cz',cx,s);
   if(HC.on)spFrames('cz',SG);
   if(HC.on&&window.__epAfter)window.__epAfter();
@@ -4419,7 +4424,7 @@ function czBuildEditor(){
   else if(skyOn())txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('سطر تحت العنوان (اختياري)',czIn(pre+'subtitle',s.subtitle,'جملة قصيرة'))+f('حجم العنوان',czSel('tz',s.tz,[['','عادي'],['s','أصغر'],['l','أكبر']]))+f('نص الشريحة (كل سطر فقرة)',czTa(pre+'text',s.text,'اكتب الفقرات، كل سطر في فقرة',1))+'<p class="hint">في أول السطر: <b>#</b> عنوان أزرق كبير، <b>+</b> نص غامق، <b>-</b> نص صغير خفيف، و<b>---</b> فاصل ذهبي. و«تلوين» يظهر الكلمات المحددة باللون الأزرق.</p>'+f('سطر ختامي أسفل الأرقام (اختياري)',czIn(pre+'foot',s.foot,'مثال: والأرقام تشرح…',1));
   else txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('العنوان الثانوي',czIn(pre+'subtitle',s.subtitle,'سطر رمادي قصير'))+f('نص داخل المربع الملون',czIn(pre+'text',s.text,'جملة أو جملتان',1))+f('وسوم أسفل الشريحة (افصل بفاصلة)',czIn(pre+'pills',s.pills,'مثال: التعليم، الإمارات'));
   if(s.type==='content')txt=txt.replace(/(<div class="field"><label>(?:العنوان الثانوي|سطر تحت العنوان \(اختياري\))<\/label>.*?<\/div><\/div>)/,function(m){return m+f('العنوان الثالث (جملة تحت العنوان الثانوي)',czIn(pre+'lede',s.lede||'','جملة تعريفية قصيرة',1))});
-  txt+=ttHtml('cz')+czHpHtml('all',s);
+  txt+=czKwHtml(s,'field')+ttHtml('cz')+czHpHtml('all',s);
   secs.push(['txt','النصوص',sum,txt]);
   if(s.type==='content'){
     var h='';
@@ -8918,6 +8923,15 @@ window.__spBuild=spBuild;
 /* ---------- position and alignment of the head texts (per slide) ---------- */
 var CZ_HP_PARTS=[['title','العنوان'],['subtitle','العنوان الثانوي'],['lede','العنوان الثالث'],['kicker','السترابة'],['text','سطر الوصف']];
 var CZ_HP_AL=[['','تلقائي'],['c','وسط'],['r','يمين'],['l','يسار']];
+var czPhR=null,CZ_PHR=new WeakMap();
+var CZ_KFIT=[['','تلقائي حسب النص'],['photo','بعرض الصورة'],['full','بعرض التصميم كله']];
+function czKwHtml(s,cls){
+  if(!s||s.type!=='cover')return '';
+  return '<div class="'+cls+'"><label>عرض السترابة</label><select data-czkw="kfit">'+CZ_KFIT.map(function(o){return '<option value="'+o[0]+'"'+((s.kfit||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
+    +'<div class="'+cls+'"><div class="rl"><label>عرض مخصص (بكسل، 0 = تلقائي)</label><output data-czkwv="kw">'+(+s.kw||0)+'</output></div><input type="range" data-czkw="kw" min="0" max="1040" step="10" value="'+(+s.kw||0)+'" aria-label="عرض السترابة"></div>';
+}
+document.addEventListener('input',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-czkw')||t.type!=='range')return;var s=CZ.slides[CZ.cur];if(!s)return;if(+t.value>0)s.kw=+t.value;else delete s.kw;$$('[data-czkwv="kw"]').forEach(function(o){o.textContent=t.value});czSchedule()});
+document.addEventListener('change',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-czkw')||t.tagName!=='SELECT')return;var s=CZ.slides[CZ.cur];if(!s)return;if(t.value)s.kfit=t.value;else delete s.kfit;czSchedule()});
 function czHpOf(s,p){var o=s&&s.hp&&s.hp[p]||{};return{dx:+o.dx||0,dy:+o.dy||0,al:o.al==='r'||o.al==='l'||o.al==='c'?o.al:''}}
 /* czDraw with the slide's own alignment / offset for this part (part null = plain) */
 function czHpDraw(s,p,lines,xs,yb,lh,fontOf,colOf,align){
@@ -9233,7 +9247,7 @@ var CZ_AI_SL=[
  ['pfd','e',['b','t','tb','v','l','r','diag','none'],'fade direction of the top picture: b white from below (default) | t template colour from top | tb both | v from all sides | l | r | diag | none'],['pfa','n',[10,100],'fade strength %'],['phh','n',[60,140],'picture height %'],
  ['ptn','e',['','bw','duo','sepia','warm','cool'],'colour treatment of the picture: bw black&white | duo template-colour tint | sepia | warm | cool'],['ptna','n',[10,100],'colour treatment strength %'],['pbr','n',[-50,50],'picture brightness'],
  ['psh','e',['round','sharp','arch','circle','diag','wave'],'shape of the picture frame (switches to box)'],['pbd','e',['','white','accent','main'],'frame border colour'],
- ['ptSt','e',['']. concat(CZ_PTS.map(function(o){return o[0]})),'marker of the points on this slide only ("" = follow the general one)'],['ptLay','e',['','list','top','cols'],'arrangement of the points on this slide only ("" = follow the general one)'],['ledeSz','n',[70,150],'third title size %']
+ ['ptSt','e',['']. concat(CZ_PTS.map(function(o){return o[0]})),'marker of the points on this slide only ("" = follow the general one)'],['ptLay','e',['','list','top','cols'],'arrangement of the points on this slide only ("" = follow the general one)'],['kfit','e',['','photo','full'],'width of the strap (cover): "" fits its text | photo = the same width as the picture | full = the whole design width'],['kw','n',[0,1040],'custom strap width in px (0 = automatic); overrides kfit'],['ledeSz','n',[70,150],'third title size %']
 ];
 var CZ_AI_ROW={stats:{value:['t',12],label:['t',60],text:['t',90],flag:['t',30],lp:['e',['','above','below']],ly:['e',['','stack','side']]},points:{title:['t',50],text:['t',110],icon:['i']}};
 var CZ_AI_HP=['title','subtitle','lede','kicker','text'];
@@ -9361,13 +9375,13 @@ function czaiCatalog(){
 }
 function czaiState(){
   var pick=function(o,ks){var r={};ks.forEach(function(k){if(o[k]!==undefined&&o[k]!==''&&o[k]!==null)r[k]=o[k]});return r};
-  var sk=['kicker','title','subtitle','lede','text','cta','handle','pills','foot','tz','lay','ho','mo','pm','pa','pz','px','py','pfd','pfa','phh','ptn','ptna','pbr','psh','pbd','ptSt','ptLay','ptO','ledeSz','hp'];
+  var sk=['kicker','title','subtitle','lede','text','cta','handle','pills','foot','tz','lay','ho','mo','pm','pa','pz','px','py','pfd','pfa','phh','ptn','ptna','pbr','psh','pbd','ptSt','ptLay','ptO','ledeSz','kfit','kw','hp'];
   return{lang:CZ.lang,look:CZ.look||'classic',
     settings:pick(CZ,['main','accent','size','sec','labelPos','pager','tags','statMid','statLay','corner','titleFont','titleScale','bgMode','bgC1','bgC2','bgAngle','bgPlain','ptSt','ptLay','ptO']),
-    slides:CZ.slides.map(function(s,i){return Object.assign({i:i,type:s.type,hasPhoto:!!s.photo,photoCutOut:czCutOk(s)},pick(s,sk),
+    slides:CZ.slides.map(function(s,i){return Object.assign({i:i,type:s.type,hasPhoto:!!s.photo,photoCutOut:czCutOk(s),photoRect:(function(){var r=CZ_PHR.get(s);return r?{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.w),h:Math.round(r.h)}:undefined})()},pick(s,sk),
       {stats:(s.stats||[]).map(function(t,j){return Object.assign({j:j},pick(t,['value','label','text','flag','lp','ly']))}),points:(s.points||[]).map(function(t,j){return Object.assign({j:j},pick(t,['title','text','icon']))})})}),
     canvas:{w:W,h:CZ_SIZES[CZ.size||'4:5']},catalog:czaiCatalog(),
-    hints:['Slide 0 is the cover, the last one may be the closing slide; every other slide is a content slide.',
+    hints:['state.slides[].photoRect is where the picture of that slide is drawn on the canvas (pixels); use it to line other things up with the picture (for example the strap width: kfit = photo).','Slide 0 is the cover, the last one may be the closing slide; every other slide is a content slide.',
       'The classic look draws a picture at the top of content slides (fading into the white page), the title with a numbered badge below it, then the numbers or points and a tinted sentence box. Pictures can only be uploaded by the user; you can change how an existing picture is shown (hasPhoto true).',
       'Use set_all to apply one slide setting to many slides at once instead of repeating set (type = content | cover | closing | all).',
       'For "numbering" or "icons" on the middle sentences use ptSt = num | icon (icons are chosen by meaning automatically). For "icon above the name" use ptLay = top; for the sentences "side by side" / "in columns" use ptLay = cols (with icons: ptSt = icon).']};
@@ -10654,7 +10668,7 @@ function epCzPalette(which){
 }
 function epBodyCZ(g,p){
   var k=g.split('.')[0],s=CZ.slides[CZ.cur],h='',t='',acc='txt';
-  if(k==='kicker'){t='السترابة';h=epField('kicker','النص','السترابة')+czHpHtml('kicker',s)+epCzPalette('accent')}
+  if(k==='kicker'){t='السترابة';h=epField('kicker','النص','السترابة')+czKwHtml(s,'epf')+czHpHtml('kicker',s)+epCzPalette('accent')}
   else if(k==='title'){t='العنوان';h=epField('title','العنوان','العنوان',{hl:1})+czHpHtml('title',s)+ttHtml('cz')+epCzPalette('main')}
   else if(k==='subtitle'){t='العنوان الثانوي';h=epField('subtitle','العنوان الثانوي','سطر رمادي قصير')+czHpHtml('subtitle',s)}
   else if(k==='lede'){t='العنوان الثالث';h=epField('lede','الجملة تحت العنوان','جملة تعريفية قصيرة',{hl:1})+czHpHtml('lede',s)}
