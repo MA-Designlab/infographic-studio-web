@@ -8287,8 +8287,8 @@ async function tbArtGen(btn){
 }
 
 /* ===== template "cards-row": 2-4 text cards side by side in one row, with a picture above or below them ===== */
-function crPos(){return S.hero&&S.hero.cpos==='bottom'?'bottom':'top'}
-function crStyle(){return S.hero&&S.hero.cstyle==='fade'?'fade':'frame'}
+function crPos(){var v=S.hero&&S.hero.cpos;return v==='bottom'||v==='none'?v:'top'}
+function crStyle(){var v=S.hero&&S.hero.cstyle;return v==='fade'||v==='plain'?v:'frame'}
 function crPh(){var v=S.hero&&S.hero.ph;return Math.max(25,Math.min(65,v==null?46:+v))}
 /* the picture faded at its edges so that it melts into the background (multiplied on a light theme) */
 function crFadeImg(im,x,y,w,h){
@@ -8308,7 +8308,7 @@ function crPicture(x,y,w,h){
     if(im){var sc=Math.max(w/im.naturalWidth,h/im.naturalHeight),pr=tpPlace(im,x,y,w,h,S.hero,sc,50,50);ctx.drawImage(im,pr.x,pr.y,pr.w,pr.h)}
     else{var ic=fxIconImg(fxAutoIcon({t:'num',text:(S.title||'')+' '+(S.subtitle||''),sub:''}),'line',dark?'rgba(255,255,255,.7)':S.main,'#000',null);var d=Math.min(h*.5,w*.3);if(ic)ctx.drawImage(ic,x+w/2-d/2,y+h/2-d/2,d,d)}
     ctx.restore();
-    ctx.beginPath();rrect(x,y,w,h,36);ctx.lineWidth=3;ctx.strokeStyle=dark?'rgba(255,255,255,.5)':S.main;ctx.stroke();
+    if(crStyle()!=='plain'){ctx.beginPath();rrect(x,y,w,h,36);ctx.lineWidth=3;ctx.strokeStyle=dark?'rgba(255,255,255,.5)':S.main;ctx.stroke()}
   }
   var cap=(S.hero.label||'').trim();
   if(cap){
@@ -8345,6 +8345,7 @@ tplReg({id:'cards-row',name:'بطاقات أفقية جنب بعض + صورة ف
   draw:function(top,bottom){
     var its=tItems(4);if(!its.length)return;
     var avail=bottom-top,gap=24,ph=Math.round(avail*crPh()/100),ch=avail-ph-gap;
+    if(crPos()==='none'){var nh=Math.min(avail,680);crCards(its,top+Math.round((avail-nh)/2),nh);return}
     if(ch<270){ch=Math.min(270,avail-gap-160);ph=avail-gap-ch}
     if(crPos()==='top'){crPicture(M,top,W-2*M,ph);crCards(its,top+ph+gap,ch)}
     else{crCards(its,top,ch);crPicture(M,top+ch+gap,W-2*M,ph)}
@@ -8353,9 +8354,10 @@ tplReg({id:'cards-row',name:'بطاقات أفقية جنب بعض + صورة ف
 /* ----- controls: side panel (cls 'field') and click-to-edit card (cls 'epf') ----- */
 function crHtml(cls,pop){
   var hh=S.hero,has=!!hh.pimg,pos=crPos(),st=crStyle();
-  var h='<div class="'+cls+'">'+(pop?'<div class="row">':'')+'<button type="button" class="tool" data-tphoto="hero">'+(has?'تغيير الصورة':'رفع صورة')+'</button>'+(has?(pop?'':' ')+'<button type="button" class="tool ghost" data-tphoto-rm="hero">إزالة</button>':'')+(pop?'</div>':'')+'</div>';
-  h+='<div class="'+cls+'"><label>مكان الصورة</label><select data-tc="cpos" aria-label="مكان الصورة"><option value="top"'+(pos==='top'?' selected':'')+'>فوق البطاقات</option><option value="bottom"'+(pos==='bottom'?' selected':'')+'>تحت البطاقات</option></select></div>';
-  h+='<div class="'+cls+'"><label>شكل الصورة</label><select data-tc="cstyle" aria-label="شكل الصورة"><option value="frame"'+(st==='frame'?' selected':'')+'>إطار بحواف مدوّرة</option><option value="fade"'+(st==='fade'?' selected':'')+'>تندمج مع الخلفية (حواف متلاشية)</option></select></div>';
+  var h=pos==='none'?'':'<div class="'+cls+'">'+(pop?'<div class="row">':'')+'<button type="button" class="tool" data-tphoto="hero">'+(has?'تغيير الصورة':'رفع صورة')+'</button>'+(has?(pop?'':' ')+'<button type="button" class="tool ghost" data-tphoto-rm="hero">إزالة</button>':'')+(pop?'</div>':'')+'</div>';
+  h+='<div class="'+cls+'"><label>مكان الصورة</label><select data-tc="cpos" aria-label="مكان الصورة"><option value="top"'+(pos==='top'?' selected':'')+'>فوق البطاقات</option><option value="bottom"'+(pos==='bottom'?' selected':'')+'>تحت البطاقات</option><option value="none"'+(pos==='none'?' selected':'')+'>بدون صورة (البطاقات فقط)</option></select></div>';
+  if(pos==='none')return h;
+  h+='<div class="'+cls+'"><label>شكل الصورة</label><select data-tc="cstyle" aria-label="شكل الصورة"><option value="frame"'+(st==='frame'?' selected':'')+'>إطار بحواف مدوّرة (بخط حول الصورة)</option><option value="plain"'+(st==='plain'?' selected':'')+'>حواف مدوّرة بدون خط حول الصورة</option><option value="fade"'+(st==='fade'?' selected':'')+'>تندمج مع الخلفية (حواف متلاشية)</option></select></div>';
   h+=tpRng(cls,'hero','ph','ارتفاع الصورة من مساحة التصميم',crPh(),25,65,1);
   h+=tpPosHtml('hero',cls);
   h+=pop?epField('hero.label','تعليق على الصورة (اختياري)','',{part:'label'}):'<div class="field"><label>تعليق على الصورة (اختياري)</label>'+inp('hero.label',S.hero.label,'')+'</div>';
@@ -8452,7 +8454,7 @@ var AI_ROOT=[
 var AI_ROOTMAP=null;
 function aiRootMap(){if(!AI_ROOTMAP){AI_ROOTMAP={};AI_ROOT.forEach(function(r){AI_ROOTMAP[r[0]]=r})}return AI_ROOTMAP}
 var AI_ROW={stats:{value:'t',label:'t',text:'t',color:'c0',noIcon:'b',icon:'i'},items:{title:'t',text:'t',value:'t',color:'c0',noIcon:'b',icon:'i'},bars:{label:'t',value:'t',note:'t'}};
-var AI_HERO={value:['t',80],label:['t',80],text:['t',300],color:['c0'],noIcon:['b'],icon:['i'],iz:['n',[30,300]],ix:['n',[0,100]],iy:['n',[0,100]]};
+var AI_HERO={value:['t',80],label:['t',80],text:['t',300],color:['c0'],noIcon:['b'],icon:['i'],iz:['n',[30,300]],ix:['n',[0,100]],iy:['n',[0,100]],cpos:['e',['top','bottom','none']],cstyle:['e',['frame','plain','fade']],ph:['n',[25,65]]};
 var AI_TYF={s:['n',[40,220]],c:['c0'],f:['f'],dx:['n',[-300,300]],dy:['n',[-200,200]]};
 var AI_MAX={stats:8,items:8,bars:10};
 function aiFonts(){return TF_HOUSE.map(function(x){return x[0]}).filter(Boolean).concat(TF_GAR.map(function(n){return 'g:'+n}),TF_GEN.map(function(n){return 'g:'+n}))}
@@ -8672,7 +8674,7 @@ function aiState(){
     texts:pick(S,['kicker','title','subtitle','lede','ledeHi','footer']),
     settings:pick(S,rootKeys),
     hasBackgroundPhoto:!!S.bgImg,
-    hero:Object.assign(pick(S.hero||{},['value','label','text','color','icon','noIcon','iz','ix','iy','sty']),{hasPicture:!!(S.hero&&S.hero.pimg)}),
+    hero:Object.assign(pick(S.hero||{},['value','label','text','color','icon','noIcon','iz','ix','iy','sty','cpos','cstyle','ph']),{hasPicture:!!(S.hero&&S.hero.pimg)}),
     legend:S.legend||[],typography:S.sty||{},
     stats:S.stats.map(function(s,i){return Object.assign({i:i},pick(s,rowKeys.stats))}),
     items:S.items.map(function(s,i){return Object.assign({i:i},pick(s,rowKeys.items))}),
@@ -8682,7 +8684,7 @@ function aiState(){
     spaceRects:(function(){var G=spCalc(S.spaces,W,H);return G?{designArea:{x:Math.round(G.P.x),y:Math.round(G.P.y),w:Math.round(G.P.w),h:Math.round(G.P.h)},spaces:G.rects.map(function(r){return{i:r.i,x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.w),h:Math.round(r.h)}})}:null})(),
     free:(S.fx||[]).map(function(e){return pick({id:e.id,type:e.t,x:e.x,y:e.y,size:e.size,w:e.w,h:e.h,text:e.text,sub:e.sub,col:e.col,shape:e.shape==='orig'?'':e.shape,lo:e.lo,fit:e.fit==='cover'?'':e.fit,iconOn:e.ic&&e.ic.on,boxOn:e.box&&e.box.on,boxFill:e.box&&e.box.fill},['id','type','x','y','size','w','h','text','sub','col','shape','lo','fit','iconOn','boxOn','boxFill'])}),
     templates:tp,canvas:{w:W,h:H},catalog:aiCatalog(),
-    hints:['The headline block (kicker, title, subtitle, lede) occupies roughly the top 28% of the canvas height.',
+    hints:['Template cards-row (cards side by side + a picture): hero.cstyle "plain" removes the line (stroke) drawn around the picture, "fade" blends it into the background, "frame" is the line; hero.cpos "none" removes the picture completely so only the cards remain, "top"/"bottom" is where the picture sits; hero.ph is the picture height 25..65.','The headline block (kicker, title, subtitle, lede) occupies roughly the top 28% of the canvas height.',
       'The normal rows (hero, stats, items, bars) are drawn by the template in the middle and lower part of the canvas (about 30%-90% of the height) and WILL overlap free elements placed there.',
       'When the user asks for an arrangement that a catalogue template cannot give, build it with free elements: first clear the normal rows (set hero.value/label/text to empty strings and remove stats/items/bars rows) and re-create their figures and sentences as free elements using EXACTLY the same words and numbers, then place everything without overlap.',
       'A free text element is centred on x,y and its width w wraps the sentence; keep x between w/2 and 1080-w/2 (in percent: x from w/21.6 to 100-w/21.6).',
