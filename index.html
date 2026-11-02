@@ -4007,9 +4007,9 @@ function czStrap(txt,y,align){
 /* ----- slide types ----- */
 function czCover(s,i,n){
   var p=czP(),R=czR(),pm=czPmOf(s);
-  if(pm)czArt(ZH,2.2);
-  else if(s.photo){czPhoto(s.photo,ZH,s.pa,s.pf,.36);czPhotoFx(s,0,0,W,ZH);var o=czGradOff(),g=cx.createLinearGradient(0,0,0,ZH);g.addColorStop(0,rgba(p.deep,czA(.5)));g.addColorStop(.2,rgba(p.deep,czA(.04)));g.addColorStop(Math.max(.3,.4+o),rgba(p.deep,czA(.1)));g.addColorStop(Math.max(.45,.58+o),rgba(p.deep,czA(.82)));g.addColorStop(Math.min(.9,.72+o),rgba(p.deep,czA(.95)));g.addColorStop(1,rgba(p.deep,.98));cx.fillStyle=g;cx.fillRect(0,0,W,ZH+1)}
-  else czArt(ZH,2.2);
+  if(pm||!s.photo)czArt(ZH,2.2);
+  fxDrawUnder('cz',cx,s);
+  if(!pm&&s.photo){czPhoto(s.photo,ZH,s.pa,s.pf,.36);czPhotoFx(s,0,0,W,ZH);var o=czGradOff(),g=cx.createLinearGradient(0,0,0,ZH);g.addColorStop(0,rgba(p.deep,czA(.5)));g.addColorStop(.2,rgba(p.deep,czA(.04)));g.addColorStop(Math.max(.3,.4+o),rgba(p.deep,czA(.1)));g.addColorStop(Math.max(.45,.58+o),rgba(p.deep,czA(.82)));g.addColorStop(Math.min(.9,.72+o),rgba(p.deep,czA(.95)));g.addColorStop(1,rgba(p.deep,.98));cx.fillStyle=g;cx.fillRect(0,0,W,ZH+1)}
   HC.tag('photo','','الصورة');HC.box(0,0,W,ZH,-4);HC.tag();
   fxDrawBack('cz',cx,s);
   if(!pm)czLogo();
@@ -4247,9 +4247,10 @@ function czPmHtml(s,cls,attr){
 }
 function czContent(s,i,n,num){
   var p=czP(),R=czR(),PH=czPHs(s);
-  cx.fillStyle='#FFFFFF';cx.fillRect(0,0,W,ZH+1);
+  cx.fillStyle=czPaperOf(s);cx.fillRect(0,0,W,ZH+1);
   // faint wave texture low on the page
   czWaves(0,ZH-530,W,530,p.main,.07,12,1.4);
+  fxDrawUnder('cz',cx,s);
   var pm=czPmOf(s);
   if(pm==='box')czPhotoBox(s,PH-52);
   else if(pm==='cut')czPhotoCut(s,PH-52);
@@ -4354,7 +4355,7 @@ function czClosing(s,i,n){
 
 /* ----- render ----- */
 function czSetup(){czSyncH();czcv=$('#czCv');czcv.width=W*CZ_S;czcv.height=ZH*CZ_S;cx=czcv.getContext('2d')}
-function czSpBase(s){return s.type==='content'?'#FFFFFF':czP().deep}
+function czSpBase(s){return s.type==='content'?czPaperOf(s):czP().deep}
 function czDrawSlide(i){
   var s=CZ.slides[i];if(!s)return;
   czSyncH();if(czcv&&czcv.height!==ZH*CZ_S){czcv.height=ZH*CZ_S;czThumbDims();czFit()}
@@ -4459,7 +4460,7 @@ function czBuildEditor(){
     secs.push(['pts','النقاط',s.points.length?s.points.length+' نقاط':'',h]);
   }
   secs.push(['img','الصورة',s.photo?'مرفوعة':'بدون','<div class="row"><button type="button" class="tool" data-cphoto="1">'+(s.photo?'تغيير الصورة':'رفع صورة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-cphoto="0">إزالة</button>':'')+'</div><p class="hint">تقدر تختار عدة صور دفعة واحدة، فتتوزّع على الشرائح بالترتيب بدءاً من هذه الشريحة. أو اسحب الصور وأفلتها على الشرائح المصغّرة.</p>'+
-    czPmHtml(s,'field','data-czsel')+(s.photo?'<div class="field"><label>موضع الصورة</label><select data-czsel="pa"><option value="center"'+(s.pa==='center'?' selected':'')+'>وسط</option><option value="top"'+(s.pa==='top'?' selected':'')+'>الأعلى</option><option value="bottom"'+(s.pa==='bottom'?' selected':'')+'>الأسفل</option></select></div>'+czFrameHtml(s,'field'):'<p class="hint">بدون صورة يظهر تصميم زخرفي بألوان القالب.</p>')]);
+    czPaperHtml(s,'field')+czPmHtml(s,'field','data-czsel')+(s.photo?'<div class="field"><label>موضع الصورة</label><select data-czsel="pa"><option value="center"'+(s.pa==='center'?' selected':'')+'>وسط</option><option value="top"'+(s.pa==='top'?' selected':'')+'>الأعلى</option><option value="bottom"'+(s.pa==='bottom'?' selected':'')+'>الأسفل</option></select></div>'+czFrameHtml(s,'field'):'<p class="hint">بدون صورة يظهر تصميم زخرفي بألوان القالب.</p>')]);
   // keep the box that was open; if a general-design box is open, leave it open
   var root=$('#czAccordion'),staticOpen=!!$('.ac.open[data-ac="pal"],.ac.open[data-ac="tpl"]',root),want=CZ.openKey===undefined?'txt':CZ.openKey;
   if(want&&!secs.some(function(x){return x[0]===want}))want='txt';
@@ -9117,7 +9118,7 @@ function czEdgeFade(side,len,col,x,y,w,h){
 }
 /* the fade over the top picture of a content slide (default = the original white fade from below) */
 function czFade(s,PH){
-  var p=czP(),d=s.pfd||'b',a=Math.max(10,Math.min(100,s.pfa==null?50:s.pfa)),L=Math.round(250*a/50),W_='#FFFFFF';
+  var p=czP(),d=s.pfd||'b',a=Math.max(10,Math.min(100,s.pfa==null?50:s.pfa)),L=Math.round(250*a/50),W_=czPaperOf(s);
   var top=function(){var tg=cx.createLinearGradient(0,0,0,230);tg.addColorStop(0,rgba(p.deep,.6));tg.addColorStop(1,rgba(p.deep,0));cx.fillStyle=tg;cx.fillRect(0,0,W,230)};
   if(d==='t'){czEdgeFade('t',Math.min(PH,Math.max(260,L)),p.deep,0,0,W,PH);return}
   top();
@@ -9125,7 +9126,7 @@ function czFade(s,PH){
   if(d==='b'||d==='tb'||d==='v'||d==='diag'){
     if(d==='diag'){
       var g=cx.createLinearGradient(R_(W,0),PH,R_(0,W),PH-L*1.6);
-      g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.5,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');
+      g.addColorStop(0,rgba(W_,1));g.addColorStop(.5,rgba(W_,.7));g.addColorStop(1,rgba(W_,0));
       cx.fillStyle=g;cx.fillRect(0,PH-L*1.6,W,L*1.6+1);czEdgeFade('b',Math.round(L*.5),W_,0,0,W,PH);
     }else czEdgeFade('b',Math.min(PH,L),W_,0,0,W,PH);
   }
@@ -9362,6 +9363,20 @@ document.addEventListener('toggle',function(e){
 
 document.addEventListener('change',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-czptclip'))return;CZ.ptClip=!!t.checked;$$('input[data-czptclip]').forEach(function(x){x.checked=CZ.ptClip});czSchedule()});
 
+/* ---- colour of the lower (normally white) background of content slides: one slide, or all ---- */
+function czPaperOf(s){var c=(s&&s.paper)||CZ.paper;return /^#[0-9a-fA-F]{6}$/.test(c||'')?c:'#FFFFFF'}
+function czPaperHtml(s,cls){
+  if(!s||s.type!=='content'||skyOn())return '';
+  return '<div class="'+cls+'"><label>لون خلفية الشريحة من تحت (بدل الأبيض)</label><div class="inrow"><input type="color" data-czpaper="1" value="'+czPaperOf(s).toLowerCase()+'" aria-label="لون خلفية الشريحة"><button type="button" class="mini" data-czpaperall="1">تطبيق على كل الشرائح</button><button type="button" class="mini" data-czpaperreset="1">أبيض</button></div><p class="hint">يتغيّر معه لون تلاشي الصورة.</p></div>';
+}
+document.addEventListener('input',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-czpaper'))return;var s=CZ.slides[CZ.cur];if(!s)return;s.paper=t.value.toUpperCase();$$('input[data-czpaper]').forEach(function(x){if(x!==t)x.value=t.value});czSchedule()});
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-czpaperall],[data-czpaperreset]');if(!b)return;var s=CZ.slides[CZ.cur];if(!s)return;
+  if(b.hasAttribute('data-czpaperall')){CZ.paper=czPaperOf(s);CZ.slides.forEach(function(x){delete x.paper});czStatus('طُبّق لون الخلفية على كل الشرائح.')}
+  else{s.paper='#FFFFFF';$$('input[data-czpaper]').forEach(function(x){x.value='#ffffff'})}
+  czRenderAll();
+});
+
 /* ===== carousel: change the design with instructions written in the user's own words, and apply guidance written BEFORE the design ===== */
 var CZAI={hist:[],undo:[],busy:false};
 /* [path, type, spec, description] — types as in aiChk: t text | c colour | e list | n [lo,hi] | b boolean | f font | i icon */
@@ -9371,14 +9386,14 @@ function czaiRoot(){return [
  ['look','e',['classic','sky'],'look: classic (picture on top and white page) or sky (light blue editorial look, centred)'],
  ['size','e',['4:5','1:1','9:16'],'canvas ratio'],['sec','e',czaiSecs(),'section badge / template at the top'],
  ['labelPos','e',['above','below'],'highlighted word above or below the figure (all figures)'],['pager','e',['num','dots'],'slide indicator: numbers 2 / 6 or dots'],['tags','e',['show','hide'],'tags at the bottom of content slides'],
- ['statMid','b',0,'centre the numbers vertically'],['ptClip','b',0,'shorten long point sentences with an ellipsis (false = always show the whole sentence)'],['statLay','e',['stack','side'],'figures stacked or label beside the figure (all figures)'],
+ ['statMid','b',0,'centre the numbers vertically'],['paper','c0',0,'colour of the lower (normally white) background of all content slides and of the picture fade, "" = white'],['ptClip','b',0,'shorten long point sentences with an ellipsis (false = always show the whole sentence)'],['statLay','e',['stack','side'],'figures stacked or label beside the figure (all figures)'],
  ['corner','n',[0,200],'softness of frames, 100 default, 0 sharp'],['titleFont','f',0,'font of all titles'],['titleScale','n',[50,160],'size of all titles %'],
  ['bgMode','e',['auto','solid','grad'],'background kind for cover/closing/empty pictures'],['bgC1','c',0,'background colour 1'],['bgC2','c',0,'background colour 2 (gradient end)'],['bgAngle','n',[0,360],'gradient angle'],['bgPlain','b',0,'plain background without decorative waves/circles'],
  ['ptSt','e',CZ_PTS.map(function(o){return o[0]}),'marker of the middle sentences (points) on ALL slides: check | num (1 2 3) | icon (icons chosen by meaning) | dot | bar | none'],
  ['ptLay','e',['list','top','cols'],'arrangement of the points on ALL slides: list = vertical list with the marker beside the text | top = vertical list with the marker/icon above the text | cols = the points side by side as columns, marker/icon on top of each column (best with 2-4 points)']
 ]}
 var CZ_AI_SL=[
- ['kicker','t',120,'strap (cover)'],['title','t',240,'title'],['subtitle','t',260,'second title (content slides)'],['lede','t',320,'third title: a sentence under the second title (content slides), **words** are highlighted'],['text','t',500,'sentence / description'],['cta','t',60,'button text'],['handle','t',60,'account (closing)'],['pills','t',120,'tags text, comma separated'],['foot','t',200,'closing line (sky look)'],
+ ['paper','c0',0,'colour of the lower (normally white) background of this content slide and of its picture fade, "" = the general one'],['kicker','t',120,'strap (cover)'],['title','t',240,'title'],['subtitle','t',260,'second title (content slides)'],['lede','t',320,'third title: a sentence under the second title (content slides), **words** are highlighted'],['text','t',500,'sentence / description'],['cta','t',60,'button text'],['handle','t',60,'account (closing)'],['pills','t',120,'tags text, comma separated'],['foot','t',200,'closing line (sky look)'],
  ['tz','e',['','s','l'],'title size on this slide (sky): normal | s smaller | l larger'],['lay','e',['','single','duo','trio','hero3','flags'],'numbers arrangement (sky)'],['ho','e',['','sub'],'sub = second title above the main title'],['mo','e',['','text'],'text = the sentence box above the numbers/points'],
  ['pm','e',['','box'],'picture shape: "" fade into the page | box = clean frame'],['pa','e',['center','top','bottom'],'which part of the picture stays visible'],['pz','n',[30,300],'picture zoom %'],['px','n',[0,100],'picture horizontal position'],['py','n',[0,100],'picture vertical position'],
  ['pfd','e',['b','t','tb','v','l','r','diag','none'],'fade direction of the top picture: b white from below (default) | t template colour from top | tb both | v from all sides | l | r | diag | none'],['pfa','n',[10,100],'fade strength %'],['phh','n',[60,140],'picture height %'],
@@ -9512,9 +9527,9 @@ function czaiCatalog(){
 }
 function czaiState(){
   var pick=function(o,ks){var r={};ks.forEach(function(k){if(o[k]!==undefined&&o[k]!==''&&o[k]!==null)r[k]=o[k]});return r};
-  var sk=['kicker','title','subtitle','lede','text','cta','handle','pills','foot','tz','lay','ho','mo','pm','pa','pz','px','py','pfd','pfa','phh','ptn','ptna','pbr','psh','pbd','ptSt','ptLay','ptO','ledeSz','kfit','kw','hp'];
+  var sk=['kicker','title','subtitle','lede','text','cta','handle','pills','foot','tz','lay','ho','mo','pm','pa','pz','px','py','pfd','pfa','phh','ptn','ptna','pbr','psh','pbd','ptSt','ptLay','ptO','ledeSz','kfit','kw','hp','paper'];
   return{lang:CZ.lang,look:CZ.look||'classic',
-    settings:pick(CZ,['main','accent','size','sec','labelPos','pager','tags','statMid','statLay','ptClip','corner','titleFont','titleScale','bgMode','bgC1','bgC2','bgAngle','bgPlain','ptSt','ptLay','ptO']),
+    settings:pick(CZ,['main','accent','size','sec','labelPos','pager','tags','statMid','statLay','ptClip','paper','corner','titleFont','titleScale','bgMode','bgC1','bgC2','bgAngle','bgPlain','ptSt','ptLay','ptO']),
     slides:CZ.slides.map(function(s,i){return Object.assign({i:i,type:s.type,hasPhoto:!!s.photo,photoCutOut:czCutOk(s),photoRect:(function(){var r=CZ_PHR.get(s);return r?{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.w),h:Math.round(r.h)}:undefined})()},pick(s,sk),
       {stats:(s.stats||[]).map(function(t,j){return Object.assign({j:j},pick(t,['value','label','text','flag','lp','ly']))}),points:(s.points||[]).map(function(t,j){return Object.assign({j:j},pick(t,['title','text','icon']))})})}),
     canvas:{w:W,h:CZ_SIZES[CZ.size||'4:5']},catalog:czaiCatalog(),
@@ -9588,7 +9603,7 @@ function fxFilter(e,sc){
   return a.join(' ');
 }
 var FX_POS=[['top','فوق'],['bottom','تحت'],['right','يمين'],['left','شمال'],['center','منتصف']];
-var FX_TYPE={text:'جملة نصية',num:'رقم',icon:'أيقونة',img:'صورة',chart:'تشارت'};
+var FX_TYPE={text:'جملة نصية',num:'رقم',icon:'أيقونة',img:'صورة',chart:'تشارت',block:'كتلة لون'};
 
 /* ---------- state access ---------- */
 function fxRoot(m){return m==='cz'?CZ.slides[CZ.cur]:m==='ch'?CH:S}
@@ -9607,6 +9622,7 @@ function fxMake(type,x,y){
   if(type==='text')e.text='اكتب النص هنا';
   if(type==='num'){e.text='25%';e.sub='وصف قصير'}
   if(type==='icon')e.ic.on=true;
+  if(type==='block'){e.ic.on=false;e.w=600;e.h=320;e.z='back';e.box.r=0;e.box.bw=0}
   return e;
 }
 
@@ -9745,6 +9761,11 @@ function fxFillRect(e,env){
 function fxLayout(e,env,c){
   var dir=env.rtl?'rtl':'ltr',L={ew:0,eh:0};
   var p=e.box.on?e.box.pad:0,pad=e.t==='img'?e.box.on?e.box.pad:0:p;
+  if(e.t==='block'){
+    var bw0=e.w,bh0=e.h>0?e.h:320;
+    if(e.pos==='fill'){var FB=fxFillRect(e,env);bw0=FB.w;bh0=FB.h}
+    L.iw=bw0;L.ih=bh0;L.pad=0;L.ew=bw0;L.eh=bh0;return L;
+  }
   if(e.t==='img'){
     var iw=e.w,ih=e.w,im=e.pimg,nat=im?(im.naturalWidth||im.width)/(im.naturalHeight||im.height||1):1;
     if(e.pos==='fill'){var FR=fxFillRect(e,env);iw=Math.max(20,FR.w-2*pad);ih=Math.max(20,FR.h-2*pad)}
@@ -9777,9 +9798,9 @@ function fxLayout(e,env,c){
   L.ew=cw+2*pad;L.eh=chh+2*pad;return L;
 }
 function fxBounds(e,L,env,Hh){
-  var v=e.ori!=='h'&&e.t!=='img'&&e.t!=='icon',bw=v?L.eh:L.ew,bh=v?L.ew:L.eh,cx0,cy0,mg=56;
+  var v=e.ori!=='h'&&e.t!=='img'&&e.t!=='icon'&&e.t!=='block',bw=v?L.eh:L.ew,bh=v?L.ew:L.eh,cx0,cy0,mg=56;
   var pos=e.pos||'free';
-  if(pos==='fill'&&e.t==='img'){var FR2=fxFillRect(e,env);cx0=FR2.x+FR2.w/2;cy0=FR2.y+FR2.h/2}
+  if(pos==='fill'&&(e.t==='img'||e.t==='block')){var FR2=fxFillRect(e,env);cx0=FR2.x+FR2.w/2;cy0=FR2.y+FR2.h/2}
   else if(pos==='free'){cx0=e.x/100*W;cy0=e.y/100*Hh}
   else{cx0=W/2;cy0=Hh/2;
     if(pos==='top')cy0=mg+bh/2+(env.m==='ig'?70:0);else if(pos==='bottom')cy0=Hh-mg-bh/2-(env.m==='ig'?30:0);
@@ -9797,7 +9818,15 @@ function fxOne(m,c,e,Hh,s,hit){
   if(B.v)c.rotate(e.ori==='vu'?-Math.PI/2:Math.PI/2);
   c.translate(-L.ew/2,-L.eh/2);
   var ew=L.ew,eh=L.eh;
-  if(e.t==='img'){
+  if(e.t==='block'){
+    fxLayer(c,e,ew,eh,function(g){
+      var rad=Math.max(0,Math.min(+e.box.r||0,ew/2,eh/2)),sh=e.shape&&e.shape!=='orig'&&e.shape!=='wide'&&e.shape!=='tall'&&e.shape!=='square'?e.shape:'';
+      if(sh)fxShapePath(g,sh,0,0,ew,eh,rad);else fxRR(g,0,0,ew,eh,rad);
+      g.fillStyle=e.col||env.main;g.fill();
+      if(e.box.bw>0){g.strokeStyle=e.box.bc||'#FFFFFF';g.lineWidth=e.box.bw;if(sh)fxShapePath(g,sh,e.box.bw/2,e.box.bw/2,ew-e.box.bw,eh-e.box.bw,rad);else fxRR(g,e.box.bw/2,e.box.bw/2,ew-e.box.bw,eh-e.box.bw,rad);g.stroke()}
+    });
+  }
+  else if(e.t==='img'){
     var im=e.pimg;
     fxLayer(c,e,ew,eh,function(g){
       var pd=L.pad,iw=L.iw,ih=L.ih,rad=fxRadius(e,ew,eh);
@@ -9855,32 +9884,44 @@ function fxOne(m,c,e,Hh,s,hit){
   }
   c.restore();
   var x1=B.cx-B.bw/2,y1=B.cy-B.bh/2,x2=B.cx+B.bw/2,y2=B.cy+B.bh/2;
-  fxGeoAdd(m,e.id,x1,y1,x2,y2,e.z==='back');
-  if(hit&&hit.on){hit.tag('fx:'+e.id,'',FX_TYPE[e.t]);hit.box(x1,y1,x2,y2,e.z==='back'?-1.5:9);hit.tag()}
+  var bk=e.z==='back'||e.z==='under';
+  fxGeoAdd(m,e.id,x1,y1,x2,y2,bk);
+  if(hit&&hit.on){hit.tag('fx:'+e.id,'',FX_TYPE[e.t]);hit.box(x1,y1,x2,y2,e.z==='under'?-2:bk?-1.5:9);hit.tag()}
 }
 var FXG={ig:[],cz:[],ch:[]};
 function fxGeoAdd(m,id,x1,y1,x2,y2,back){
   if(m==='cz'&&!HC.on)return;
   FXG[m].push({id:id,x1:x1,y1:y1,x2:x2,y2:y2,back:!!back});
 }
-/* layers: normally on top of everything; "under the elements" ones are drawn right after the background */
+/* layers: normally on top of everything; "under the elements" ones are drawn right after the background (or the picture);
+   "behind the picture" ones (carousel) right after the plain background, before the picture */
+function fxDrawUnder(m,c,s){
+  if(m==='cz'&&SPG.on)return;
+  var L=m==='cz'?s.fx:m==='ch'?CH.fx:S.fx;
+  FX.ud=FX.ud||{};FX.ud[m]=true;
+  if(m!=='cz'||HC.on)FXG[m]=[];
+  if(!L||!L.length)return;
+  var hit=fxHitOf(m),Hh=fxHeight(m);
+  L.forEach(function(e){if(e.z!=='under')return;try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
+}
 function fxDrawBack(m,c,s){
   if(m==='cz'&&SPG.on)return;
   var L=m==='cz'?s.fx:m==='ch'?CH.fx:S.fx;
-  FX.bk=FX.bk||{};
-  if(m!=='cz'||HC.on){FXG[m]=[];FX.bk[m]=true}
+  FX.bk=FX.bk||{};FX.ud=FX.ud||{};var ud=FX.ud[m];
+  if((m!=='cz'||HC.on)&&!ud)FXG[m]=[];
+  if(m!=='cz'||HC.on)FX.bk[m]=true;
   if(!L||!L.length)return;
   var hit=fxHitOf(m),Hh=fxHeight(m);
-  L.forEach(function(e){if(e.z!=='back')return;try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
+  L.forEach(function(e){if(!(e.z==='back'||(e.z==='under'&&!ud)))return;try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
 }
 function fxDraw(m,c,s){
   var L=m==='cz'?s.fx:m==='ch'?CH.fx:S.fx;
   FX.bk=FX.bk||{};
   if((m!=='cz'||HC.on)&&!FX.bk[m])FXG[m]=[];
-  FX.bk[m]=false;
+  FX.bk[m]=false;FX.ud=FX.ud||{};FX.ud[m]=false;
   if(!L||!L.length)return;
   var hit=fxHitOf(m),Hh=fxHeight(m);
-  L.forEach(function(e){if(e.z==='back')return;try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
+  L.forEach(function(e){if(e.z==='back'||e.z==='under')return;try{fxOne(m,c,e,Hh,s,hit)}catch(x){if(window.console)console.error(x)}});
 }
 
 /* ---------- the card ---------- */
@@ -9925,6 +9966,7 @@ function fxBody(m,id){
   if(T==='text')c+=fxIn('text','النص',e.text,{area:true})+fxRng('size','حجم الخط',e.size,18,160,1)+fxRng('w','عرض السطر',e.w,160,1000,10)+fxSeg('wt','سُمك الخط',e.wt,[['body','عادي'],['head','عريض'],['sub','ثقيل']])+fxSeg('ori','الاتجاه',e.ori,[['h','أفقي'],['vd','رأسي ↓'],['vu','رأسي ↑']]);
   if(T==='num')c+=fxIn('text','الرقم',e.text)+fxIn('sub','الوصف تحت الرقم',e.sub)+fxRng('size','حجم الرقم',e.size,40,300,2)+fxSeg('ori','الاتجاه',e.ori,[['h','أفقي'],['vd','رأسي ↓'],['vu','رأسي ↑']]);
   if(T==='icon')c+=fxRng('size','حجم الأيقونة',e.size,30,500,2);
+  if(T==='block')c+=fxCol('col','لون الكتلة',e.col,env.main)+fxRng('w','العرض',e.w,20,1080,5)+fxRng('h','الارتفاع',e.h>0?e.h:320,20,1600,5)+fxRng('box.r','استدارة الزوايا',+e.box.r||0,0,400,2)+fxRng('box.bw','سُمك الحدود',e.box.bw||0,0,30,1)+(e.box.bw>0?fxCol('box.bc','لون الحدود',e.box.bc,'#FFFFFF'):'');
   if(T==='img'){
     var imgs=LIB.list.filter(function(a){return a.kind==='image'||a.kind==='logo'});
     c+='<div class="epf"><label>الصورة</label><div class="inrow"><select data-fx="lib" aria-label="الصورة"><option value="">'+(e.pimg&&!e.lib?'الصورة المرفوعة':'اختر…')+'</option>'+(imgs.length?imgs.map(function(a){return '<option value="'+fxEsc(a.id)+'"'+(e.lib===a.id?' selected':'')+'>'+fxEsc(a.name)+'</option>'}).join(''):'')+'</select><button type="button" class="tool hl" data-fxact="upload">رفع صورة</button></div></div>'
@@ -9934,11 +9976,11 @@ function fxBody(m,id){
       +'<div class="epf"><button type="button" class="tool ghost" data-fxact="imreset">إعادة ضبط الصورة</button></div>';
   }
   h+=fxSec('c','المحتوى',c,true);
-  if(T==='img'){
-    h+=fxSec('s','شكل الصورة','<div class="fxshapes">'+FX_SHAPES.map(function(s){return '<button type="button" class="fxsh" data-fxact="shape" data-v="'+s[0]+'" aria-pressed="'+(e.shape===s[0])+'" title="'+s[1]+'"><svg viewBox="0 0 40 40" aria-hidden="true">'+fxShapeSvg(s[0])+'</svg><small>'+s[1]+'</small></button>'}).join('')+'</div>'+fxCorners(e),true);
+  if(T==='img'||T==='block'){
+    h+=fxSec('s',T==='block'?'شكل الكتلة':'شكل الصورة','<div class="fxshapes">'+FX_SHAPES.map(function(s){return '<button type="button" class="fxsh" data-fxact="shape" data-v="'+s[0]+'" aria-pressed="'+(e.shape===s[0])+'" title="'+s[1]+'"><svg viewBox="0 0 40 40" aria-hidden="true">'+fxShapeSvg(s[0])+'</svg><small>'+s[1]+'</small></button>'}).join('')+'</div>'+fxCorners(e),true);
   }
   /* position */
-  h+=fxSec('p','الوضع','<div class="fxpos">'+(T==='img'?FX_POS.concat([['fill','ملء المساحة']]):FX_POS).map(function(p){return '<button type="button" class="fxpb" data-fxact="pos" data-v="'+p[0]+'" aria-pressed="'+(e.pos===p[0])+'">'+p[1]+'</button>'}).join('')+'</div>'+fxFillSel(e,T)+fxSeg('z','الطبقة',e.z==='back'?'back':'',[['','فوق كل العناصر'],['back','تحت العناصر (فوق الخلفية مباشرة)']])+'<p class="hint">'+(e.pos==='free'?'وضع حر. ':'')+(e.pos==='fill'?'الصورة تملأ المساحة كاملة (اسحبها لتحريرها). ':'')+'اسحب العنصر على التصميم لتحريكه في أي مكان.</p>',true);
+  h+=fxSec('p','الوضع','<div class="fxpos">'+(T==='img'||T==='block'?FX_POS.concat([['fill','ملء المساحة']]):FX_POS).map(function(p){return '<button type="button" class="fxpb" data-fxact="pos" data-v="'+p[0]+'" aria-pressed="'+(e.pos===p[0])+'">'+p[1]+'</button>'}).join('')+'</div>'+fxFillSel(e,T)+fxSeg('z','الطبقة',e.z==='back'||e.z==='under'?e.z:'',[['','فوق كل العناصر'],['back',EP.mode==='cz'?'تحت النصوص وفوق الصورة':'تحت العناصر (فوق الخلفية مباشرة)']].concat(EP.mode==='cz'?[['under','خلف الصورة']]:[]))+'<p class="hint">'+(e.pos==='free'?'وضع حر. ':'')+(e.pos==='fill'?'الصورة تملأ المساحة كاملة (اسحبها لتحريرها). ':'')+'اسحب العنصر على التصميم لتحريكه في أي مكان.</p>',true);
   /* transparency, blend mode, picture effects */
   var ef=fxRng('lo','الشفافية (الظهور)',e.lo==null?100:e.lo,5,100,1,'%')
     +'<div class="epf"><label>نمط الدمج مع ما تحته</label><select data-fx="bm" aria-label="نمط الدمج">'+FX_BM.map(function(o){return '<option value="'+o[0]+'"'+((e.bm||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
@@ -9960,7 +10002,7 @@ function fxBody(m,id){
       +(e.ic.style==='duo'?fxCol('ic.col2','لون الظل (الثنائي)',e.ic.col2,e.ic.col||fxTextCol(e,env,env.dark)):'');
     if(T!=='icon')ic+=fxRng('ic.size','حجم الأيقونة',e.ic.size,40,220,5,'%')+fxSeg('ic.pos','مكان الأيقونة',e.ic.pos,[['start','قبل'],['end','بعد'],['top','فوق'],['bottom','تحت']]);
   }
-  h+=fxSec('i','الأيقونة',ic,T==='icon');
+  if(T!=='block')h+=fxSec('i','الأيقونة',ic,T==='icon');
   /* spacing */
   var sp='';
   if((T==='text'||T==='num')&&e.ic.on)sp+=fxRng('ic.gap','المسافة بين الأيقونة و'+(T==='num'?'الرقم':'النص'),e.ic.gap==null?Math.round(e.size*.3):e.ic.gap,0,160,1);
@@ -9977,7 +10019,7 @@ function fxBody(m,id){
       +(T==='img'?'':fxSeg('box.rs','الزوايا',e.box.rs,[['sharp','حادة'],['soft','ناعمة'],['round','دائرية']])+(e.box.rs==='soft'?fxRng('box.r','درجة النعومة',e.box.r,0,150,1):''))
       ;
   }
-  h+=fxSec('b',T==='img'?'الإطار':'البوكس',bx,false);
+  if(T!=='block')h+=fxSec('b',T==='img'?'الإطار':'البوكس',bx,false);
   /* fade */
   var fd=e.fade,fdh='<div class="epf"><label>اتجاهات التلاشي (يمكن أكثر من اتجاه)</label><div class="fxsides">'+[['t','فوق'],['b','تحت'],['r','يمين'],['l','شمال']].map(function(s){return '<button type="button" class="fxsd" data-fxact="side" data-v="'+s[0]+'" aria-pressed="'+!!fd[s[0]]+'">'+s[1]+'</button>'}).join('')+'</div></div>';
   if(fd.t||fd.b||fd.l||fd.r)fdh+=fxRng('fade.amt','مقدار التلاشي',fd.amt,5,fd.unit==='%'?100:300,1)+fxSeg('fade.unit','وحدة التلاشي',fd.unit,[['px','بكسل'],['%','نسبة %']]);
@@ -10039,9 +10081,9 @@ function fxSearch(q){
 
 /* ---------- popup for a new element ---------- */
 function fxAddBody(){
-  var ic={text:'<path d="M5 7h14M12 7v11M9 18h6"/>',num:'<path d="M8 4L6 20M16 4l-2 16M4 9h16M3 15h16"/>',icon:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',img:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/>',chart:'<path d="M4 20V4M4 20h16"/><rect x="7.5" y="11" width="3" height="6" rx=".8"/><rect x="12.5" y="7" width="3" height="10" rx=".8"/><rect x="17.5" y="13" width="2.5" height="4" rx=".8"/>'};
+  var ic={block:'<rect x="4" y="6" width="16" height="12" rx="2.5" fill="currentColor" stroke="none"/>',text:'<path d="M5 7h14M12 7v11M9 18h6"/>',num:'<path d="M8 4L6 20M16 4l-2 16M4 9h16M3 15h16"/>',icon:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',img:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/>',chart:'<path d="M4 20V4M4 20h16"/><rect x="7.5" y="11" width="3" height="6" rx=".8"/><rect x="12.5" y="7" width="3" height="10" rx=".8"/><rect x="17.5" y="13" width="2.5" height="4" rx=".8"/>'};
   var am=FX.at&&FX.at.m;
-  return{t:'إضافة عنصر هنا',h:'<div class="fxadd">'+['text','num','icon','img'].concat(am&&am!=='ch'?['chart']:[]).map(function(k){return '<button type="button" class="fxnew" data-fxnew="'+k+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic[k]+'</svg><span>'+FX_TYPE[k]+'</span></button>'}).join('')+'</div><div class="epf"><button type="button" class="mini" data-fxact="bgopt">خيارات الخلفية</button></div>'};
+  return{t:'إضافة عنصر هنا',h:'<div class="fxadd">'+['text','num','icon','img','block'].concat(am&&am!=='ch'?['chart']:[]).map(function(k){return '<button type="button" class="fxnew" data-fxnew="'+k+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic[k]+'</svg><span>'+FX_TYPE[k]+'</span></button>'}).join('')+'</div><div class="epf"><button type="button" class="mini" data-fxact="bgopt">خيارات الخلفية</button></div>'};
 }
 function fxAdd(m,pt,ev,hit){
   FX.at={m:m,x:pt.x,y:pt.y};FX.pick=null;FX.bgR=hit||null;
@@ -10197,7 +10239,7 @@ function fxClick(ev){
   var e=fxCur(),m2=EP.mode;if(!e)return;
   if(a==='undo'){fxUndo();return}
   if(a!=='pickicon'&&a!=='pickback'&&a!=='upload'&&a!=='rmbg')fxSnap(m2);
-  if(a==='pos'){if(b.dataset.v==='fill'&&e.t==='img')fxFillPick(e);e.pos=b.dataset.v;fxAgain(m2);fxRebuildSoon();return}
+  if(a==='pos'){if(b.dataset.v==='fill'&&(e.t==='img'||e.t==='block'))fxFillPick(e);e.pos=b.dataset.v;fxAgain(m2);fxRebuildSoon();return}
   if(a==='efreset'){['lo','bm'].concat(FX_FLT.map(function(f){return f[0]})).forEach(function(k){delete e[k]});fxRedraw(m2);fxRebuild();return}
   if(a==='shape'){e.shape=b.dataset.v;fxRedraw(m2);fxRebuild();return}
   if(a==='side'){var k=b.dataset.v;e.fade[k]=!e.fade[k];fxRedraw(m2);fxRebuild();return}
@@ -10833,7 +10875,7 @@ function epBodyCZ(g,p){
   }
   else{
     t='الخلفية والألوان';acc='pal';
-    h=epCzPalette('both')+epBgCZ()+'<div class="epf"><div class="row"><button type="button" class="tool" data-epact="photo">'+(s.photo?'تغيير الصورة':'رفع صورة للشريحة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-epact="nophoto">إزالة</button>':'')+'</div></div>'+(s.photo?czFrameHtml(s,'epf'):'');
+    h=epCzPalette('both')+epBgCZ()+czPaperHtml(s,'epf')+'<div class="epf"><div class="row"><button type="button" class="tool" data-epact="photo">'+(s.photo?'تغيير الصورة':'رفع صورة للشريحة')+'</button>'+(s.photo?'<button type="button" class="tool ghost" data-epact="nophoto">إزالة</button>':'')+'</div></div>'+(s.photo?czFrameHtml(s,'epf'):'');
   }
   return{t:t,h:h,acc:acc};
 }
