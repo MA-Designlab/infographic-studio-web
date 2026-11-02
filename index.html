@@ -4115,13 +4115,16 @@ function czBox(text,tier,w){
     HC.tag('text','','النص');czDraw(lines,xs,y+pad-8+fs*1.02,lh,f,function(b){return b?p.main:p.sub},czAl());HC.tag();
   }};
 }
+/* point sentences show in full unless the user chose to shorten them with an ellipsis; the type shrinks (more steps) to fit */
+var CZ_PT_TS=[38,35,32,29,26,24,22,20],CZ_PT_BS=[30,28,26,24,22,20,19,18];
+function czPtLines(n){return CZ.ptClip?n:99}
 function czPoints(list,tier,w,sl){
   var lay=czPtLay(sl||czCurS);
   if(lay==='cols'&&list.length>1)return czPointsCols(list,tier,w,sl);
-  var p=czP(),O=czPtO(sl||czCurS),ts=Math.round([38,35,32,29,26][tier]*O.ts),bs=Math.round([30,28,26,24,22][tier]*O.ts),st=czPtSt(sl||czCurS),top=lay==='top',md=Math.round((st==='none'?0:st==='dot'?22:st==='bar'?(top?52:10):44)*O.is),gp=st==='none'||top?0:30,tw=w-md-gp;
+  var p=czP(),O=czPtO(sl||czCurS),ts=Math.max(20,Math.round(CZ_PT_TS[tier]*O.ts)),bs=Math.max(17,Math.round(CZ_PT_BS[tier]*O.ts)),st=czPtSt(sl||czCurS),top=lay==='top',md=Math.round((st==='none'?0:st==='dot'?22:st==='bar'?(top?52:10):44)*O.is),gp=st==='none'||top?0:30,tw=w-md-gp;
   var icons=st==='icon'?czPtIcons(list):null;
   var rows=list.map(function(it){
-    var a=it.title?czCut(czBal(fixPct(it.title),function(){return czFont('head',ts)},top?w:tw),2):[],b=it.text?czCut(czWrap(it.text,function(){return czFont('body',bs)},top?w:tw),2):[];
+    var a=it.title?czCut(czBal(fixPct(it.title),function(){return czFont('head',ts)},top?w:tw),2):[],b=it.text?czCut(czWrap(it.text,function(){return czFont('body',bs)},top?w:tw),czPtLines(2)):[];
     var h=a.length*ts*1.3+(a.length&&b.length?6:0)+b.length*bs*1.5;return{a:a,b:b,h:top?(md?md+12:0)+h+34:Math.max(md,h)+34,th:h};
   });
   var total=rows.reduce(function(s,r){return s+r.h},0);
@@ -4143,10 +4146,10 @@ function czPoints(list,tier,w,sl){
 /* the points side by side as columns: the marker on top, then the heading, then the sentence */
 function czPointsCols(list,tier,w,sl){
   var p=czP(),O=czPtO(sl||czCurS),n=list.length,per=n<=5?n:Math.ceil(n/2),gap=n>=5?18:26,cw=(w-(per-1)*gap)/per;
-  var k=(per>=5?.64:per===4?.78:per===3?.88:1)*O.ts,ts=Math.round([38,35,32,29,26][tier]*k),bs=Math.round([30,28,26,24,22][tier]*k),st=czPtSt(sl||czCurS);
+  var k=(per>=5?.64:per===4?.78:per===3?.88:1)*O.ts,ts=Math.max(18,Math.round(CZ_PT_TS[tier]*k)),bs=Math.max(16,Math.round(CZ_PT_BS[tier]*k)),st=czPtSt(sl||czCurS);
   var md=Math.round((st==='none'?0:st==='dot'?22:st==='bar'?52:Math.round(per>=5?54:per>=4?68:80))*O.is),icons=st==='icon'?czPtIcons(list):null;
   var cols=list.map(function(it){
-    var a=it.title?czCut(czBal(fixPct(it.title),function(){return czFont('head',ts)},cw-8),3):[],b=it.text?czCut(czWrap(it.text,function(){return czFont('body',bs)},cw-8),per>=5?6:5):[];
+    var a=it.title?czCut(czBal(fixPct(it.title),function(){return czFont('head',ts)},cw-8),3):[],b=it.text?czCut(czWrap(it.text,function(){return czFont('body',bs)},cw-8),czPtLines(per>=5?6:5)):[];
     return{a:a,b:b,h:(md?md+16:0)+a.length*ts*1.3+(a.length&&b.length?8:0)+b.length*bs*1.45};
   });
   var rows=[];for(var r0=0;r0<n;r0+=per)rows.push(cols.slice(r0,r0+per));
@@ -4276,12 +4279,13 @@ function czContent(s,i,n,num){
   }
   // body modules
   var top=y+14,bottom=ZH-154-czDb(),avail=bottom-top,fw=W-2*M,stats=(s.stats||[]).filter(function(t){return t.value||t.label||t.text}).slice(0,4),pts=(s.points||[]).filter(function(t){return t.title||t.text}).slice(0,6),mods,tot=0,gp=26;
-  for(var tier=0;tier<5;tier++){
+  var tmax=pts.length&&!stats.length&&!CZ.ptClip?8:5;
+  for(var tier=0;tier<tmax;tier++){
     mods=[];
     var ld=czLedeBlock(s,fw);if(ld)mods.push(ld);
-    if(stats.length)mods.push(czStats(stats,tier,fw));
+    if(stats.length)mods.push(czStats(stats,Math.min(tier,4),fw));
     else if(pts.length)mods.push(czPoints(pts,tier,fw,s));
-    if(s.text)mods.push(czBox(s.text,tier,fw));
+    if(s.text)mods.push(czBox(s.text,Math.min(tier,4),fw));
     if(s.mo==='text'&&mods.length>1)mods.reverse();
     tot=mods.reduce(function(a,m){return a+m.h},0)+Math.max(0,mods.length-1)*gp;
     if(tot<=avail)break;
@@ -9284,6 +9288,7 @@ function czPtsHtml(s,cls){
     +'<div class="'+cls+'"><label>الإعداد العام لكل الشرائح</label><select data-czptst="all">'+CZ_PTS.map(function(o){return '<option value="'+o[0]+'"'+((CZ.ptSt||'check')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
   h+='<div class="'+cls+'"><label>ترتيب النقاط</label><select data-czptlay="slide"><option value="">مثل الإعداد العام</option>'+CZ_PTLAY.map(function(o){return '<option value="'+o[0]+'"'+(s.ptLay===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'
     +'<div class="'+cls+'"><label>ترتيب النقاط لكل الشرائح</label><select data-czptlay="all">'+CZ_PTLAY.map(function(o){return '<option value="'+o[0]+'"'+((CZ.ptLay||'list')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
+  h+='<div class="'+cls+'"><label class="check"><input type="checkbox" data-czptclip="1"'+(CZ.ptClip?' checked':'')+'> اختصار نص النقاط الطويل بثلاث نقاط «…» (الافتراضي: يظهر النص كاملاً)</label></div>';
   h+=czPtOHtml(s,cls);
   if(czPtSt(s)==='icon'&&list.length){
     var auto=czPtIcons(list);
@@ -9355,6 +9360,8 @@ document.addEventListener('toggle',function(e){
   Array.prototype.forEach.call(host.querySelectorAll(':scope>details.hpdet[open]'),function(o){if(o!==d)o.open=false});
 },true);
 
+document.addEventListener('change',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-czptclip'))return;CZ.ptClip=!!t.checked;$$('input[data-czptclip]').forEach(function(x){x.checked=CZ.ptClip});czSchedule()});
+
 /* ===== carousel: change the design with instructions written in the user's own words, and apply guidance written BEFORE the design ===== */
 var CZAI={hist:[],undo:[],busy:false};
 /* [path, type, spec, description] — types as in aiChk: t text | c colour | e list | n [lo,hi] | b boolean | f font | i icon */
@@ -9364,7 +9371,7 @@ function czaiRoot(){return [
  ['look','e',['classic','sky'],'look: classic (picture on top and white page) or sky (light blue editorial look, centred)'],
  ['size','e',['4:5','1:1','9:16'],'canvas ratio'],['sec','e',czaiSecs(),'section badge / template at the top'],
  ['labelPos','e',['above','below'],'highlighted word above or below the figure (all figures)'],['pager','e',['num','dots'],'slide indicator: numbers 2 / 6 or dots'],['tags','e',['show','hide'],'tags at the bottom of content slides'],
- ['statMid','b',0,'centre the numbers vertically'],['statLay','e',['stack','side'],'figures stacked or label beside the figure (all figures)'],
+ ['statMid','b',0,'centre the numbers vertically'],['ptClip','b',0,'shorten long point sentences with an ellipsis (false = always show the whole sentence)'],['statLay','e',['stack','side'],'figures stacked or label beside the figure (all figures)'],
  ['corner','n',[0,200],'softness of frames, 100 default, 0 sharp'],['titleFont','f',0,'font of all titles'],['titleScale','n',[50,160],'size of all titles %'],
  ['bgMode','e',['auto','solid','grad'],'background kind for cover/closing/empty pictures'],['bgC1','c',0,'background colour 1'],['bgC2','c',0,'background colour 2 (gradient end)'],['bgAngle','n',[0,360],'gradient angle'],['bgPlain','b',0,'plain background without decorative waves/circles'],
  ['ptSt','e',CZ_PTS.map(function(o){return o[0]}),'marker of the middle sentences (points) on ALL slides: check | num (1 2 3) | icon (icons chosen by meaning) | dot | bar | none'],
@@ -9507,7 +9514,7 @@ function czaiState(){
   var pick=function(o,ks){var r={};ks.forEach(function(k){if(o[k]!==undefined&&o[k]!==''&&o[k]!==null)r[k]=o[k]});return r};
   var sk=['kicker','title','subtitle','lede','text','cta','handle','pills','foot','tz','lay','ho','mo','pm','pa','pz','px','py','pfd','pfa','phh','ptn','ptna','pbr','psh','pbd','ptSt','ptLay','ptO','ledeSz','kfit','kw','hp'];
   return{lang:CZ.lang,look:CZ.look||'classic',
-    settings:pick(CZ,['main','accent','size','sec','labelPos','pager','tags','statMid','statLay','corner','titleFont','titleScale','bgMode','bgC1','bgC2','bgAngle','bgPlain','ptSt','ptLay','ptO']),
+    settings:pick(CZ,['main','accent','size','sec','labelPos','pager','tags','statMid','statLay','ptClip','corner','titleFont','titleScale','bgMode','bgC1','bgC2','bgAngle','bgPlain','ptSt','ptLay','ptO']),
     slides:CZ.slides.map(function(s,i){return Object.assign({i:i,type:s.type,hasPhoto:!!s.photo,photoCutOut:czCutOk(s),photoRect:(function(){var r=CZ_PHR.get(s);return r?{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.w),h:Math.round(r.h)}:undefined})()},pick(s,sk),
       {stats:(s.stats||[]).map(function(t,j){return Object.assign({j:j},pick(t,['value','label','text','flag','lp','ly']))}),points:(s.points||[]).map(function(t,j){return Object.assign({j:j},pick(t,['title','text','icon']))})})}),
     canvas:{w:W,h:CZ_SIZES[CZ.size||'4:5']},catalog:czaiCatalog(),
