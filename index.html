@@ -4065,14 +4065,14 @@ function czStats(list,tier,w){
       cx.font=czFont('num',ns);cx.direction='ltr';
       while(ns>46&&cx.measureText(nt).width>aw-10){ns-=4;cx.font=czFont('num',ns)}
       var ts=txt+2,ll=st.label?czCut(czBal(fixPct(st.label),function(){return czFont('head',lab)},aw-10),2):[];
-      var tl=st.text?czCut(czWrap(st.text,function(){return czFont('body',ts)},bw),5):[];
+      var tl=st.text?czCut(czWrap(ndTxt(st.text,st.value),function(){return czFont('body',ts)},bw),5):[];
       var dh=czDigitH(czFont('num',ns)),lH=ll.length*lab*1.3,tH=tl.length*ts*1.45,Ah=lH+(lH?14:0)+dh;
       return{side:1,nt:nt,ns:ns,ll:ll,tl:tl,dh:dh,lH:lH,tH:tH,Ah:Ah,h:Math.max(Ah,tH),lab:lab,txt:ts,lp:lp,aw:aw,bw:bw,pad:pad};
     }
     var ns2=num;cx.font=czFont('num',ns2);cx.direction='ltr';
     while(ns2>46&&cx.measureText(nt).width>cw-30){ns2-=4;cx.font=czFont('num',ns2)}
     var ll2=st.label?czCut(czBal(fixPct(st.label),function(){return czFont('head',lab)},cw-34),2):[];
-    var tl2=st.text?czCut(czWrap(st.text,function(){return czFont('body',txt)},cw-40),3):[];
+    var tl2=st.text?czCut(czWrap(ndTxt(st.text,st.value),function(){return czFont('body',txt)},cw-40),3):[];
     var dh2=czDigitH(czFont('num',ns2)),lH2=ll2.length*lab*1.3,tH2=tl2.length*txt*1.45;
     var h=(lp==='above'?lH2+(lH2?14:0)+dh2:dh2+(lH2?14:0)+lH2)+16+6+(tl2.length?16+tH2:0);
     return{nt:nt,ns:ns2,ll:ll2,tl:tl2,dh:dh2,lH:lH2,tH:tH2,h:h,lab:lab,txt:txt,lp:lp,tp:st.tp==='above'?'above':''};
@@ -4846,7 +4846,7 @@ function skCell(st,o){
   while(ns>38&&cx.measureText(nt).width>o.w-lw){ns-=4;cx.font=czFont('num',ns)}
   var nw=cx.measureText(nt).width,dh=czDigitH(czFont('num',ns));
   var ll=!inl&&lab?czCut(czBal(fixPct(lab),skFont('head',o.lab,'sub'),o.w),4):[];
-  var tl=st.text?czCut(czBal(fixPct(st.text),skFont('head',o.txt,'sub'),o.tw||o.w),3):[];
+  var tl=st.text?czCut(czBal(fixPct(ndTxt(st.text,st.value)),skFont('head',o.txt,'sub'),o.tw||o.w),3):[];
   var labH=ll.length*o.lab*1.32,txtH=tl.length*o.txt*1.34;
   return{preSz:preSz,preK:preK,preCol:short?CZ.main:SKY.ink,st:st,nt:nt,ns:ns,nw:nw,dh:dh,inl:inl,lab:lab,lw:lw,gap:gap,ll:ll,tl:tl,labH:labH,txtH:txtH,o:o,
     h:labH+(labH?8:0)+dh+(tl.length?16+txtH:0)};
