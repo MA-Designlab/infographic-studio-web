@@ -1485,6 +1485,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           </section>
         </div>
         <input type="file" id="czFile" accept="image/*" multiple hidden>
+        <input type="file" id="czAllFile" accept="image/*" multiple hidden>
         <input type="file" id="czFlagFile" accept="image/*" hidden>
       </div>
     </section>
@@ -1500,6 +1501,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
           <button type="button" class="tb strong" id="czAdd">+ شريحة</button>
           <button type="button" class="tb" id="czAddClose" hidden>+ ختام</button>
           <button type="button" class="tb" id="czDup">نسخ</button>
+          <button type="button" class="tb" id="czAllPhotos" title="اختر صور كل الشرائح مرة واحدة، تتوزّع بالترتيب من الغلاف">صور كل الشرائح</button>
           <button type="button" class="tb" id="czRt" aria-label="تقديم الشريحة">تقديم</button>
           <button type="button" class="tb" id="czL" aria-label="تأخير الشريحة">تأخير</button>
           <button type="button" class="tb danger" id="czDel">حذف</button>
@@ -4674,6 +4676,16 @@ function czInit(){
   $('#czFlagFile').addEventListener('change',function(){
     var f=this.files&&this.files[0],idx=czFlagFor,sl=CZ.slides[CZ.cur],self=this;if(!f||idx<0||!sl||!sl.stats[idx])return;
     var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){if(CZ.slides[CZ.cur]===sl&&sl.stats[idx]){sl.stats[idx].pimg=im;czBuildEditor();czSchedule()}};im.src=fr.result};fr.readAsDataURL(f);self.value='';
+  });
+  /* all the slide pictures at once: sorted by file name (1, 2, 10 …) and placed from the first slide on */
+  $('#czAllPhotos').addEventListener('click',function(){$('#czAllFile').click()});
+  $('#czAllFile').addEventListener('change',async function(){
+    var fl=Array.prototype.slice.call(this.files||[]);this.value='';if(!fl.length)return;
+    fl.sort(function(a,b){return a.name.localeCompare(b.name,'en',{numeric:true,sensitivity:'base'})});
+    await czPutPhotos(fl,0);
+    var left=CZ.slides.filter(function(s){return !s.photo}).length,n=CZ.slides.length;
+    var st=$('#czStatus');var cur=st?st.textContent:'';
+    czStatus((cur?cur+' ':'')+(left?'بقيت '+left+' '+(left>1?'شرائح':'شريحة')+' بدون صورة من '+n+'.':'كل الشرائح (' + n + ') صار لها صورة.'));
   });
   $('#czFile').addEventListener('change',function(){
     var fl=Array.prototype.slice.call(this.files||[]),idx=czPhotoFor;this.value='';
@@ -9183,6 +9195,259 @@ function mvInit(){
 }
 window.__mv={AN:AN,MV:MV,begin:anBegin,frame:anFrame,finish:anFinish,exportVideo:function(o,m){return mvExport(m||'ig',o)},groups:function(){return AN.G}};
 mvInit();
+
+/* ===== Excel form: every field of the open design in one sheet. The editor fills it outside the tool, the tool reads it back and rebuilds the same design ===== */
+var XF={busy:false};
+function xfE(s){return String(s==null?'':s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ----- zip writer (stored, no compression) ----- */
+var XF_CRC=null;
+function xfCrc(u8){
+  if(!XF_CRC){XF_CRC=new Uint32Array(256);for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;XF_CRC[n]=c>>>0}}
+  var c=0xFFFFFFFF;for(var i=0;i<u8.length;i++)c=XF_CRC[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;
+}
+function xfZip(files){
+  var enc=new TextEncoder(),parts=[],cen=[],off=0;
+  files.forEach(function(f){
+    var nm=enc.encode(f.name),data=enc.encode(f.text),crc=xfCrc(data),h=new DataView(new ArrayBuffer(30)),c=new DataView(new ArrayBuffer(46));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);
+    h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nm.length,true);
+    parts.push(new Uint8Array(h.buffer),nm,data);
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);
+    c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+    cen.push(new Uint8Array(c.buffer),nm);off+=30+nm.length+data.length;
+  });
+  var csz=cen.reduce(function(a,p){return a+p.length},0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,csz,true);e.setUint32(16,off,true);
+  return new Blob(parts.concat(cen,[new Uint8Array(e.buffer)]),{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+/* ----- the fields of the open design (padded to what the template can show) ----- */
+function xfIg(){
+  var T=tplCur(),L=S.layout,F=[],n,i;
+  function a(g,p,lab,max,long){F.push({g:g,key:'ig:'+p,label:lab,root:S,path:p,max:max||0,long:!!long})}
+  a('العنوان','kicker','السترابة',60);a('العنوان','title','العنوان الكبير',60);a('العنوان','subtitle','العنوان الثانوي',90);a('العنوان','lede','الجملة تحت العنوان',220,1);
+  if(L==='stats')['value','label','text'].forEach(function(k,j){a('الرقم الرئيسي','hero.'+k,['الرقم','الكلمة المميزة','النص'][j],[12,40,110][j],j===2)});
+  if(L==='list'||L==='cards')for(i=0;i<8;i++){var g='نقطة '+(i+1);a(g,'items.'+i+'.title','العنوان',60);a(g,'items.'+i+'.text','النص',150,1);a(g,'items.'+i+'.value','الرقم (اختياري)',12)}
+  if(L==='bars'){
+    for(i=0;i<10;i++){var gb='عمود '+(i+1);a(gb,'bars.'+i+'.label','الاسم',40);a(gb,'bars.'+i+'.value','القيمة',16);a(gb,'bars.'+i+'.note','الملاحظة',12)}
+    for(i=0;i<2;i++)a('مفتاح الألوان','legend.'+i,'السطر '+(i+1),40);
+  }
+  n=Math.min(8,Math.max(S.stats.length,T&&T.max||6));
+  for(i=0;i<n;i++){var gs=(L==='stats'?'رقم ':'شريط الأرقام · رقم ')+(i+1);a(gs,'stats.'+i+'.value','الرقم',12);a(gs,'stats.'+i+'.label','الكلمة المميزة',40);a(gs,'stats.'+i+'.text','النص',110,1)}
+  a('السطر السفلي','footer','السطر السفلي',80);
+  return F;
+}
+function xfCz(){
+  var F=[];
+  CZ.slides.forEach(function(s,i){
+    var gn=s.type==='cover'?'الغلاف':s.type==='closing'?'الختام':'الشريحة '+i;
+    function a(p,lab,max,long,g){F.push({g:g||gn,key:'cz:slides.'+i+'.'+p,label:lab,root:CZ,path:'slides.'+i+'.'+p,max:max||0,long:!!long})}
+    if(s.type==='cover'){a('kicker','السترابة',40);a('title','العنوان الكبير',70);a('text','العنوان الثانوي',140,1);a('cta','نص الزر',30)}
+    else if(s.type==='closing'){a('title','العنوان',60);a('text','جملة قصيرة',140,1);a('cta','نص الزر',30);a('handle','الحساب',40)}
+    else{
+      a('title','العنوان',60);a('subtitle','سطر تحت العنوان',90);a('lede','الجملة تحت العنوان',200,1);a('text','النص',260,1);a('foot','السطر الختامي',60);
+      if((s.stats||[]).length)for(var j=0;j<4;j++){var gs=gn+' · رقم '+(j+1);a('stats.'+j+'.value','الرقم',12,0,gs);a('stats.'+j+'.label','الكلمة',60,0,gs);a('stats.'+j+'.text','النص',90,1,gs)}
+      if((s.points||[]).length)for(var m=0;m<4;m++){var gp=gn+' · نقطة '+(m+1);a('points.'+m+'.title','العنوان',50,0,gp);a('points.'+m+'.text','النص',110,1,gp)}
+    }
+  });
+  return F;
+}
+function xfCh(){
+  var F=[];
+  [['title','العنوان',80],['subtitle','العنوان الفرعي',100],['unit','الوحدة',30],['note','المصدر',100]].forEach(function(r){F.push({g:'نصوص التشارت',key:'ch:'+r[0],label:r[1],root:CH,path:r[0],max:r[2],long:false})});
+  return F;
+}
+function xfFields(kind){return kind==='cz'?xfCz():kind==='ch'?xfCh():xfIg()}
+function xfDesignName(kind){
+  var t=kind==='cz'?(CZ.slides[0]&&CZ.slides[0].title):kind==='ch'?CH.title:S.title;
+  return String(t||'').replace(/[\\\/:*?"<>|\n\r]/g,' ').replace(/\s+/g,' ').trim().slice(0,50)||({ig:'إنفوجراف',cz:'كاروسيل',ch:'تشارت'}[kind]);
+}
+function xfModeName(kind){return {ig:'إنفوجراف',cz:'كاروسيل',ch:'تشارت'}[kind]}
+
+/* ----- the workbook ----- */
+var XF_NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main',XF_RNS='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+function xfStr(ref,s,st){return '<c r="'+ref+'"'+(st!=null?' s="'+st+'"':'')+' t="inlineStr"><is><t xml:space="preserve">'+xfE(s)+'</t></is></c>'}
+function xfVal(ref,v,st){
+  v=String(v==null?'':v);
+  if(/^-?\d{1,15}(\.\d+)?$/.test(v)&&!/^0\d/.test(v)&&st==null)return '<c r="'+ref+'"><v>'+v+'</v></c>';
+  return xfStr(ref,v,st);
+}
+function xfStyles(){
+  var bd='<left style="thin"><color rgb="FFBFC5DC"/></left><right style="thin"><color rgb="FFBFC5DC"/></right><top style="thin"><color rgb="FFBFC5DC"/></top><bottom style="thin"><color rgb="FFBFC5DC"/></bottom><diagonal/>';
+  var fnt=function(x,c,sz){return '<font>'+x+'<sz val="'+(sz||11)+'"/>'+(c?'<color rgb="'+c+'"/>':'')+'<name val="Calibri"/></font>'};
+  var fill=function(c){return '<fill><patternFill patternType="solid"><fgColor rgb="'+c+'"/><bgColor indexed="64"/></patternFill></fill>'};
+  var al=function(h,v){return '<alignment'+(h?' horizontal="'+h+'"':'')+' vertical="'+v+'" wrapText="1" readingOrder="2"/>'};
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="'+XF_NS+'">'
+    +'<fonts count="5">'+fnt('')+fnt('<b/>','FFFFFFFF')+fnt('<b/>','FF1F2A7C',15)+fnt('<i/>','FF666666',10)+fnt('<b/>')+'</fonts>'
+    +'<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'+fill('FF1F2A7C')+fill('FFEEF0F8')+fill('FFFFF8DC')+'</fills>'
+    +'<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border>'+bd+'</border></borders>'
+    +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    +'<cellXfs count="8">'
+    +'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    +'<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">'+al('center','center')+'</xf>'
+    +'<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">'+al('','center')+'</xf>'
+    +'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1">'+al('','center')+'</xf>'
+    +'<xf numFmtId="49" fontId="0" fillId="4" borderId="1" xfId="0" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1" applyProtection="1">'+al('','top')+'<protection locked="0"/></xf>'
+    +'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1">'+al('','top')+'</xf>'
+    +'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1">'+al('','center')+'</xf>'
+    +'<xf numFmtId="0" fontId="3" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1">'+al('center','center')+'</xf>'
+    +'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+}
+function xfFormSheet(kind,F){
+  var rows='',dv='',r=4,last=null,title=xfModeName(kind)+' — '+xfDesignName(kind);
+  rows+='<row r="1" ht="30" customHeight="1">'+xfStr('A1','نموذج إدخال: '+title,6)+'</row>';
+  rows+='<row r="2" ht="36" customHeight="1">'+xfStr('A2','اكتب في العمود الأصفر (اكتب هنا) فقط. لا تغيّر ترتيب الصفوف ولا تحذفها، واترك الخانة فاضية لو مش محتاجها. «الحد الأقصى» هو الطول الذي يناسب التصميم.',5)+'</row>';
+  rows+='<row r="3" ht="24" customHeight="1">'+xfStr('A3','القسم',1)+xfStr('B3','الحقل',1)+xfStr('C3','اكتب هنا',1)+xfStr('D3','الحد الأقصى (حرف)',1)+xfStr('E3','key',1)+'</row>';
+  F.forEach(function(f){
+    var v=flGet(f.root,f.path),first=f.g!==last;last=f.g;
+    rows+='<row r="'+r+'"'+(f.long?' ht="50" customHeight="1"':'')+'>'+(first?xfStr('A'+r,f.g,2):'<c r="A'+r+'" s="2"/>')+xfStr('B'+r,f.label,3)+(v!==''?xfStr('C'+r,v,4):'<c r="C'+r+'" s="4"/>')+(f.max?'<c r="D'+r+'" s="7"><v>'+f.max+'</v></c>':'<c r="D'+r+'" s="7"/>')+xfStr('E'+r,f.key)+'</row>';
+    if(f.max)dv+='<dataValidation type="textLength" operator="lessThanOrEqual" errorStyle="warning" allowBlank="1" showErrorMessage="1" errorTitle="النص أطول من المناسب" error="الحد الأقصى المناسب للتصميم '+f.max+' حرفاً. الزيادة قد تُقصّ أو يصغر بها الخط." sqref="C'+r+'"><formula1>'+f.max+'</formula1></dataValidation>';
+    r++;
+  });
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="'+XF_NS+'"><sheetPr><tabColor rgb="FF1F2A7C"/></sheetPr><dimension ref="A1:E'+(r-1)+'"/>'
+    +'<sheetViews><sheetView rightToLeft="1" workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="C4" sqref="C4"/></sheetView></sheetViews>'
+    +'<sheetFormatPr defaultRowHeight="22"/><cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="2" width="26" customWidth="1"/><col min="3" max="3" width="64" customWidth="1"/><col min="4" max="4" width="14" customWidth="1"/><col min="5" max="5" width="22" hidden="1" customWidth="1"/></cols>'
+    +'<sheetData>'+rows+'</sheetData><sheetProtection sheet="1" objects="1" scenarios="1" formatCells="0" formatColumns="0" formatRows="0"/>'
+    +'<mergeCells count="2"><mergeCell ref="A1:D1"/><mergeCell ref="A2:D2"/></mergeCells>'
+    +(dv?'<dataValidations count="'+F.filter(function(f){return f.max}).length+'">'+dv+'</dataValidations>':'')
+    +'<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>';
+}
+function xfDataSheet(tb){
+  var rows='',all=[tb.head].concat(tb.rows);
+  all.forEach(function(row,i){
+    rows+='<row r="'+(i+1)+'">'+row.map(function(c,j){return i===0?xfStr('ABCDEFGHIJ'.charAt(j)+(i+1),c,1):xfVal('ABCDEFGHIJ'.charAt(j)+(i+1),c)}).join('')+'</row>';
+  });
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="'+XF_NS+'"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="20"/><cols><col min="1" max="1" width="28" customWidth="1"/><col min="2" max="10" width="16" customWidth="1"/></cols><sheetData>'+rows+'</sheetData></worksheet>';
+}
+function xfMetaSheet(kind){
+  var m=[['kind',kind],['version','1'],['template',kind==='ig'?(S.tpl||''):''],['layout',kind==='ig'?(S.layout||''):''],['name',xfDesignName(kind)],['created',new Date().toISOString()]];
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="'+XF_NS+'"><sheetData>'+m.map(function(p,i){return '<row r="'+(i+1)+'">'+xfStr('A'+(i+1),p[0])+xfStr('B'+(i+1),p[1])+'</row>'}).join('')+'</sheetData></worksheet>';
+}
+function xfBuild(kind){
+  var F=xfFields(kind),sheets=[{n:'النموذج',x:xfFormSheet(kind,F)}];
+  if(kind==='ch'&&CH.table&&CH.table.head)sheets.push({n:'بيانات الرسم',x:xfDataSheet(CH.table)});
+  sheets.push({n:'_meta',x:xfMetaSheet(kind),hidden:true});
+  var ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+    +sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'}).join('')+'</Types>';
+  var rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+XF_RNS+'/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  var wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="'+XF_NS+'" xmlns:r="'+XF_RNS+'"><sheets>'+sheets.map(function(s,i){return '<sheet name="'+xfE(s.n)+'" sheetId="'+(i+1)+'"'+(s.hidden?' state="hidden"':'')+' r:id="rId'+(i+1)+'"/>'}).join('')+'</sheets></workbook>';
+  var wr='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map(function(s,i){return '<Relationship Id="rId'+(i+1)+'" Type="'+XF_RNS+'/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>'}).join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="'+XF_RNS+'/styles" Target="styles.xml"/></Relationships>';
+  var files=[{name:'[Content_Types].xml',text:ct},{name:'_rels/.rels',text:rels},{name:'xl/workbook.xml',text:wb},{name:'xl/_rels/workbook.xml.rels',text:wr},{name:'xl/styles.xml',text:xfStyles()}];
+  sheets.forEach(function(s,i){files.push({name:'xl/worksheets/sheet'+(i+1)+'.xml',text:s.x})});
+  return {blob:xfZip(files),count:F.length};
+}
+function xfExport(kind){
+  var out=xfBuild(kind),name=xfDesignName(kind)+' — نموذج.xlsx';
+  mvSave(out.blob,name);
+  return {name:name,size:out.blob.size,fields:out.count};
+}
+
+/* ----- reading a filled workbook (every sheet, by name) ----- */
+async function xfRead(buf){
+  var z=await chUnzip(buf),P=new DOMParser(),xml=async function(n){return z[n]?P.parseFromString(await z[n](),'application/xml'):null};
+  var wb=await xml('xl/workbook.xml'),rels=await xml('xl/_rels/workbook.xml.rels');if(!wb)throw new Error('xlsx');
+  var ss=[],sd=await xml('xl/sharedStrings.xml'),out={},tg={};
+  if(sd)[].slice.call(sd.getElementsByTagName('si')).forEach(function(si){ss.push([].slice.call(si.getElementsByTagName('t')).map(function(t){return t.textContent}).join(''))});
+  if(rels)[].slice.call(rels.getElementsByTagName('Relationship')).forEach(function(r){var t=r.getAttribute('Target');tg[r.getAttribute('Id')]=t.charAt(0)==='/'?t.slice(1):'xl/'+t.replace(/^\.\//,'')});
+  var shs=[].slice.call(wb.getElementsByTagName('sheet'));
+  for(var s=0;s<shs.length;s++){
+    var sh=shs[s],rid=sh.getAttribute('r:id')||sh.getAttributeNS(XF_RNS,'id'),doc=await xml(tg[rid]||'xl/worksheets/sheet'+(s+1)+'.xml');if(!doc)continue;
+    var rows=[];
+    [].slice.call(doc.getElementsByTagName('row')).slice(0,1500).forEach(function(r){
+      var row=[];
+      [].slice.call(r.getElementsByTagName('c')).forEach(function(c){
+        var idx=chColIdx(c.getAttribute('r')),t=c.getAttribute('t'),v=c.getElementsByTagName('v')[0],val='';
+        if(t==='s'&&v)val=ss[+v.textContent]||'';
+        else if(t==='inlineStr')val=[].slice.call(c.getElementsByTagName('t')).map(function(x){return x.textContent}).join('');
+        else if(v)val=v.textContent;
+        if(idx<12)row[idx]=val;
+      });
+      rows.push(row);
+    });
+    out[sh.getAttribute('name')]=rows;
+  }
+  return out;
+}
+
+/* ----- writing the values into the design ----- */
+function xfBlank(name){return {stats:{value:'',label:'',text:''},items:{title:'',text:'',value:''},bars:{label:'',value:'',note:''},points:{title:'',text:''}}[name]||{}}
+function xfPut(root,path,val){
+  var a=path.split('.'),o=root,k,i;
+  for(i=0;i<a.length-1;i++){
+    k=a[i];
+    if(Array.isArray(o)&&/^\d+$/.test(k)){while(o.length<=+k)o.push(xfBlank(a[i-1]))}
+    else if(o[k]==null)o[k]=/^\d+$/.test(a[i+1])?[]:{};
+    o=o[k];
+  }
+  o[a[a.length-1]]=val;
+}
+function xfTrim(arr,keys){while(arr&&arr.length&&keys.every(function(k){return !String(arr[arr.length-1][k]||'').trim()}))arr.pop()}
+async function xfImport(kind,file){
+  var sheets=await xfRead(await file.arrayBuffer()),meta={};
+  (sheets['_meta']||[]).forEach(function(r){if(r[0])meta[r[0]]=r[1]||''});
+  var fname=Object.keys(sheets).filter(function(n){return n!=='_meta'&&n!=='بيانات الرسم'})[0],rows=sheets['النموذج']||sheets[fname];
+  if(!rows)throw {msg:'ما لقيت ورقة النموذج في الملف.'};
+  if(meta.kind&&meta.kind!==kind)throw {msg:'هذا النموذج خاص بـ«'+xfModeName(meta.kind)+'». افتح وضع «'+xfModeName(meta.kind)+'» ثم ارفعه.'};
+  var vals=[];
+  rows.forEach(function(r){var key=String(r[4]||'').trim();if(key.indexOf(kind+':')===0)vals.push({key:key.slice(kind.length+1),v:String(r[2]==null?'':r[2]).replace(/\r/g,'').trim()})});
+  if(!vals.length)throw {msg:'الملف لا يحتوي على خانات هذا النموذج. نزّل النموذج من هنا ثم املأه.'};
+  var root=kind==='cz'?CZ:kind==='ch'?CH:S,applied=0,skipped=0,over=0,max={};
+  xfFields(kind).forEach(function(f){max[f.path]=f.max});
+  if(kind==='ig'&&['stats','list','bars','cards'].indexOf(meta.layout)>-1&&(S.layout!==meta.layout||(S.tpl||'')!==(meta.template||''))){S.layout=meta.layout;S.tpl=tplValid(meta.template,meta.layout)?meta.template:''}
+  vals.forEach(function(p){
+    var m=/^slides\.(\d+)\./.exec(p.key);
+    if(m&&!CZ.slides[+m[1]]){skipped++;return}
+    if(max[p.key]&&p.v.length>max[p.key])over++;
+    xfPut(root,p.key,p.v);applied++;
+  });
+  if(kind==='ig'){xfTrim(S.stats,['value','label','text']);xfTrim(S.items,['title','text','value']);xfTrim(S.bars,['label','value','note']);while(S.legend&&S.legend.length&&!String(S.legend[S.legend.length-1]||'').trim())S.legend.pop();buildEditor();syncControls();render();$('#exampleNote').hidden=true}
+  else if(kind==='cz'){CZ.slides.forEach(function(s){xfTrim(s.stats,['value','label','text']);xfTrim(s.points,['title','text'])});czBuildEditor();czRenderAll();$('#czNote').hidden=true}
+  else{
+    var dr=sheets['بيانات الرسم'],tb=dr&&chFromRows(dr.map(function(r){var o=[];for(var i=0;i<10;i++)o.push(r[i]==null?'':r[i]);return o}));
+    if(tb&&tb.rows.length&&chNumCols(tb).some(Boolean)){chLoadTable(tb,false);$('#chSrc').value=chToTsv(tb)}
+    chBuildEditor();chSchedule();$('#chNote').hidden=true;
+  }
+  return {applied:applied,skipped:skipped,over:over};
+}
+
+/* ----- the panel in each mode ----- */
+function xfHtml(k){
+  return '<section class="ac" data-ac="xform" data-xfk="'+k+'"><button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">نموذج Excel للمحرر</span><span class="ac-s">XLSX</span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="ac-w"><div class="ac-b">'
+    +'<p class="hint">ينزّل ملف Excel فيه كل خانات هذا القالب (العناوين والأرقام والنقاط…) قصاد كل بند، والمحرر يكتب في العمود الأصفر فقط. بعد التعبئة ارفعه هنا فيُطبَّق على نفس التصميم بنفس الشكل. الصور والألوان والإعدادات تبقى كما هي.</p>'
+    +'<div class="row"><button type="button" class="tool" data-xfdl>تنزيل النموذج (Excel)</button><button type="button" class="primary" data-xfup>رفع نموذج معبّأ</button></div>'
+    +'<input type="file" class="xffile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden><p class="hint xfmsg" role="status"></p>'
+    +'</div></div></section>';
+}
+function xfMsg(r,t,err){var m=r.querySelector('.xfmsg');if(m){m.textContent=t;m.style.color=err?'#B3123F':''}}
+function xfBind(r){
+  var k=r.dataset.xfk;
+  r.addEventListener('click',function(e){
+    var b=e.target.closest('[data-xfdl],[data-xfup]');if(!b)return;
+    if(b.hasAttribute('data-xfdl')){var o=xfExport(k);xfMsg(r,'تم تنزيل النموذج ('+o.fields+' خانة). أرسله للمحرر ليملأ العمود الأصفر.')}
+    else r.querySelector('.xffile').click();
+  });
+  r.querySelector('.xffile').addEventListener('change',async function(){
+    var f=this.files&&this.files[0];this.value='';if(!f||XF.busy)return;
+    if(!/\.xlsx$/i.test(f.name)){xfMsg(r,'ارفع ملف Excel بصيغة xlsx.',true);return}
+    if(typeof DecompressionStream==='undefined'){xfMsg(r,'متصفحك لا يدعم قراءة ملفات Excel مباشرة. جرّب Chrome أو Edge أو Safari الحديث.',true);return}
+    XF.busy=true;xfMsg(r,'جارٍ قراءة الملف…');
+    try{
+      var o=await xfImport(k,f);
+      var t='تم تطبيق '+o.applied+' خانة على التصميم.'+(o.over?' '+o.over+' خانة أطول من الحد المناسب، راجعها.':'')+(o.skipped?' تجاهلت '+o.skipped+' خانة لشرايح غير موجودة.':'');
+      xfMsg(r,t);toast('تم تطبيق النموذج. راجع التصميم ثم احفظه أو نزّله.');
+    }catch(x){xfMsg(r,x&&x.msg?x.msg:'تعذّرت قراءة الملف. تأكد إنه نموذج نزّلته من هنا وحفظته بصيغة xlsx.',true)}
+    finally{XF.busy=false}
+  });
+}
+function xfInit(){
+  [['ig','#acc'],['cz','#czAccordion'],['ch','#chAccordion']].forEach(function(p){
+    var acc=$(p[1]);if(!acc||acc.querySelector('[data-ac="xform"]'))return;
+    acc.insertAdjacentHTML('beforeend',xfHtml(p[0]));xfBind(acc.querySelector('[data-ac="xform"]'));
+  });
+}
+window.__xf={export:xfExport,import:xfImport,fields:xfFields,build:xfBuild};
+xfInit();
 
 /* ===== edit the design with instructions written in the user's own words =====
    The model returns operations from a fixed list; every one is checked here against a whitelist (paths, types, ranges) before it touches the design,
