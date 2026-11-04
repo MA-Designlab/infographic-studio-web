@@ -8912,14 +8912,15 @@ var AN_KEYS=['kicker','title','subtitle','lede','hero','stats','items','bars','l
 function anPlate(){
   var T=anT(),C=T.cv(),c=document.createElement('canvas');c.width=C.width;c.height=C.height;
   if(AN.m==='ch'){AN.plate=true;try{chRender();c.getContext('2d').drawImage(C,0,0)}finally{AN.plate=false}return c}
-  var keep={};AN_KEYS.forEach(function(k){keep[k]=S[k]});
+  var keep={},spk=(S.spaces||[]).map(function(x){return x?{n:x.nums,t:x.txts}:null});AN_KEYS.forEach(function(k){keep[k]=S[k]});
+  (S.spaces||[]).forEach(function(x){if(x){x.nums=[];x.txts=[]}});
   S.kicker='';S.title='';S.subtitle='';S.lede='';S.hero={value:'',label:'',text:''};S.stats=[];S.items=[];S.bars=[];S.legend=[];S.footer='';S.fx=[];
-  try{render();c.getContext('2d').drawImage(C,0,0)}finally{AN_KEYS.forEach(function(k){S[k]=keep[k]})}
+  try{render();c.getContext('2d').drawImage(C,0,0)}finally{AN_KEYS.forEach(function(k){S[k]=keep[k]});(S.spaces||[]).forEach(function(x,i){if(x&&spk[i]){x.nums=spk[i].n;x.txts=spk[i].t}})}
   return c;
 }
-var AN_LIVE=null,AN_REST=null,AN_PLATE=null;
+var AN_LIVE=null,AN_REST=null,AN_PLATE=null,AN_PD=null,AN_TMP=null;
 function anBegin(D,m){
-  AN.m=m||'ig';var T=anT();
+  AN.m=m||'ig';AN.sess=true;var T=anT();
   T.lo();
   AN.on=false;T.hit().on=true;T.draw();
   AN.G=AN.m==='ch'?anGroupsCh():anGroups();AN.st={};AN.G.forEach(function(b){AN.st[b.g]=b.st});
@@ -8939,23 +8940,29 @@ function anBegin(D,m){
     });
   }catch(e){AN.G.forEach(function(b){b.fills=b.kids.map(function(){return null})})}
   AN_PLATE=anPlate();
+  AN_PD=AN_PLATE.getContext('2d').getImageData(0,0,C.width,C.height).data;
+  AN_TMP=document.createElement('canvas');AN_TMP.width=C.width;AN_TMP.height=C.height;
+  AN.G.forEach(function(b,i){b.ix=i;b.holes=AN.G.filter(function(c,j){return c!==b&&(c.a<b.a||(c.a===b.a&&j>i))&&c.x1<b.x2&&c.x2>b.x1&&c.y1<b.y2&&c.y2>b.y1})});
   AN_LIVE=document.createElement('canvas');AN_LIVE.width=C.width;AN_LIVE.height=C.height;
   AN_REST=document.createElement('canvas');AN_REST.width=C.width;AN_REST.height=C.height;
   AN.D=D;AN.s=MV.stretchOf(D);AN.t=0;AN.on=true;
 }
 function anFinish(){
-  var T=anT();AN.on=false;AN_PLATE=AN_LIVE=AN_REST=null;
+  var T=anT();AN.on=false;AN.sess=false;AN_PLATE=AN_LIVE=AN_REST=AN_TMP=null;AN_PD=null;
   if(AN.k0!=null){T.hi();AN.k0=null}
 }
 /* one frame at t seconds on the canvas being animated */
 function anFrame(t){
   var T=anT(),C=T.cv(),c=T.c(),Hh=T.h();
   AN.t=t;AN.on=true;T.draw();
-  var lc=AN_LIVE.getContext('2d'),rc=AN_REST.getContext('2d');
-  lc.clearRect(0,0,AN_LIVE.width,AN_LIVE.height);lc.drawImage(C,0,0);
-  rc.clearRect(0,0,AN_REST.width,AN_REST.height);rc.drawImage(AN_LIVE,0,0);
+  var lc=AN_LIVE.getContext('2d'),rc=AN_REST.getContext('2d'),tc=AN_TMP.getContext('2d'),cw=C.width,chh=C.height;
+  /* the frame minus the plate: only what the elements themselves draw (the logo, background and frames stay out of every box) */
+  var id=c.getImageData(0,0,cw,chh),d=id.data,P=AN_PD;
+  for(var q=0;q<d.length;q+=4){if(Math.abs(d[q]-P[q])+Math.abs(d[q+1]-P[q+1])+Math.abs(d[q+2]-P[q+2])+Math.abs(d[q+3]-P[q+3])<10)d[q+3]=0}
+  lc.putImageData(id,0,0);
+  rc.clearRect(0,0,cw,chh);rc.drawImage(AN_LIVE,0,0);
   AN.G.forEach(function(b){rc.clearRect(b.x1,b.y1,b.x2-b.x1,b.y2-b.y1)});
-  c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,C.width,C.height);c.globalAlpha=1;
+  c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cw,chh);c.globalAlpha=1;
   c.drawImage(AN_PLATE,0,0);
   var ra=anOut(anP(.15,.8));if(ra>0){c.globalAlpha=ra;c.drawImage(AN_REST,0,0);c.globalAlpha=1}
   AN.G.forEach(function(b){
@@ -8967,11 +8974,16 @@ function anFrame(t){
     else if(b.g==='footer'||b.g==='note'||/^legend/.test(b.g)){dy=0}
     else if(AN.m==='ch'&&/^i\d+$/.test(b.g)){dy=(1-anQuart(p))*26}
     else{dy=(1-anQuart(p))*56;sc=.9+.1*anBack(anP(b.st,.8))}
+    /* this box's own pixels: cut the smaller boxes that overlap it (they enter on their own) */
+    tc.clearRect(b.x1,b.y1,w,h);tc.drawImage(AN_LIVE,b.x1,b.y1,w,h,b.x1,b.y1,w,h);
+    b.holes.forEach(function(k){
+      var x1=Math.max(b.x1,k.x1),y1=Math.max(b.y1,k.y1),x2=Math.min(b.x2,k.x2),y2=Math.min(b.y2,k.y2);if(x2<=x1||y2<=y1)return;
+      tc.clearRect(x1,y1,x2-x1,y2-y1);
+      var ki=b.kids.indexOf(k),f=ki>-1?b.fills[ki]:null;if(f){tc.fillStyle=f;tc.fillRect(x1,y1,x2-x1,y2-y1)}
+    });
     c.save();c.globalAlpha=Math.min(1,a);
     c.translate(cx0+dx,cy0+dy);if(sc!==1)c.scale(sc,sc);c.translate(-cx0,-cy0);
-    c.beginPath();c.rect(b.x1,b.y1,w,h);b.kids.forEach(function(k,i){if(!b.fills[i])c.rect(k.x1,k.y1,k.x2-k.x1,k.y2-k.y1)});c.clip('evenodd');
-    c.drawImage(AN_LIVE,b.x1,b.y1,w,h,b.x1,b.y1,w,h);
-    b.kids.forEach(function(k,i){var f=b.fills[i];if(!f)return;c.fillStyle=f;c.fillRect(k.x1,k.y1,k.x2-k.x1,k.y2-k.y1)});
+    c.drawImage(AN_TMP,b.x1,b.y1,w,h,b.x1,b.y1,w,h);
     c.restore();
   });
 }
@@ -9533,6 +9545,8 @@ function spDrawOne(m,c,env,r,s){
   function lines(t,font,w,max){return fxWrap(c,fx(t),font,w,dir).slice(0,max)}
   list.forEach(function(it,k){
     var idx=horiz&&env.rtl?n-1-k:k,x0=horiz?r.x+idx*cw:r.x,y0=horiz?r.y:r.y+k*chh,cx0=x0+cw/2,blocks,total,ns=0,tz=0;
+    /* while a video is made every figure / sentence of a space is its own element (it enters and its number counts) */
+    var anOn=typeof AN!=='undefined'&&AN&&AN.sess,sg='spc.'+r.i+'.'+k,hk=anOn?(m==='ig'?HI:m==='ch'?HK:null):null;if(hk){hk.tag(sg,'','');hk.box(x0,y0,x0+cw,y0+chh);hk.tag()}
     if(s.kind==='nums'){
       ns=Math.min(120,Math.round(ah*.46));
       for(;ns>=26;ns-=4){
@@ -9554,7 +9568,7 @@ function spDrawOne(m,c,env,r,s){
     }
     var y=y0+Math.max(pad,(chh-total)/2);
     if(s.kind==='nums'){
-      if(blocks.v.length){spPut(c,blocks.v[0],cx0,y+Math.round(ns*.8),env.f.num(ns),main,'ltr');y+=Math.round(ns*.82)+10}
+      if(blocks.v.length){spPut(c,anOn&&AN.on&&AN.st[sg]!=null?anCount(blocks.v[0],anExpo(anP(AN.st[sg]+.08,1.6))):blocks.v[0],cx0,y+Math.round(ns*.8),env.f.num(ns),main,'ltr');y+=Math.round(ns*.82)+10}
       blocks.l.forEach(function(l,j){spPut(c,l,cx0,y+blocks.ls+j*Math.round(blocks.ls*1.3)-4,env.f.head(blocks.ls),ink,dir)});y+=blocks.l.length*Math.round(blocks.ls*1.3)+(blocks.l.length?10:0);
       blocks.t.forEach(function(l,j){spPut(c,l,cx0,y+blocks.ts+j*Math.round(blocks.ts*1.42)-4,env.f.body(blocks.ts),mute,dir)});
     }else{
