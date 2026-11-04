@@ -1288,6 +1288,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 <div class="field"><span class="lab">لون الأرقام العام (ولكل رقم لون مستقل من صفّه)</span><div class="sws" id="swMain"></div></div>
 <div class="field"><span class="lab">الكلمة المميزة مع الرقم</span><div class="seg full" id="segLabelPos"><label><input type="radio" name="labelPos" value="above"><span>فوقه</span></label><label><input type="radio" name="labelPos" value="below"><span>تحته</span></label></div></div>
 <div class="field"><label class="check"><input type="checkbox" id="statMid"> توسيط الأرقام رأسياً في المساحة</label></div>
+<div class="field"><label class="check"><input type="checkbox" id="stClip"> اختصار نص الأرقام الطويل بثلاث نقاط «…»</label><p class="hint">الافتراضي: النص تحت كل رقم يظهر كاملاً.</p></div>
 <div class="field"><label class="check"><input type="checkbox" id="ndNum"> إخفاء الرقم المبرز من الجملة تحته</label><p class="hint">لو الجملة تبدأ بالرقم أو تنتهي به يُحذف منها لأنه ظاهر كبيراً فوقها. النص الأصلي لا يتغير.</p></div>
 <label class="check"><input type="checkbox" id="band"> شريط خلفية خلف الأرقام السفلية</label>
 <div id="bandOpts" class="bandopts"></div>
@@ -2094,7 +2095,7 @@ function statCell(st,cx,y,cw,sz,draw){
   while(ns>40&&ctx.measureText(numTxt).width>lim){ns-=4;ctx.font=fnum(ns)}
   var dh=digitH(fnum(ns));
   var ll=st.label?limit(wrapBal(fixPct(st.label),flab(lsz),cw-24),2):[];
-  var tl=st.text?limit(wrapBal(fixPct(ndTxt(st.text,st.value)),fbod(tsz),cw-28),4):[];
+  var tl=st.text?limit(wrapBal(fixPct(ndTxt(st.text,st.value)),fbod(tsz),cw-28),stLim(4)):[];
   var lS=lsz*1.32,tS=tsz*1.42,lH=ll.length*lS,tH=tl.length*tS,yy=y,steps=[];
   function lab(){if(hg)HI.tag(hg,'label','الكلمة المميزة');ll.forEach(function(l,i){put(l,cx+eL.dx,yy+lsz*.92+i*lS+eL.dy,flab(lsz),cL,'center')});HI.tag();yy+=lH}
   function num(){if(hg)HI.tag(hg,'value','الرقم');put(numTxt,cx+eV.dx,yy+dh+eV.dy,fnum(ns),cV,'center','ltr');HI.tag();yy+=dh}
@@ -2312,7 +2313,7 @@ function bgAuto(){
 function bgSetMode(m){S.bgMode=m;if(m!=='preset')S.bgImg=null;syncBg();bgAuto();syncBg();schedule()}
 function setRadio(name,val){$$('input[name="'+name+'"]').forEach(function(r){r.checked=r.value===val})}
 function syncControls(){
-  $('#secSel').value=S.sec;if($('#igSize'))$('#igSize').value=S.size||'4:5';setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);var smy=$('#statMid');if(smy)smy.checked=!!S.statMid;var ndn=$('#ndNum');if(ndn)ndn.checked=S.ndNum!==false;setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
+  $('#secSel').value=S.sec;if($('#igSize'))$('#igSize').value=S.size||'4:5';setRadio('theme',S.theme);setRadio('labelPos',S.labelPos);var smy=$('#statMid');if(smy)smy.checked=!!S.statMid;var stc=$('#stClip');if(stc)stc.checked=!!S.stClip;var ndn=$('#ndNum');if(ndn)ndn.checked=S.ndNum!==false;setRadio('strapPos',S.strapPos);setRadio('numCol',S.numGray?'gray':'main');
   $('#band').checked=S.band;$('#veil').value=Math.round(S.veil*100);$('#anchor').value=S.anchor;if($('#photoZ')){$('#photoZ').value=igPZ()*100;$('#photoZv').textContent=Math.round(igPZ()*100);$('#photoX').value=igPX();$('#photoXv').textContent=Math.round(igPX());$('#photoY').value=igPY();$('#photoYv').textContent=Math.round(igPY())}if($('#photoH')){$('#photoH').value=S.photoH==null?100:S.photoH;$('#photoHv').textContent=$('#photoH').value;$('#photoFade').value=S.photoFade||'auto';$('#photoFadeAmt').value=S.photoFadeAmt||45;$('#photoFadeAmtv').textContent=$('#photoFadeAmt').value}
   if($('#layoutSel').value!=='auto')$('#layoutSel').value=S.layout;
   syncSw();syncBg();syncFoot();syncCorner();tplSync();
@@ -2330,6 +2331,7 @@ function bindControls(){
     if(S.theme==='light'&&lum(S.titleC)>.8)S.titleC='#1B1F78';
     syncSw();syncBg();schedule()})});
   var smx=$('#statMid');if(smx)smx.addEventListener('change',function(){S.statMid=smx.checked;schedule()});
+  var stx=$('#stClip');if(stx)stx.addEventListener('change',function(){S.stClip=stx.checked;schedule()});
   var ndx=$('#ndNum');if(ndx)ndx.addEventListener('change',function(){S.ndNum=ndx.checked;schedule()});
   $$('input[name="labelPos"]').forEach(function(r){r.addEventListener('change',function(){S.labelPos=r.value;[S.hero].concat(S.stats||[]).forEach(function(x){if(x)delete x.lp});schedule()})});
   $$('input[name="strapPos"]').forEach(function(r){r.addEventListener('change',function(){S.strapPos=r.value;schedule()})});
@@ -4845,8 +4847,8 @@ function skCell(st,o){
   cx.font=czFont('num',ns);cx.direction='ltr';
   while(ns>38&&cx.measureText(nt).width>o.w-lw){ns-=4;cx.font=czFont('num',ns)}
   var nw=cx.measureText(nt).width,dh=czDigitH(czFont('num',ns));
-  var ll=!inl&&lab?czCut(czBal(fixPct(lab),skFont('head',o.lab,'sub'),o.w),4):[];
-  var tl=st.text?czCut(czBal(fixPct(ndTxt(st.text,st.value)),skFont('head',o.txt,'sub'),o.tw||o.w),3):[];
+  var ll=!inl&&lab?czCut(czBal(fixPct(lab),skFont('head',o.lab,'sub'),o.w),czPtLines(4)):[];
+  var tl=st.text?czCut(czBal(fixPct(ndTxt(st.text,st.value)),skFont('head',o.txt,'sub'),o.tw||o.w),czPtLines(3)):[];
   var labH=ll.length*o.lab*1.32,txtH=tl.length*o.txt*1.34;
   return{preSz:preSz,preK:preK,preCol:short?CZ.main:SKY.ink,st:st,nt:nt,ns:ns,nw:nw,dh:dh,inl:inl,lab:lab,lw:lw,gap:gap,ll:ll,tl:tl,labH:labH,txtH:txtH,o:o,
     h:labH+(labH?8:0)+dh+(tl.length?16+txtH:0)};
@@ -7361,7 +7363,7 @@ function tStat(st,cx,y,cw,sz,draw,im,outer){
   while(ns>34&&ctx.measureText(numTxt).width>ncw-12){ns-=4;ctx.font=f.num(ns)}
   var dh=digitH(f.num(ns));
   var ll=st.label?limit(wrapBal(fixPct(st.label),f.label(sz.label),cw-16),2):[];
-  var tl=st.text?limit(wrapBal(fixPct(ndTxt(st.text,st.value)),f.body(sz.text),cw-18),sz.tl||3):[];
+  var tl=st.text?limit(wrapBal(fixPct(ndTxt(st.text,st.value)),f.body(sz.text),cw-18),stLim(sz.tl||3)):[];
   var lS=sz.label*1.3,tS=sz.text*1.4,lH=ll.length*lS,tH=tl.length*tS,rowH=side?Math.max(dh,sz.ic):dh,steps=[],yy=y;
   var gap=sz.gap||10;
   if(im==='top')steps.push({h:sz.ic,g:sz.icg,d:function(){tIcon(st,cx,yy+sz.ic/2,sz.ic);yy+=sz.ic}});
@@ -9199,7 +9201,7 @@ var AI_ROOT=[
  ['subScale','n',[50,140],'second title size %'],['subLines','n',[0,3],'second title lines (0 auto; 1..3 shrinks the font to fit)'],['ledeSize','n',[70,140],'lede size %'],
  ['footSize','n',[10,60],'footer font size'],['footY','n',[6,140],'footer distance from the bottom edge'],
  ['corner','n',[0,200],'softness of all frames, 100 default, 0 sharp'],['sideSpread','n',[0,100],'push the side columns toward the edges'],
- ['ticons','b',0,'icons next to figures'],['tpanel','b',0,'panel behind the template'],['statMid','b',0,'centre the figures'],['ndNum','b',0,'remove the figure from the sentence under it'],['titleNum','b',0,'highlight numbers inside the title'],
+ ['ticons','b',0,'icons next to figures'],['tpanel','b',0,'panel behind the template'],['statMid','b',0,'centre the figures'],['stClip','b',0,'shorten long texts under the figures with …; off = full text'],['ndNum','b',0,'remove the figure from the sentence under it'],['titleNum','b',0,'highlight numbers inside the title'],
  ['band','b',0,'coloured band behind the figures'],['bandCol','c0',0,'band colour'],['bandShape','e',['full','card'],'band shape'],['bandTr','n0',[0,100],'band transparency %'],['bandSize','n',[40,220],'band height %'],
  ['anchor','e',['bottom','center','top'],'background photo anchor'],['photoZ','n',[30,300],'background photo zoom %'],['photoX','n',[0,100],'background photo horizontal position'],['photoY','n0',[0,100],'background photo vertical position'],['photoH','n',[30,100],'background photo height %'],
  ['photoFade','e',['auto','none','b','t','tb','r','l'],'photo fade side'],['photoFadeAmt','n',[10,100],'photo fade amount %'],['veil','n',[0,90,100],'veil over the photo %']
@@ -13395,6 +13397,8 @@ document.addEventListener('input',function(e){var t=e.target;if(t&&t.hasAttribut
 document.addEventListener('change',function(e){var t=e.target;if(t&&t.hasAttribute&&t.hasAttribute('data-hl')&&t.type==='radio')hlApply(t)});
 
 /* ===== a figure that is already shown big is taken out of the sentence under it (display only, the text itself is never changed) ===== */
+/* the text under a figure is shown in full unless shortening is turned on */
+function stLim(n){return S.stClip?n:99}
 function ndOn(){return S.ndNum!==false}
 function ndNorm(s){return String(s).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/٪/g,'%').replace(/٫/g,'.')}
 var ND_LEAD=/^[\s:\u060C\-\u2013\u2014.]+/,ND_TRAIL=/(?:\s+(?:بنسبة|بمعدل|بقيمة|بواقع|بحوالي|بنحو|نحو|حوالي|إلى|الى|بـ|و|to|by|at|of|and))?[\s:\u060C\-\u2013\u2014]*$/i;
