@@ -9206,10 +9206,10 @@ function xfCrc(u8){
   if(!XF_CRC){XF_CRC=new Uint32Array(256);for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;XF_CRC[n]=c>>>0}}
   var c=0xFFFFFFFF;for(var i=0;i<u8.length;i++)c=XF_CRC[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;
 }
-function xfZip(files){
+function xfZip(files,mime){
   var enc=new TextEncoder(),parts=[],cen=[],off=0;
   files.forEach(function(f){
-    var nm=enc.encode(f.name),data=enc.encode(f.text),crc=xfCrc(data),h=new DataView(new ArrayBuffer(30)),c=new DataView(new ArrayBuffer(46));
+    var nm=enc.encode(f.name),data=f.data||enc.encode(f.text),crc=xfCrc(data),h=new DataView(new ArrayBuffer(30)),c=new DataView(new ArrayBuffer(46));
     h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);
     h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nm.length,true);
     parts.push(new Uint8Array(h.buffer),nm,data);
@@ -9219,47 +9219,129 @@ function xfZip(files){
   });
   var csz=cen.reduce(function(a,p){return a+p.length},0),e=new DataView(new ArrayBuffer(22));
   e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,csz,true);e.setUint32(16,off,true);
-  return new Blob(parts.concat(cen,[new Uint8Array(e.buffer)]),{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  return new Blob(parts.concat(cen,[new Uint8Array(e.buffer)]),{type:mime||'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 
 /* ----- the fields of the open design (padded to what the template can show) ----- */
-function xfIg(){
-  var T=tplCur(),L=S.layout,F=[],n,i;
-  function a(g,p,lab,max,long){F.push({g:g,key:'ig:'+p,label:lab,root:S,path:p,max:max||0,long:!!long})}
+function xfSecOpts(){return $$('#secSel option').map(function(o){return [o.value,o.textContent]})}
+var XF_LAYN={stats:'أرقام وإحصائيات',list:'نقاط مرقمة',bars:'ترتيب بالأعمدة',cards:'بطاقات نصية'};
+/* o = {layout, tpl, blank}: the fields of that layout/template as the dashboard shows them (blank = an empty form for any editor) */
+function xfIg(o){
+  o=o||{};
+  var L=o.layout||S.layout,T=o.layout?(tplValid(o.tpl,L)?TPL[o.tpl]:null):tplCur(),R=o.blank?{}:S,F=[],n,i;
+  function a(g,p,lab,max,long){F.push({g:g,key:'ig:'+p,label:lab,root:R,path:p,max:max||0,long:!!long})}
+  F.push({g:'القالب والقسم',key:'ig:sec',label:'القالب (القسم والشعار)',root:R,path:'sec',max:0,opts:xfSecOpts(),hint:'اختر من القائمة (فاضي = كما هو)',first:true});
   a('العنوان','kicker','السترابة',60);a('العنوان','title','العنوان الكبير',60);a('العنوان','subtitle','العنوان الثانوي',90);a('العنوان','lede','الجملة تحت العنوان',220,1);
   if(L==='stats')['value','label','text'].forEach(function(k,j){a('الرقم الرئيسي','hero.'+k,['الرقم','الكلمة المميزة','النص'][j],[12,40,110][j],j===2)});
-  if(L==='list'||L==='cards')for(i=0;i<8;i++){var g='نقطة '+(i+1);a(g,'items.'+i+'.title','العنوان',60);a(g,'items.'+i+'.text','النص',150,1);a(g,'items.'+i+'.value','الرقم (اختياري)',12)}
+  else if(T&&T.bilat){a('الدولتان','hero.a','الدولة الأولى',30);a('الدولتان','hero.b','الدولة الثانية',30);a('الدولتان','hero.sec','عنوان البطاقات',40)}
+  else if(T&&T.club){a('النادي أو الجهة','hero.label','اسم النادي / الجهة',40);a('النادي أو الجهة','hero.value','الرقم الرئيسي',16);a('النادي أو الجهة','hero.text','وصف الرقم',60)}
+  else if(T&&T.cpic||T&&T.heroPhoto&&!T.person){a('الصورة','hero.label','تعليق على الصورة (اختياري)',80)}
+  else if(T&&T.person){a('الشخصية','hero.label','الاسم',60);a('الشخصية','hero.text','الصفة أو المنصب',80)}
+  var tv=T&&T.fields&&T.fields.indexOf('value')>-1;
+  if(L==='list'||L==='cards')for(i=0;i<8;i++){var g='نقطة '+(i+1);a(g,'items.'+i+'.title','العنوان',60);a(g,'items.'+i+'.text','النص',150,1);if(tv)a(g,'items.'+i+'.value','الرقم أو القيمة',12)}
   if(L==='bars'){
-    for(i=0;i<10;i++){var gb='عمود '+(i+1);a(gb,'bars.'+i+'.label','الاسم',40);a(gb,'bars.'+i+'.value','القيمة',16);a(gb,'bars.'+i+'.note','الملاحظة',12)}
-    for(i=0;i<2;i++)a('مفتاح الألوان','legend.'+i,'السطر '+(i+1),40);
+    for(i=0;i<10;i++){var gb='عمود '+(i+1);a(gb,'bars.'+i+'.label','الاسم',40);a(gb,'bars.'+i+'.value','القيمة',16);a(gb,'bars.'+i+'.note','الملاحظة / النسبة',12)}
+    for(i=0;i<2;i++)a('مفتاح الألوان','legend.'+i,i?'مفتاح النسبة':'مفتاح الأعمدة',40);
   }
-  n=Math.min(8,Math.max(S.stats.length,T&&T.max||6));
+  n=Math.min(8,Math.max(o.blank?0:S.stats.length,T&&T.max||6));
   for(i=0;i<n;i++){var gs=(L==='stats'?'رقم ':'شريط الأرقام · رقم ')+(i+1);a(gs,'stats.'+i+'.value','الرقم',12);a(gs,'stats.'+i+'.label','الكلمة المميزة',40);a(gs,'stats.'+i+'.text','النص',110,1)}
   a('السطر السفلي','footer','السطر السفلي',80);
   return F;
 }
-function xfCz(){
-  var F=[];
-  CZ.slides.forEach(function(s,i){
-    var gn=s.type==='cover'?'الغلاف':s.type==='closing'?'الختام':'الشريحة '+i;
-    function a(p,lab,max,long,g){F.push({g:g||gn,key:'cz:slides.'+i+'.'+p,label:lab,root:CZ,path:'slides.'+i+'.'+p,max:max||0,long:!!long})}
-    if(s.type==='cover'){a('kicker','السترابة',40);a('title','العنوان الكبير',70);a('text','العنوان الثانوي',140,1);a('cta','نص الزر',30)}
-    else if(s.type==='closing'){a('title','العنوان',60);a('text','جملة قصيرة',140,1);a('cta','نص الزر',30);a('handle','الحساب',40)}
-    else{
-      a('title','العنوان',60);a('subtitle','سطر تحت العنوان',90);a('lede','الجملة تحت العنوان',200,1);a('text','النص',260,1);a('foot','السطر الختامي',60);
-      if((s.stats||[]).length)for(var j=0;j<4;j++){var gs=gn+' · رقم '+(j+1);a('stats.'+j+'.value','الرقم',12,0,gs);a('stats.'+j+'.label','الكلمة',60,0,gs);a('stats.'+j+'.text','النص',90,1,gs)}
-      if((s.points||[]).length)for(var m=0;m<4;m++){var gp=gn+' · نقطة '+(m+1);a('points.'+m+'.title','العنوان',50,0,gp);a('points.'+m+'.text','النص',110,1,gp)}
+var XF_NC=10;   // content slides offered in the carousel sheet (existing ones first, then empty ones to add)
+var XF_LOOKS=[['classic','كلاسيكي (صورة في الأعلى)'],['sky','سماء (صورة تتلاشى إلى الأبيض)']];
+function xfCz(o){
+  o=o||{};
+  var look=o.look||(typeof CZ!=='undefined'&&CZ.look==='sky'?'sky':'classic'),sky=look==='sky',R=o.blank?{}:CZ,F=[];
+  var sl=o.blank?[]:CZ.slides,cov=sl.filter(function(s){return s.type==='cover'})[0]||czBlank('cover'),clo=sl.filter(function(s){return s.type==='closing'})[0]||czBlank('closing'),con=sl.filter(function(s){return s.type==='content'});
+  function add(pre,s,g,p,lab,max,long,x){var f={g:g,key:'cz:'+pre+'.'+p,label:lab,root:s,path:p,max:max||0,long:!!long};if(x)for(var k in x)f[k]=x[k];F.push(f)}
+  var gs0='القالب والإعدادات';
+  add('set',R,gs0,'look','القالب (شكل الكاروسيل)',0,0,{opts:XF_LOOKS,def:look,hint:'اختر من القائمة',first:true});
+  add('set',R,gs0,'size','مقاس المنصة',0,0,{opts:[['4:5','4:5 إنستغرام / لينكدإن'],['1:1','1:1 مربع'],['9:16','9:16 ستوري']],hint:'اختر من القائمة (فاضي = كما هو)',first:true});
+  add('set',R,gs0,'lang','لغة التصميم',0,0,{opts:[['auto','تلقائي حسب النص'],['ar','العربية'],['en','English']],hint:'اختر من القائمة (فاضي = كما هو)',first:true});
+  add('set',R,gs0,'sec','القالب (القسم والشعار)',0,0,{opts:xfSecOpts(),hint:'اختر من القائمة (فاضي = كما هو)',first:true});
+  var gc='الغلاف';
+  add('cover',cov,gc,'kicker','السترابة',40);add('cover',cov,gc,'title','العنوان الكبير',70);add('cover',cov,gc,'text','العنوان الثانوي (تحت الكبير)',140,1);add('cover',cov,gc,'lede','جملة إضافية (غير العناوين)',140,1);add('cover',cov,gc,'cta','نص زر السحب',30);
+  var n=Math.max(con.length,XF_NC);
+  for(var i=0;i<n;i++){
+    var s=con[i]||czBlank('content'),pre='c.'+i,gn='الشريحة '+(i+1)+(i<con.length?'':' (إضافية — اتركها فاضية لو مش محتاجها)');
+    add(pre,s,gn,'title','العنوان',60);add(pre,s,gn,'subtitle',sky?'سطر تحت العنوان (اختياري)':'العنوان الثانوي',90);
+    if(sky)add(pre,s,gn,'tz','حجم العنوان',0,0,{opts:[['','عادي'],['s','أصغر'],['l','أكبر']],hint:'اختر من القائمة'});
+    add(pre,s,gn,'lede','العنوان الثالث (جملة تحت العنوان الثانوي)',200,1);
+    add(pre,s,gn,'text',sky?'نص الشريحة (كل سطر فقرة)':'نص داخل المربع الملون',260,1);
+    if(sky)add(pre,s,gn,'foot','سطر ختامي أسفل الأرقام (اختياري)',90,1);else add(pre,s,gn,'pills','وسوم أسفل الشريحة (افصل بفاصلة)',80);
+    if(sky)add(pre,s,gn,'lay','تخطيط الأرقام',0,0,{opts:[['','تلقائي'],['single','رقم واحد كبير'],['duo','رقمان جنباً إلى جنب'],['trio','ثلاثة أرقام'],['hero3','رقم كبير وثلاثة تحته'],['flags','شبكة بالأعلام']],hint:'اختر من القائمة'});
+    for(var j=0;j<4;j++){
+      var gt='الشريحة '+(i+1)+' · رقم '+(j+1);
+      if(sky){add(pre,s,gt,'stats.'+j+'.label','قبل الرقم (مثل: نحو)',40);add(pre,s,gt,'stats.'+j+'.value','الرقم',12);add(pre,s,gt,'stats.'+j+'.text','بعد الرقم (مثل: مليار دولار)',60);add(pre,s,gt,'stats.'+j+'.flag','علم دولة (اختياري): اكتب اسمها',30)}
+      else{add(pre,s,gt,'stats.'+j+'.value','الرقم',12);add(pre,s,gt,'stats.'+j+'.label','الكلمة المميزة',60);add(pre,s,gt,'stats.'+j+'.text','النص تحت الرقم',90,1)}
     }
-  });
+    for(var m=0;m<4;m++){var gp='الشريحة '+(i+1)+' · نقطة '+(m+1);add(pre,s,gp,'points.'+m+'.title','العنوان الفرعي',50);add(pre,s,gp,'points.'+m+'.text','النص',110,1)}
+  }
+  var ge='الختام'+(sky?' (اختياري في هذا القالب)':'');
+  add('closing',clo,ge,'title','العنوان',60);add('closing',clo,ge,'text','النص',140,1);add('closing',clo,ge,'cta','نص الزر',30);add('closing',clo,ge,'handle','الحساب (اختياري)',40);
   return F;
 }
-function xfCh(){
-  var F=[];
-  [['title','العنوان',80],['subtitle','العنوان الفرعي',100],['unit','الوحدة',30],['note','المصدر',100]].forEach(function(r){F.push({g:'نصوص التشارت',key:'ch:'+r[0],label:r[1],root:CH,path:r[0],max:r[2],long:false})});
+/* the chart: only the fields the dashboard shows for that chart type */
+function xfOpts(n){
+  return {
+    style:CH_ORDER.map(function(k){return [k,CHST[k].n]}),
+    size:[['4:5','4:5 منشور (إنستغرام)'],['1:1','1:1 مربع'],['9:16','9:16 ستوري'],['4:3','4:3 أفقي (إكس / لينكدإن)']],
+    lang:[['ar','العربية'],['en','English']],
+    sort:[['none','كما في الجدول'],['desc','من الأعلى للأدنى'],['asc','من الأدنى للأعلى']],
+    noteSide:[['auto','حسب الشكل'],['bottom','أسفل التشارت'],['side','عمودية على الجانب']],
+    titleAlign:[['start','من البداية'],['center','في الوسط']],
+    theme:[['','تلقائي'],['dark','داكن'],['light','فاتح']],
+    side:[['left','يسار'],['right','يمين']]
+  }[n];
+}
+function xfChHead(st){return st==='line'?['السنة','الخط 1','الخط 2']:st==='area'?['السنة','القيمة']:st==='bubbles'?['الاسم','القيمة','النمو %']:st==='pins'?['الاسم','القيمة','الترتيب']:['الاسم','القيمة']}
+function xfCh(o){
+  o=o||{};
+  var st=o.style||CH.style,R=o.blank?{}:CH,F=[];
+  function t(g,p,lab,max,long){F.push({g:g,key:'ch:'+p,label:lab,root:R,path:p,max:max||0,long:!!long})}
+  function op(g,p,lab,on,def){F.push({g:g,key:'ch:'+p,label:lab,root:R,path:p,max:0,opts:xfOpts(on||p),hint:'اختر من القائمة (فاضي = كما هو)',first:true,def:def})}
+  function hx(g,p,lab){F.push({g:g,key:'ch:'+p,label:lab,root:R,path:p,max:0,kind:'hex',hint:'مثل #E4F20D (فاضي = لون القالب)'})}
+  var g1='نوع التشارت والإعدادات';
+  F.push({g:g1,key:'ch:style',label:'نوع التشارت',root:R,path:'style',max:0,opts:xfOpts('style'),hint:'نوع هذا النموذج (لنوع آخر نزّل نموذجه)',first:true,def:st});
+  op(g1,'size','مقاس المنصة');op(g1,'lang','لغة التصميم');
+  if(st!=='line'&&st!=='area')op(g1,'sort','ترتيب الأعمدة');
+  F.push({g:g1,key:'ch:sec',label:'القالب والشعار (القسم)',root:R,path:'sec',max:0,opts:xfSecOpts(),hint:'اختر من القائمة (فاضي = كما هو)',first:true});
+  op(g1,'noteSide','مكان الملاحظة');op(g1,'titleAlign','محاذاة العنوان');op(g1,'theme','نمط النص (فاتح/داكن)');
+  var g2='نصوص التشارت';
+  t(g2,'title','العنوان',80);t(g2,'subtitle','العنوان الفرعي (الوحدة والفترة)',100);t(g2,'note','الملاحظة أو المصدر',100);
+  if(st==='bubbles'){
+    t('الرقم الكبير أعلى التشارت','big.value','الرقم',12);t('الرقم الكبير أعلى التشارت','big.label','الوصف',60);
+    for(var i=0;i<3;i++){var gb='بطاقة ملخص '+(i+1);t(gb,'sum.'+i+'.label','العنوان',30);t(gb,'sum.'+i+'.value','الرقم',12);t(gb,'sum.'+i+'.sub','سطر صغير',40);hx(gb,'sum.'+i+'.color','لون البطاقة')}
+  }
+  if(st==='donut'){
+    var gd='وسط الدائرة والأرقام';
+    t(gd,'call.title','نص وسط الدائرة',60);t(gd,'call.value','سطر كبير تحته',14);t(gd,'unit','الوحدة بجانب كل رقم',30);
+    F.push({g:gd,key:'ch:hole',label:'حجم الفتحة %',root:R,path:'hole',max:0,kind:'int',lo:40,hi:85,hint:'رقم من 40 إلى 85'});
+    F.push({g:gd,key:'ch:showPct',label:'عرض النسب المئوية على الحلقة',root:R,path:'showPct',max:0,kind:'bool',hint:'نعم / لا',opts:[['1','نعم'],['0','لا']],bool:true});
+  }
+  if(st==='area'){
+    t('السنة المبرزة','hi','اسم الصف المبرز (مثل 2025)',30);
+    var ga='الدائرة المميزة';
+    t(ga,'call.title','سطر علوي',60);t(ga,'call.value','الرقم',14);t(ga,'call.label','وصف الرقم',50);t(ga,'call.text','سطر صغير',60);op(ga,'call.side','مكانها','side');
+  }
+  if(st==='line')for(var k=0;k<4;k++)t('مفتاح الألوان (أسماء الخطوط)','legend.texts.'+k,'اسم الخط '+(k+1),40);
+  var g5='الألوان (اتركها فاضية لتبقى ألوان القالب)';
+  if(st==='donut')for(var d=0;d<8;d++)hx(g5,'col.seg.'+d,'لون الجزء '+(d+1));
+  else if(st==='line')for(var q=0;q<4;q++)hx(g5,'col.series.'+q,'لون الخط '+(q+1));
+  else hx(g5,'col.main','لون الأعمدة / المنحنى');
+  if(st==='bubbles'){hx(g5,'col.up','لون النمو');hx(g5,'col.down','لون التراجع')}
+  if(st==='pins')hx(g5,'col.aux','لون الدبابيس');
+  hx(g5,'col.text','لون النصوص');
+  var g6='ربط الأعمدة بورقة «بيانات الرسم» (اتركها فاضية = تلقائي)',mp=[['map.label','رقم عمود الأسماء'],['map.vals',st==='line'?'أرقام أعمدة الخطوط (بفاصلة)':'رقم عمود القيمة']];
+  if(st==='bubbles')mp.push(['map.aux','رقم عمود نسبة النمو (فاضي = يُحسب)']);
+  if(st==='pins')mp.push(['map.note','رقم عمود الدبوس (فاضي = الترتيب)']);
+  mp.forEach(function(r){F.push({g:g6,key:'ch:'+r[0],label:r[1],root:R,path:r[0],max:0,kind:'map',hint:'رقم العمود (1 = الأول)'})});
   return F;
 }
-function xfFields(kind){return kind==='cz'?xfCz():kind==='ch'?xfCh():xfIg()}
-function xfDesignName(kind){
+function xfFields(kind,o){return kind==='cz'?xfCz(o):kind==='ch'?xfCh(o):xfIg(o)}
+function xfDesignName(kind,o){
+  if(o&&o.name)return o.name;
   var t=kind==='cz'?(CZ.slides[0]&&CZ.slides[0].title):kind==='ch'?CH.title:S.title;
   return String(t||'').replace(/[\\\/:*?"<>|\n\r]/g,' ').replace(/\s+/g,' ').trim().slice(0,50)||({ig:'إنفوجراف',cz:'كاروسيل',ch:'تشارت'}[kind]);
 }
@@ -9294,14 +9376,22 @@ function xfStyles(){
     +'<xf numFmtId="0" fontId="3" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1">'+al('center','center')+'</xf>'
     +'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
 }
-function xfFormSheet(kind,F){
-  var rows='',dv='',r=4,last=null,title=xfModeName(kind)+' — '+xfDesignName(kind);
+function xfShow(f){
+  if(f.kind==='map'){var m=CH.map,k=f.path.slice(4);if(k==='label')return String(m.label+1);if(k==='vals')return m.vals.map(function(x){return x+1}).join(',');var x=m[k];return x>-1?String(x+1):''}
+  if(f.bool)return CH.showPct===false?'لا':'نعم';
+  var v=flGet(f.root,f.path);if(v===''&&f.def)v=f.def;
+  if(f.opts){var o=f.opts.filter(function(x){return x[0]===v})[0];return o?o[1]:''}
+  return v;
+}
+function xfFormSheet(kind,F,o){
+  var rows='',dv='',r=4,last=null,title=xfModeName(kind)+' — '+(o&&o.name?'قالب: ':'')+xfDesignName(kind,o);
   rows+='<row r="1" ht="30" customHeight="1">'+xfStr('A1','نموذج إدخال: '+title,6)+'</row>';
-  rows+='<row r="2" ht="36" customHeight="1">'+xfStr('A2','اكتب في العمود الأصفر (اكتب هنا) فقط. لا تغيّر ترتيب الصفوف ولا تحذفها، واترك الخانة فاضية لو مش محتاجها. «الحد الأقصى» هو الطول الذي يناسب التصميم.',5)+'</row>';
+  rows+='<row r="2" ht="36" customHeight="1">'+xfStr('A2','اكتب في العمود الأصفر (اكتب هنا) فقط. لا تغيّر ترتيب الصفوف ولا تحذفها، واترك الخانة فاضية لو مش محتاجها. «الحد الأقصى» هو الطول الذي يناسب التصميم.'+(kind==='cz'?' لإضافة شريحة املأ إحدى «الشرائح الإضافية» الفارغة، والفاضية منها لا تظهر في التصميم.':kind==='ch'?' أرقام الرسم في ورقة «بيانات الرسم»: السطر الأول عناوين الأعمدة وتحته صف لكل عنصر، وأضف الصفوف كما تحتاج (حتى '+((CHST[(o&&o.style)||CH.style]||{}).max||10)+' صفاً لهذا الشكل).':''),5)+'</row>';
   rows+='<row r="3" ht="24" customHeight="1">'+xfStr('A3','القسم',1)+xfStr('B3','الحقل',1)+xfStr('C3','اكتب هنا',1)+xfStr('D3','الحد الأقصى (حرف)',1)+xfStr('E3','key',1)+'</row>';
   F.forEach(function(f){
-    var v=flGet(f.root,f.path),first=f.g!==last;last=f.g;
-    rows+='<row r="'+r+'"'+(f.long?' ht="50" customHeight="1"':'')+'>'+(first?xfStr('A'+r,f.g,2):'<c r="A'+r+'" s="2"/>')+xfStr('B'+r,f.label,3)+(v!==''?xfStr('C'+r,v,4):'<c r="C'+r+'" s="4"/>')+(f.max?'<c r="D'+r+'" s="7"><v>'+f.max+'</v></c>':'<c r="D'+r+'" s="7"/>')+xfStr('E'+r,f.key)+'</row>';
+    var v=xfShow(f),first=f.g!==last;last=f.g;
+    rows+='<row r="'+r+'"'+(f.long?' ht="50" customHeight="1"':'')+'>'+(first?xfStr('A'+r,f.g,2):'<c r="A'+r+'" s="2"/>')+xfStr('B'+r,f.label,3)+(v!==''?xfStr('C'+r,v,4):'<c r="C'+r+'" s="4"/>')+(f.max?'<c r="D'+r+'" s="7"><v>'+f.max+'</v></c>':f.hint?xfStr('D'+r,f.hint,7):'<c r="D'+r+'" s="7"/>')+xfStr('E'+r,f.key)+'</row>';
+    if(f.opts)dv+='<dataValidation type="list" allowBlank="1" showErrorMessage="1" errorTitle="اختر من القائمة" error="اختر قيمة من القائمة المنسدلة." sqref="C'+r+'"><formula1>"'+xfE(f.opts.map(function(x){return x[1]}).join(','))+'"</formula1></dataValidation>';
     if(f.max)dv+='<dataValidation type="textLength" operator="lessThanOrEqual" errorStyle="warning" allowBlank="1" showErrorMessage="1" errorTitle="النص أطول من المناسب" error="الحد الأقصى المناسب للتصميم '+f.max+' حرفاً. الزيادة قد تُقصّ أو يصغر بها الخط." sqref="C'+r+'"><formula1>'+f.max+'</formula1></dataValidation>';
     r++;
   });
@@ -9310,8 +9400,15 @@ function xfFormSheet(kind,F){
     +'<sheetFormatPr defaultRowHeight="22"/><cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="2" width="26" customWidth="1"/><col min="3" max="3" width="64" customWidth="1"/><col min="4" max="4" width="14" customWidth="1"/><col min="5" max="5" width="22" hidden="1" customWidth="1"/></cols>'
     +'<sheetData>'+rows+'</sheetData><sheetProtection sheet="1" objects="1" scenarios="1" formatCells="0" formatColumns="0" formatRows="0"/>'
     +'<mergeCells count="2"><mergeCell ref="A1:D1"/><mergeCell ref="A2:D2"/></mergeCells>'
-    +(dv?'<dataValidations count="'+F.filter(function(f){return f.max}).length+'">'+dv+'</dataValidations>':'')
+    +(dv?'<dataValidations count="'+F.filter(function(f){return f.max||f.opts}).length+'">'+dv+'</dataValidations>':'')
     +'<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>';
+}
+function xfChTable(o){
+  o=o||{};var t=o.blank?null:CH.table,blank=[],st=o.style||CH.style;
+  if(t&&t.head&&t.head.length&&t.rows&&t.rows.length)return {head:t.head,rows:t.rows.concat(t.rows.length<12?Array.apply(null,Array(12-t.rows.length)).map(function(){return t.head.map(function(){return ''})}):[])};
+  var h=xfChHead(st);
+  for(var i=0;i<Math.min(12,(CHST[st]||{}).max||12);i++)blank.push(h.map(function(){return ''}));
+  return {head:h,rows:blank};
 }
 function xfDataSheet(tb){
   var rows='',all=[tb.head].concat(tb.rows);
@@ -9320,14 +9417,15 @@ function xfDataSheet(tb){
   });
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="'+XF_NS+'"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="20"/><cols><col min="1" max="1" width="28" customWidth="1"/><col min="2" max="10" width="16" customWidth="1"/></cols><sheetData>'+rows+'</sheetData></worksheet>';
 }
-function xfMetaSheet(kind){
-  var m=[['kind',kind],['version','1'],['template',kind==='ig'?(S.tpl||''):''],['layout',kind==='ig'?(S.layout||''):''],['name',xfDesignName(kind)],['created',new Date().toISOString()]];
+function xfMetaSheet(kind,o){
+  o=o||{};var ig=o.layout?{t:o.tpl||'',l:o.layout}:{t:S.tpl||'',l:S.layout||''};
+  var m=[['kind',kind],['version','1'],['template',kind==='ig'?ig.t:kind==='ch'?(o.style||CH.style):kind==='cz'?(o.look||(CZ.look==='sky'?'sky':'classic')):''],['layout',kind==='ig'?ig.l:''],['name',xfDesignName(kind,o)],['blank',o.blank?'1':''],['created',new Date().toISOString()]];
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="'+XF_NS+'"><sheetData>'+m.map(function(p,i){return '<row r="'+(i+1)+'">'+xfStr('A'+(i+1),p[0])+xfStr('B'+(i+1),p[1])+'</row>'}).join('')+'</sheetData></worksheet>';
 }
-function xfBuild(kind){
-  var F=xfFields(kind),sheets=[{n:'النموذج',x:xfFormSheet(kind,F)}];
-  if(kind==='ch'&&CH.table&&CH.table.head)sheets.push({n:'بيانات الرسم',x:xfDataSheet(CH.table)});
-  sheets.push({n:'_meta',x:xfMetaSheet(kind),hidden:true});
+function xfBuild(kind,o){
+  var F=xfFields(kind,o),sheets=[{n:'النموذج',x:xfFormSheet(kind,F,o)}];
+  if(kind==='ch')sheets.push({n:'بيانات الرسم',x:xfDataSheet(xfChTable(o))});
+  sheets.push({n:'_meta',x:xfMetaSheet(kind,o),hidden:true});
   var ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
     +sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'}).join('')+'</Types>';
   var rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+XF_RNS+'/officeDocument" Target="xl/workbook.xml"/></Relationships>';
@@ -9337,10 +9435,32 @@ function xfBuild(kind){
   sheets.forEach(function(s,i){files.push({name:'xl/worksheets/sheet'+(i+1)+'.xml',text:s.x})});
   return {blob:xfZip(files),count:F.length};
 }
-function xfExport(kind){
-  var out=xfBuild(kind),name=xfDesignName(kind)+' — نموذج.xlsx';
+function xfSafe(n){return String(n).replace(/[\\\/:*?"<>|\n\r…]/g,' ').replace(/\s+/g,' ').trim().slice(0,70)}
+function xfExport(kind,o){
+  var out=xfBuild(kind,o),name=(o&&o.name?'نموذج '+xfModeName(kind)+' — '+xfSafe(o.name):xfDesignName(kind)+' — نموذج')+'.xlsx';
   mvSave(out.blob,name);
   return {name:name,size:out.blob.size,fields:out.count};
+}
+/* every template of a mode: infographic layouts × their templates, carousel looks, chart types */
+function xfTemplates(kind){
+  var out=[];
+  if(kind==='ig')['stats','list','cards','bars'].forEach(function(L){
+    out.push({id:L+'|',layout:L,tpl:'',blank:true,grp:XF_LAYN[L],label:'كلاسيكي (الافتراضي)',name:XF_LAYN[L]+' — كلاسيكي'});
+    tplList(L).forEach(function(T){out.push({id:L+'|'+T.id,layout:L,tpl:T.id,blank:true,grp:XF_LAYN[L],label:T.name,name:XF_LAYN[L]+' — '+T.name})});
+  });
+  else if(kind==='cz')XF_LOOKS.forEach(function(l){out.push({id:l[0],look:l[0],blank:true,label:l[1],name:l[1]})});
+  else CH_ORDER.forEach(function(k){out.push({id:k,style:k,blank:true,label:CHST[k].n,name:CHST[k].n})});
+  return out;
+}
+async function xfExportAll(kind){
+  var files=[],used={};
+  for(var t of xfTemplates(kind)){
+    var b=xfBuild(kind,t).blob,nm='نموذج '+xfModeName(kind)+' — '+xfSafe(t.name),k=nm,n=1;
+    while(used[k])k=nm+' ('+(++n)+')';used[k]=1;
+    files.push({name:k+'.xlsx',data:new Uint8Array(await b.arrayBuffer())});
+  }
+  var z=xfZip(files,'application/zip'),name='نماذج Excel — '+xfModeName(kind)+' (كل القوالب).zip';
+  mvSave(z,name);return {name:name,count:files.length,size:z.size};
 }
 
 /* ----- reading a filled workbook (every sheet, by name) ----- */
@@ -9383,6 +9503,70 @@ function xfPut(root,path,val){
   o[a[a.length-1]]=val;
 }
 function xfTrim(arr,keys){while(arr&&arr.length&&keys.every(function(k){return !String(arr[arr.length-1][k]||'').trim()}))arr.pop()}
+/* carousel: cover / content slots / closing → the deck. Empty extra slots add nothing, filled ones become new slides */
+function xfApplyCz(vals,blank){
+  var cover={},closing={},slots=[],sets={},bad=0;
+  vals.forEach(function(p){
+    var sm=/^set\.(.+)$/.exec(p.key);if(sm){sets[sm[1]]=p.v;return}
+    var m=/^(cover|closing|c\.(\d+))\.(.+)$/.exec(p.key);if(!m)return;
+    var tg=m[1]==='cover'?cover:m[1]==='closing'?closing:(slots[+m[2]]=slots[+m[2]]||{});tg[m[3]]=p.v;
+  });
+  var sf={};xfCz({blank:true}).forEach(function(f){if(/^cz:set\./.test(f.key))sf[f.key.slice(7)]=f});
+  ['look','size','sec'].forEach(function(k){
+    if(sets[k]==null||!sf[k])return;var c=xfConv(sf[k],sets[k]);if(c.bad){bad++;return}if(c.skip||c.val===''||c.val==null)return;
+    if(k==='look')czSetLook(c.val);else CZ[k]=c.val;
+  });
+  var sl=CZ.slides,cov=sl.filter(function(s){return s.type==='cover'})[0],clo=sl.filter(function(s){return s.type==='closing'})[0],con=sl.filter(function(s){return s.type==='content'}),applied=0,added=0,removed=0;
+  function has(o){return Object.keys(o).some(function(k){return k!=='tz'&&k!=='lay'&&String(o[k]).trim()!==''})}
+  function put(s,o){Object.keys(o).forEach(function(k){xfPut(s,k,o[k]);applied++})}
+  if(!cov&&has(cover))cov=czBlank('cover');if(cov)put(cov,cover);
+  if(!clo&&has(closing))clo=czBlank('closing');if(clo)put(clo,closing);
+  var out=[],n=Math.max(con.length,slots.length);
+  for(var i=0;i<n;i++){
+    var o=slots[i]||{},s=con[i];
+    if(!s){if(!has(o))continue;s=czBlank('content');added++}
+    else if(slots[i]&&!has(o)&&(!s.photo||blank)){removed++;continue}
+    put(s,o);out.push(s);
+  }
+  var all=(cov?[cov]:[]).concat(out,clo?[clo]:[]);
+  CZ.slides.length=0;all.forEach(function(s){CZ.slides.push(s)});
+  CZ.cur=Math.max(0,Math.min(CZ.cur||0,CZ.slides.length-1));
+  czSyncStyle();
+  return {applied:applied,added:added,removed:removed,bad:bad};
+}
+/* chart: the settings, the data sheet, the texts, the colours */
+function xfConv(f,s){
+  if(f.bool){if(s==='')return{skip:1};return /^(نعم|1|yes|true)$/i.test(s)?{val:true}:/^(لا|0|no|false)$/i.test(s)?{val:false}:{bad:1}}
+  if(f.opts){
+    if(s==='')return f.opts.some(function(x){return !x[0]})?{val:''}:{skip:1};
+    var o=f.opts.filter(function(x){return x[1]===s||x[0]===s})[0];return o?{val:o[0]}:{bad:1};
+  }
+  if(f.kind==='hex'){if(s==='')return{val:''};var m=/^#?([0-9a-f]{6})$/i.exec(s);return m?{val:'#'+m[1].toUpperCase()}:{bad:1}}
+  if(f.kind==='int'){if(s==='')return{skip:1};var n=Math.round(+s);return isFinite(n)&&n>=f.lo&&n<=f.hi?{val:n}:{bad:1}}
+  return{val:s};
+}
+function xfApplyCh(vals,meta,sheets){
+  var v={},applied=0,bad=0,over=0,tableOk=false;
+  vals.forEach(function(p){v[p.key]=p.v});
+  function setF(f,s){var c=xfConv(f,s);if(c.bad){bad++;return}if(c.skip)return;xfPut(CH,f.path,c.val);applied++}
+  var sf=xfCh({blank:true}).filter(function(f){return f.path==='style'})[0],st=xfConv(sf,v['style']||'');
+  if(st.val&&st.val!==CH.style)chSetStyle(st.val);
+  var F=xfCh();
+  F.filter(function(f){return f.first}).forEach(function(f){var k=f.key.slice(3);if(k!=='style'&&v[k]!=null)setF(f,v[k])});
+  var dr=sheets['بيانات الرسم'],tb=dr&&chFromRows(dr.map(function(r){var o=[];for(var i=0;i<10;i++)o.push(r[i]==null?'':r[i]);return o}));
+  if(tb&&tb.rows.length&&chNumCols(tb).some(Boolean)){chLoadTable(tb,false);$('#chSrc').value=chToTsv(tb);tableOk=true}
+  F.filter(function(f){return !f.first&&f.kind!=='map'}).forEach(function(f){var k=f.key.slice(3);if(v[k]==null)return;if(f.max&&v[k].length>f.max)over++;setF(f,v[k])});
+  /* the column roles: only when the file keeps the style it was made with, otherwise they are found automatically */
+  if(tableOk&&(!meta.template||meta.template===CH.style)){
+    var nc=CH.table.head.length,ok=function(x){return x>=1&&x<=nc},m=CH.map;
+    var lb=parseInt(v['map.label'],10);if(ok(lb))m.label=lb-1;
+    var vs=String(v['map.vals']||'').split(/[,،\s]+/).map(function(x){return parseInt(x,10)}).filter(ok).map(function(x){return x-1}).filter(function(x){return x!==m.label});
+    if(vs.length)m.vals=CH.style==='line'?vs.slice(0,4):vs.slice(0,1);
+    ['aux','note'].forEach(function(k){var x=parseInt(v['map.'+k],10);if(ok(x)&&x-1!==m.label)m[k]=x-1});
+  }
+  chBuildEditor();chSchedule();$('#chNote').hidden=true;
+  return {applied:applied,bad:bad,over:over};
+}
 async function xfImport(kind,file){
   var sheets=await xfRead(await file.arrayBuffer()),meta={};
   (sheets['_meta']||[]).forEach(function(r){if(r[0])meta[r[0]]=r[1]||''});
@@ -9392,30 +9576,40 @@ async function xfImport(kind,file){
   var vals=[];
   rows.forEach(function(r){var key=String(r[4]||'').trim();if(key.indexOf(kind+':')===0)vals.push({key:key.slice(kind.length+1),v:String(r[2]==null?'':r[2]).replace(/\r/g,'').trim()})});
   if(!vals.length)throw {msg:'الملف لا يحتوي على خانات هذا النموذج. نزّل النموذج من هنا ثم املأه.'};
-  var root=kind==='cz'?CZ:kind==='ch'?CH:S,applied=0,skipped=0,over=0,max={};
-  xfFields(kind).forEach(function(f){max[f.path]=f.max});
+  var root=kind==='cz'?CZ:kind==='ch'?CH:S,applied=0,skipped=0,over=0,added=0,removed=0,bad=0,max={};
   if(kind==='ig'&&['stats','list','bars','cards'].indexOf(meta.layout)>-1&&(S.layout!==meta.layout||(S.tpl||'')!==(meta.template||''))){S.layout=meta.layout;S.tpl=tplValid(meta.template,meta.layout)?meta.template:''}
+  xfFields(kind).forEach(function(f){max[f.key.slice(kind.length+1)]=f.max});
+  var newCz=kind==='cz'&&vals.some(function(p){return /^(cover|closing|c\.\d+)\./.test(p.key)});
+  if(kind==='ch'){var rc=xfApplyCh(vals,meta,sheets);return {applied:rc.applied,skipped:0,over:rc.over,bad:rc.bad,added:0,removed:0}}
   vals.forEach(function(p){
+    if(max[p.key]&&p.v.length>max[p.key])over++;
+    if(newCz)return;
+    if(kind==='ig'&&p.key==='sec'){var c=xfConv({opts:xfSecOpts()},p.v);if(c.bad)bad++;else if(c.val){S.sec=c.val;applied++}return}
     var m=/^slides\.(\d+)\./.exec(p.key);
     if(m&&!CZ.slides[+m[1]]){skipped++;return}
-    if(max[p.key]&&p.v.length>max[p.key])over++;
     xfPut(root,p.key,p.v);applied++;
   });
+  if(newCz){var rz=xfApplyCz(vals,!!meta.blank);applied=rz.applied;added=rz.added;removed=rz.removed;bad=rz.bad}
   if(kind==='ig'){xfTrim(S.stats,['value','label','text']);xfTrim(S.items,['title','text','value']);xfTrim(S.bars,['label','value','note']);while(S.legend&&S.legend.length&&!String(S.legend[S.legend.length-1]||'').trim())S.legend.pop();buildEditor();syncControls();render();$('#exampleNote').hidden=true}
-  else if(kind==='cz'){CZ.slides.forEach(function(s){xfTrim(s.stats,['value','label','text']);xfTrim(s.points,['title','text'])});czBuildEditor();czRenderAll();$('#czNote').hidden=true}
-  else{
-    var dr=sheets['بيانات الرسم'],tb=dr&&chFromRows(dr.map(function(r){var o=[];for(var i=0;i<10;i++)o.push(r[i]==null?'':r[i]);return o}));
-    if(tb&&tb.rows.length&&chNumCols(tb).some(Boolean)){chLoadTable(tb,false);$('#chSrc').value=chToTsv(tb)}
-    chBuildEditor();chSchedule();$('#chNote').hidden=true;
-  }
-  return {applied:applied,skipped:skipped,over:over};
+  else{CZ.slides.forEach(function(s){xfTrim(s.stats,['value','label','text']);xfTrim(s.points,['title','text'])});czBuildEditor();czRenderAll();$('#czNote').hidden=true}
+  return {applied:applied,skipped:skipped,over:over,bad:bad,added:added,removed:removed};
 }
 
 /* ----- the panel in each mode ----- */
+function xfTplOptions(k){
+  var l=xfTemplates(k),h='',g='';
+  l.forEach(function(t){
+    if(t.grp&&t.grp!==g){if(g)h+='</optgroup>';h+='<optgroup label="'+xfE(t.grp)+'">';g=t.grp}
+    h+='<option value="'+xfE(t.id)+'">'+xfE(t.label)+'</option>';
+  });
+  return h+(g?'</optgroup>':'');
+}
 function xfHtml(k){
   return '<section class="ac" data-ac="xform" data-xfk="'+k+'"><button type="button" class="ac-h" aria-expanded="false"><span class="ac-t">نموذج Excel للمحرر</span><span class="ac-s">XLSX</span><svg class="chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="ac-w"><div class="ac-b">'
-    +'<p class="hint">ينزّل ملف Excel فيه كل خانات هذا القالب (العناوين والأرقام والنقاط…) قصاد كل بند، والمحرر يكتب في العمود الأصفر فقط. بعد التعبئة ارفعه هنا فيُطبَّق على نفس التصميم بنفس الشكل. الصور والألوان والإعدادات تبقى كما هي.</p>'
-    +'<div class="row"><button type="button" class="tool" data-xfdl>تنزيل النموذج (Excel)</button><button type="button" class="primary" data-xfup>رفع نموذج معبّأ</button></div>'
+    +'<p class="hint">ينزّل ملف Excel فيه كل خانات القالب (العناوين والأرقام والنقاط…) قصاد كل بند، والمحرر يكتب في العمود الأصفر فقط. بعد التعبئة ارفعه هنا فيُطبَّق على القالب بنفس الشكل. الصور والألوان والإعدادات تبقى كما هي.</p>'
+    +'<div class="field"><label>نموذج لقالب محدد (فاضي للمحرر)</label><select class="xftpl" aria-label="القالب">'+xfTplOptions(k)+'</select></div>'
+    +'<div class="row"><button type="button" class="tool" data-xftdl>تنزيل نموذج هذا القالب</button><button type="button" class="tool" data-xfall>تنزيل كل القوالب (ZIP)</button></div>'
+    +'<div class="row"><button type="button" class="tool" data-xfdl>تنزيل نموذج التصميم الحالي</button><button type="button" class="primary" data-xfup>رفع نموذج معبّأ</button></div>'
     +'<input type="file" class="xffile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden><p class="hint xfmsg" role="status"></p>'
     +'</div></div></section>';
 }
@@ -9423,8 +9617,10 @@ function xfMsg(r,t,err){var m=r.querySelector('.xfmsg');if(m){m.textContent=t;m.
 function xfBind(r){
   var k=r.dataset.xfk;
   r.addEventListener('click',function(e){
-    var b=e.target.closest('[data-xfdl],[data-xfup]');if(!b)return;
+    var b=e.target.closest('[data-xfdl],[data-xfup],[data-xftdl],[data-xfall]');if(!b)return;
     if(b.hasAttribute('data-xfdl')){var o=xfExport(k);xfMsg(r,'تم تنزيل النموذج ('+o.fields+' خانة). أرسله للمحرر ليملأ العمود الأصفر.')}
+    else if(b.hasAttribute('data-xftdl')){var id=r.querySelector('.xftpl').value,t=xfTemplates(k).filter(function(x){return x.id===id})[0];if(!t)return;var o2=xfExport(k,t);xfMsg(r,'تم تنزيل نموذج «'+t.name+'» ('+o2.fields+' خانة).')}
+    else if(b.hasAttribute('data-xfall')){if(XF.busy)return;XF.busy=true;xfMsg(r,'جارٍ تجهيز نماذج كل القوالب…');xfExportAll(k).then(function(o3){xfMsg(r,'تم تنزيل '+o3.count+' نموذجاً في ملف مضغوط واحد، نموذج لكل قالب.')},function(){xfMsg(r,'تعذّر تجهيز الملف.',true)}).then(function(){XF.busy=false})}
     else r.querySelector('.xffile').click();
   });
   r.querySelector('.xffile').addEventListener('change',async function(){
@@ -9434,7 +9630,7 @@ function xfBind(r){
     XF.busy=true;xfMsg(r,'جارٍ قراءة الملف…');
     try{
       var o=await xfImport(k,f);
-      var t='تم تطبيق '+o.applied+' خانة على التصميم.'+(o.over?' '+o.over+' خانة أطول من الحد المناسب، راجعها.':'')+(o.skipped?' تجاهلت '+o.skipped+' خانة لشرايح غير موجودة.':'');
+      var t='تم تطبيق '+o.applied+' خانة على التصميم.'+(o.over?' '+o.over+' خانة أطول من الحد المناسب، راجعها.':'')+(o.skipped?' تجاهلت '+o.skipped+' خانة لشرايح غير موجودة.':'')+(o.added?' أُضيفت '+o.added+(o.added>1?' شرائح جديدة.':' شريحة جديدة.'):'')+(o.removed?' حُذفت '+o.removed+' شريحة تُركت فاضية.':'')+(o.bad?' '+o.bad+' خانة قيمتها غير مفهومة فتجاهلتها.':'');
       xfMsg(r,t);toast('تم تطبيق النموذج. راجع التصميم ثم احفظه أو نزّله.');
     }catch(x){xfMsg(r,x&&x.msg?x.msg:'تعذّرت قراءة الملف. تأكد إنه نموذج نزّلته من هنا وحفظته بصيغة xlsx.',true)}
     finally{XF.busy=false}
@@ -9446,7 +9642,7 @@ function xfInit(){
     acc.insertAdjacentHTML('beforeend',xfHtml(p[0]));xfBind(acc.querySelector('[data-ac="xform"]'));
   });
 }
-window.__xf={export:xfExport,import:xfImport,fields:xfFields,build:xfBuild};
+window.__xf={export:xfExport,exportAll:xfExportAll,templates:xfTemplates,import:xfImport,fields:xfFields,build:xfBuild};
 xfInit();
 
 /* ===== edit the design with instructions written in the user's own words =====
