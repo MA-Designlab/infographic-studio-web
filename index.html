@@ -1054,6 +1054,53 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .chips .chip[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
 .mvbar{height:8px;border-radius:99px;background:var(--soft);overflow:hidden}
 .mvbar i{display:block;height:100%;width:0;background:var(--violet);transition:width .2s}
+
+/* ---- action bar: one main download, then Save, Share ▾, More ⋯ (actbar.js) ---- */
+.bar2[data-ab]{flex-direction:column;align-items:stretch;gap:8px}
+.abrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+.abdl{display:inline-flex;align-items:stretch}
+.abdl:has(.abwrap)>.primary{border-start-end-radius:0;border-end-end-radius:0}
+.abwrap{position:relative;display:inline-flex}
+.bar2 .abdl .abdlx{border-start-start-radius:0;border-end-start-radius:0;padding:0 12px;border-inline-start:1px solid rgba(255,255,255,.35)}
+.bar2 .abtrig{gap:6px}
+.bar2 .abdots{width:46px;padding:0!important}
+.abmenu{position:absolute;bottom:calc(100% + 8px);inset-inline-start:0;z-index:20;min-width:220px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 18px 40px rgba(43,15,77,.18);display:flex;flex-direction:column;gap:2px}
+.abmenu[hidden]{display:none}
+.abdl .abmenu{inset-inline-start:auto;inset-inline-end:0}
+.bar2 .abmenu button{height:auto;width:100%;justify-content:flex-start;text-align:start;border:0;border-radius:9px;background:none;padding:11px 12px;font-weight:500;font-size:14px;color:var(--ink)}
+.bar2 .abmenu button:hover,.bar2 .abmenu button:focus-visible{background:var(--soft)}
+.bar2[data-ab]>.note{text-align:center}
+@media (max-width:700px){.abmenu{min-width:200px}.bar2 .abmenu button{padding:13px 12px}}
+
+/* ---- conversion options folded (opts.js) ---- */
+.optsbox{border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff);margin:4px 0 10px}
+.optsbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px;font-weight:600;font-size:14px}
+.optsbox>summary::-webkit-details-marker{display:none}
+.optsbox>summary::after{content:'';width:8px;height:8px;border:solid var(--muted);border-width:0 0 2px 2px;transform:rotate(-45deg);margin-inline-start:auto;transition:transform .15s}
+.optsbox[open]>summary::after{transform:rotate(135deg)}
+.optsbox .ob-v{color:var(--muted);font-weight:400;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.optsbox .ob-b{padding:0 14px 6px}
+.eh-card .primary{width:100%;height:44px;border-radius:999px}
+
+/* ---- phone: text box first while the design is empty, and a fixed action bar at the bottom (actbar.js) ---- */
+@media (max-width:920px){
+  body.mb-blank #viewStudio .grid .stage{order:1}
+  body.mb-blank .bar2[data-ab] .abrow{display:none}
+  .bar2[data-ab] .abrow{position:fixed;left:0;right:0;bottom:0;z-index:40;flex-wrap:nowrap;justify-content:center;gap:8px;background:rgba(255,255,255,.97);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(43,15,77,.08);padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+  .bar2[data-ab] .abrow button{height:44px}
+  .bar2[data-ab] .abrow .primary:not(.abdlx){padding:0 18px}
+  .bar2[data-ab] .abrow .desSave{width:44px;padding:0!important;font-size:0;gap:0;flex:none}
+  .bar2[data-ab] .abrow .desSave svg{width:18px;height:18px}
+  .bar2[data-ab] .abrow .abtrig.tool:not(.abdots){padding:0 14px!important}
+  body:not(.mb-blank) #viewStudio{padding-bottom:84px}
+  body:not(.mb-blank) .minipv{bottom:86px}
+  .abmenu{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));left:12px;right:12px;min-width:0}
+}
+@media (max-width:920px){
+  .bar2[data-ab] .abrow .primary{white-space:nowrap;font-size:14px}
+  .bar2[data-ab] .abrow .abshare{width:44px;padding:0!important}
+  .bar2[data-ab] .abrow .abshare .abt,.bar2[data-ab] .abrow .abshare svg:not(.abico){display:none}
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2825,7 +2872,7 @@ function initUI(){
   syncControls();buildEditor();bindControls();bindEditor();
   $('#gen').addEventListener('click',function(){if(typeof igpOn==='function'&&igpOn()){generate();return}pgGate('ig',function(){generate()})});
   $('#stopGen').addEventListener('click',function(){if(ctl)ctl.abort()});
-  cliPickInit();clInit();mpInit();libInit();epInit();pvInit();ttInit();desInit();
+  cliPickInit();clInit();mpInit();libInit();epInit();pvInit();ttInit();desInit();if(typeof abInit==='function')abInit();
   try{if(window.ResizeObserver){new ResizeObserver(fit).observe($('.sheetwrap'))}}catch(e){}
   window.addEventListener('resize',fit);
 }
@@ -5351,11 +5398,10 @@ function trSteps(){
     {sel:'#plBtn',t:'وزّع كما هو',b:'لو تريد نصك بحروفه بدون أي تعديل، هذا الزر يوزّعه على خانات القالب ويقترح القالب الأنسب. كل كلمة تظهر كما كتبتها.'},
     {sel:'#pfBtn',t:'مراجعة لغوية',b:'تدقيق عربي وإنجليزي: إملاء وترقيم وأخطاء واضحة. تراجع كل اقتراح وتقبله أو ترفضه، ولا تتغيّر الأسماء ولا الأرقام.'},
     {sel:'#acc .ac-h',t:'عدّل أي صندوق',b:'الصناديق في تبويبين: «المحتوى» لما تكتبه (العنوان والأرقام والسطر السفلي)، و«الشكل» للألوان والقالب والخلفية. لكل رقم لونه، وأي لون تختاره يبقى بجانب أداة اللون لتعيده بنقرة. وفي «تكويناتي اللونية» تحفظ ألوانك باسم.'},
-    {sel:'#igSize',t:'مقاس المنصة',b:'اختر 4:5 لإنستغرام ولينكدإن، أو 1:1 للمربع، أو 9:16 للستوري. التصميم يعيد ترتيب نفسه، وزر «المنطقة الآمنة» فوق المعاينة يوضح ما تغطيه واجهة المنصة.'},
+    {sel:'#igOpts',t:'خيارات التحويل',b:'اللغة والتخطيط ومقاس المنصة (4:5 أو 1:1 أو 9:16) والقالب، كلها تلقائية. افتح الصندوق لو حابب تغيّر حاجة، والسطر بيوضح المختار حالياً.'},
     {sel:'#dl',t:'نزّل التصميم',b:'صورة PNG عالية الدقة بالمقاس الذي اخترته، جاهزة للنشر مباشرة.'},
-    {sel:'#igPostBtn',t:'نص المنشور',b:'يكتب لك كابشن وهاشتاغات ونصاً بديلاً للصورة من محتوى التصميم فقط، حسب المنصة ونبرة العميل. انسخه وانشر.'},
-    {sel:'[data-qa=ig]',t:'فحص الجودة قبل النشر',b:'يقارن أرقام التصميم بالنص الذي لصقته، وينبّهك للنصوص المقصوصة وللون العنوان القريب من الخلفية وللصور منخفضة الدقة. ويعمل تلقائياً قبل كل تنزيل، وتقدر تتجاوزه إن كنت متأكداً.'},
-    {sel:'[data-xl-open=ig]',t:'نسخة بلغة أخرى',b:'بضغطة واحدة يترجم نصوص التصميم إلى الإنجليزية (أو العكس) ويعرض لك الأصل والترجمة جنباً إلى جنب لتعدّلها قبل التطبيق، وتبقى الأرقام كما هي.'},
+    {sel:'#abShareIg',t:'مشاركة',b:'من «مشاركة» تكتب نص المنشور (كابشن وهاشتاغات ونص بديل للصورة حسب المنصة ونبرة العميل)، أو ترسل التصميم للعميل برابط مراجعة يعلّق فيه ويوافق.'},
+    {sel:'#abMoreIg',t:'أدوات إضافية',b:'من زر «⋯»: فحص الجودة قبل النشر (يقارن الأرقام بالنص وينبّهك للنصوص المقصوصة)، وترجمة التصميم للإنجليزية أو العكس، والمعاينة الكبيرة.'},
     {t:'القوالب والوسوم في «تصاميمي»',b:'في «تصاميمي» ابحث بالاسم أو الوسم، وصفِّ بالنوع والحالة، وحدّد عدة تصاميم لحذفها معاً. وحوّل أي تصميم أسبوعي إلى قالب: كل أسبوع تفتحه وتغيّر الأرقام والكلمات فقط من نافذة التعبئة السريعة.'},
     {t:'صور من الإنترنت',b:'أي زر «رفع صورة» (خلفية الإنفوجراف، صور الشرائح، صور التشارت) يعرض لك أيضاً صوراً مجانية من مكتبات الصور. تختار الصورة فتُضاف كأنك رفعتها، والنظام يقترح كلمات البحث من نصك.'},
     {t:'مسودتك لا تضيع',b:'شغلك يُحفظ تلقائياً في هذا المتصفح. لو أغلقت الصفحة قبل «حفظ التصميم»، تظهر لك رسالة لاستعادته عند رجوعك. ولحفظ دائم اضغط «حفظ التصميم» ليظهر في تصاميمي.'},
@@ -12865,9 +12911,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 /* ===== empty-state hint on the preview sheet: tells a first-time user what to do, and offers the ready example ===== */
 var EH_DEF=[
-  {k:'ig',sel:'.sheet',title:'ابدأ من هنا',text:'الصق نص الخبر في خانة النص واضغط «حوّل النص إلى تصميم». أو جرّب نصاً تجريبياً.',btn:'جرّب نصاً تجريبياً',act:'#demo'},
-  {k:'cz',sel:'#czSheet',title:'ابدأ من هنا',text:'الصق النص الكامل واضغط «حوّل النص إلى شرائح». أو شوف مثالاً جاهزاً.',btn:'مثال جاهز',act:'#czDemo'},
-  {k:'ch',sel:'#chSheet',title:'ابدأ من هنا',text:'الصق جدولك أو ارفع ملف Excel واضغط «اقرأ الجدول». أو شوف مثالاً جاهزاً.',btn:'مثال جاهز',act:'#chDemo'}
+  {k:'ig',sel:'.sheet',title:'ابدأ من هنا',text:'الصق نص الخبر في خانة النص واضغط «حوّل النص إلى تصميم». أو جرّب نصاً تجريبياً.',btn:'جرّب نصاً تجريبياً',act:'#demo',src:'#src',go:'#gen',goT:'حوّل النص إلى تصميم'},
+  {k:'cz',sel:'#czSheet',title:'ابدأ من هنا',text:'الصق النص الكامل واضغط «حوّل النص إلى شرائح». أو شوف مثالاً جاهزاً.',btn:'مثال جاهز',act:'#czDemo',src:'#czSrc',go:'#czGen',goT:'حوّل النص إلى شرائح'},
+  {k:'ch',sel:'#chSheet',title:'ابدأ من هنا',text:'الصق جدولك أو ارفع ملف Excel واضغط «اقرأ الجدول». أو شوف مثالاً جاهزاً.',btn:'مثال جاهز',act:'#chDemo',src:'#chSrc',go:'#chRead',goT:'اقرأ الجدول وارسم التشارت'}
 ];
 function ehBlank(k){
   try{
@@ -12877,11 +12923,20 @@ function ehBlank(k){
   }catch(e){}
   return false;
 }
+function ehDef(k){return EH_DEF.filter(function(d){return d.k===k})[0]}
+/* blank sheet: "start here" until text is in the box, then "text ready, press convert" */
+function ehPaint(w,d,ready){
+  if(!d||w.dataset.ready===String(ready))return;w.dataset.ready=String(ready);
+  var c=w.querySelector('.eh-card'),b=c.querySelector('button');
+  c.querySelector('b').textContent=ready?'النص جاهز':d.title;
+  c.querySelector('p').textContent=ready?'اضغط «'+d.goT+'» ويتحوّل لتصميم خلال ثوانٍ.':d.text;
+  b.textContent=ready?d.goT:d.btn;b.dataset.ehgo=ready?d.go:d.act;b.className=ready?'primary':'tool';
+}
 function ehInit(){
   EH_DEF.forEach(function(d){
     var host=document.querySelector(d.sel);if(!host||host.querySelector('.eh'))return;
     var w=document.createElement('div');w.className='eh';w.hidden=true;w.dataset.eh=d.k;
-    w.innerHTML='<div class="eh-card"><b>'+d.title+'</b><p>'+d.text+'</p><button type="button" class="tool" data-ehgo="'+d.act+'">'+d.btn+'</button></div>';
+    w.innerHTML='<div class="eh-card"><b></b><p></p><button type="button" class="tool"></button></div>';ehPaint(w,d,false);
     ['pointerdown','mousedown','touchstart'].forEach(function(ev){w.addEventListener(ev,function(e){e.stopPropagation()})});
     host.appendChild(w);
   });
@@ -12891,7 +12946,7 @@ function ehInit(){
   });
   setInterval(function(){
     if(document.hidden)return;
-    document.querySelectorAll('.eh').forEach(function(w){var on=ehBlank(w.dataset.eh);if(w.hidden===on)w.hidden=!on});
+    document.querySelectorAll('.eh').forEach(function(w){var on=ehBlank(w.dataset.eh);if(w.hidden===on)w.hidden=!on;if(on){var d=ehDef(w.dataset.eh),s=d&&document.querySelector(d.src);ehPaint(w,d,!!(s&&s.value.trim()))}});
   },400);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ehInit);else ehInit();
@@ -14256,6 +14311,120 @@ function rfInit(){
   var fm=$('#refForm');if(fm)fm.addEventListener('submit',function(e){e.preventDefault();rfRun()});
   var u=$('#rfUndo');if(u)u.addEventListener('click',rfUndo);
 }
+
+/* ---------- action bar under the preview: one main download, then Save, Share ▾ and More ⋯ ----------
+   The original buttons keep their ids and handlers; this only moves them into small menus so the bar
+   has the same four places in every mode (infographic, carousel, charts). */
+var AB={open:null};
+function abClose(){
+  if(!AB.open)return;
+  AB.open.menu.hidden=true;AB.open.btn.setAttribute('aria-expanded','false');AB.open=null;
+}
+function abToggle(btn,menu){
+  var was=AB.open&&AB.open.menu===menu;abClose();if(was)return;
+  menu.hidden=false;btn.setAttribute('aria-expanded','true');AB.open={btn:btn,menu:menu};
+  var f=menu.querySelector('button:not([hidden]):not([disabled])');if(f)try{f.focus({preventScroll:true})}catch(e){}
+}
+function abMenu(bar,id,label,cls,items){
+  items=items.filter(Boolean);if(!items.length)return null;
+  var w=document.createElement('div');w.className='abwrap';
+  var t=document.createElement('button');t.type='button';t.id=id;t.className='abtrig '+cls;
+  t.setAttribute('aria-haspopup','true');t.setAttribute('aria-expanded','false');t.setAttribute('aria-controls',id+'M');
+  t.innerHTML=label;
+  var m=document.createElement('div');m.className='abmenu';m.id=id+'M';m.hidden=true;
+  items.forEach(function(b){b.classList.add('abitem');m.appendChild(b)});
+  m.addEventListener('click',function(e){if(e.target.closest('button'))setTimeout(abClose,0)});
+  t.addEventListener('click',function(e){e.stopPropagation();abToggle(t,m)});
+  w.appendChild(t);w.appendChild(m);
+  return w;
+}
+var AB_CHEV='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+var AB_SHARE='<svg class="abico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>';
+var AB_DOTS='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+function abBuild(k,dlSel,extraDl,pvSel){
+  var dl=$(dlSel);if(!dl)return;var bar=dl.closest('.bar2');if(!bar||bar.dataset.ab)return;bar.dataset.ab='1';
+  var q=function(s){return bar.querySelector(s)};
+  var save=q('.desSave'),note=q('.note');
+  var row=document.createElement('div');row.className='abrow';
+  /* 1) main download (+ the other download formats, carousel only) */
+  var g=document.createElement('div');g.className='abdl';g.appendChild(dl);
+  var more=abMenu(bar,'abDl'+k,AB_CHEV,'primary abdlx',extraDl.map(q));
+  if(more){more.querySelector('.abtrig').setAttribute('aria-label','صيغ تنزيل أخرى');g.appendChild(more)}
+  row.appendChild(g);
+  /* 2) save */
+  if(save){save.setAttribute('aria-label','حفظ التصميم');save.title='حفظ التصميم';row.appendChild(save)}
+  /* 3) share: caption text + send for review */
+  var sh=abMenu(bar,'abShare'+k,AB_SHARE+'<span class="abt">مشاركة</span>'+AB_CHEV,'tool abshare',[q('[data-post]'),q('[data-rev]')]);
+  if(sh){sh.querySelector('.abtrig').setAttribute('aria-label','مشاركة');row.appendChild(sh)}
+  /* 4) more tools */
+  var mo=abMenu(bar,'abMore'+k,AB_DOTS,'tool abdots',[q(pvSel),q('[data-qa]'),q('[data-xl-open]'),q('[data-ln-open]')]);
+  if(mo){mo.querySelector('.abtrig').setAttribute('aria-label','أدوات أخرى');row.appendChild(mo)}
+  bar.insertBefore(row,bar.firstChild);
+  if(note)bar.appendChild(note);
+}
+function abInit(){
+  abBuild('Ig','#dl',[],'#pvIg');
+  abBuild('Cz','#czDlAll',['#czDl1','#czPdf'],'#pvCz');
+  abBuild('Ch','#chDl',[],'#chPv');
+  /* friendlier labels inside the menus */
+  [['#czDl1','هذه الشريحة فقط (PNG)'],['#czPdf','ملف PDF'],['#pvIg','معاينة كبيرة'],['#pvCz','معاينة كبيرة'],['#chPv','معاينة كبيرة']].forEach(function(p){var b=$(p[0]);if(b&&b.closest('.abmenu'))b.textContent=p[1]});
+  document.addEventListener('click',function(e){if(AB.open&&!e.target.closest('.abwrap'))abClose()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&AB.open){var b=AB.open.btn;abClose();try{b.focus()}catch(x){}}});
+  setInterval(abMobTick,500);abMobTick();
+}
+/* phone: while the current design is still empty, the text box comes first and the bottom bar stays away */
+function abMobTick(){
+  if(document.hidden)return;
+  var m=(document.querySelector('input[name=mode]:checked')||{}).value||'ig';
+  var blank=!window.__noMbBlank&&typeof ehBlank==='function'?!!ehBlank(m):false;
+  if(document.body.classList.contains('mb-blank')!==blank)document.body.classList.toggle('mb-blank',blank);
+}
+
+/* ---------- conversion options folded under one line ("خيارات التحويل · تلقائي") ----------
+   Most people keep the defaults, so language, layout, size, template and the AI-rewrite switch sit in a
+   <details> box. The summary shows what is chosen, so nothing is hidden by surprise. */
+function opBox(id,nodes,sum){
+  nodes=nodes.filter(Boolean);if(!nodes.length)return null;
+  var d=document.createElement('details');d.className='optsbox';d.id=id;
+  var s=document.createElement('summary');
+  s.innerHTML='<span class="ob-t">خيارات التحويل</span><span class="ob-v" id="'+id+'V"></span>';
+  d.appendChild(s);
+  var body=document.createElement('div');body.className='ob-b';
+  nodes[0].parentNode.insertBefore(d,nodes[0]);
+  nodes.forEach(function(n){body.appendChild(n)});
+  d.appendChild(body);
+  var paint=function(){var v=$('#'+id+'V');if(v)v.textContent=sum()};
+  d.addEventListener('change',paint);d.addEventListener('input',paint);paint();
+  setInterval(function(){if(!document.hidden&&!d.open)paint()},1500);
+  return d;
+}
+function opTxt(sel){var e=$(sel);if(!e)return '';var o=e.options&&e.options[e.selectedIndex];return o?o.textContent.trim():''}
+function opShort(t){return t.replace(/\s*\(.*\)\s*/,'').replace(/^(\d+:\d+).*/,'$1')}
+function opInit(){
+  var src=$('#src');
+  if(src){
+    var two=$('#lang')&&$('#lang').closest('.two');
+    opBox('igOpts',[two,$('#igSizeF'),$('#tplF'),$('#tplOpts'),$('#vbF')],function(){
+      var a=[],l=$('#lang'),ly=$('#layoutSel');
+      a.push(l&&l.value!=='auto'?opTxt('#lang'):'اللغة تلقائية');
+      a.push(ly&&ly.value!=='auto'?opTxt('#layoutSel'):'تخطيط تلقائي');
+      a.push(opShort(opTxt('#igSize')));
+      var t=opTxt('#tplSel');if(t)a.push(opShort(t));
+      return a.join(' · ');
+    });
+    /* "put the rest in a second design" is a result, not an option: keep it in view under the box */
+    var r=$('#vbRest'),b1=$('#igOpts');if(r&&b1)b1.parentNode.insertBefore(r,b1.nextSibling);
+  }
+  var cz=$('#czLang');
+  if(cz){
+    var two2=cz.closest('.two'),vb=$('#vbEditCz')&&$('#vbEditCz').closest('.field');
+    opBox('czOpts',[two2,vb],function(){
+      return [cz.value!=='auto'?opTxt('#czLang'):'اللغة تلقائية',opShort(opTxt('#czSize'))].join(' · ');
+    });
+    var r2=$('#vbRestCz'),b2=$('#czOpts');if(r2&&b2)b2.parentNode.insertBefore(r2,b2.nextSibling);
+  }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',opInit);else opInit();
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
