@@ -2722,15 +2722,36 @@ function errText(c){
   try{if(ERR_ADMIN[c]&&typeof me!=='undefined'&&me&&me.role==='admin')t+=' (للمسؤول: '+ERR_ADMIN[c]+')'}catch(e){}
   return t;
 }
-async function callFn(name,payload,signal){
+async function callFn(name,payload,signal,onProg){
   payload=cliPayload(name,payload);
+  if(typeof onProg==='function')payload=Object.assign({},payload,{stream:true});
   var s=(await sb.auth.getSession()).data.session;if(!s)throw{code:'not_signed_in'};
   var res;
   try{res=await fetch(SB_URL+'/functions/v1/'+name,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.access_token,'apikey':SB_KEY},body:JSON.stringify(payload),signal:signal})}
   catch(e){throw{code:e&&e.name==='AbortError'?'cancelled':'network'}}
-  var j={};try{j=await res.json()}catch(e){}
-  if(!res.ok)throw{code:j.error||('http_'+res.status),status:res.status};
+  var j={},st=res.status;
+  if(res.ok&&res.body&&/ndjson/.test(res.headers.get('content-type')||'')){
+    /* live progress: {"p":chars,"n":headings} lines, then {"status","body"} once */
+    try{
+      var rd=res.body.getReader(),dec=new TextDecoder(),buf='',fin=null;
+      for(;;){var c=await rd.read();if(c.done)break;buf+=dec.decode(c.value,{stream:true});
+        var i;while((i=buf.indexOf('\n'))>=0){var ln=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!ln)continue;
+          var o;try{o=JSON.parse(ln)}catch(e){continue}
+          if(o&&o.status!==undefined){fin=o}else if(o&&typeof onProg==='function'){try{onProg(o)}catch(e){}}}}
+      if(!fin&&buf.trim()){try{fin=JSON.parse(buf.trim())}catch(e){}}
+      if(!fin)throw{code:'network'};
+      st=fin.status;j=fin.body||{};
+    }catch(e){if(e&&e.code)throw e;throw{code:e&&e.name==='AbortError'?'cancelled':'network'}}
+  }else{try{j=await res.json()}catch(e){}}
+  if(st<200||st>=300)throw{code:j.error||('http_'+st),status:st};
   return j;
+}
+/* live progress line for the slow AI calls (only when the function streams; otherwise nothing changes) */
+function aiProg(set,base){
+  return function(o){
+    if(!o)return;var n=+o.n||0;
+    set(base+(n?' · كُتب '+n+(n===1?' عنوان':n<11?' عناوين':' عنوان')+' حتى الآن':(o.p?' · بدأ الترتيب':'')),false,true);
+  };
 }
 async function generate(){
   var text=$('#src').value.trim();
@@ -2739,7 +2760,7 @@ async function generate(){
   ctl=new AbortController();$('#gen').disabled=true;$('#stopGen').hidden=false;status('جارٍ قراءة النص وترتيب التصميم…',false,true);
   try{
     var ph=typeof igpOn==='function'&&igpOn();
-    var j=await callFn('generate',{text:text,lang:$('#lang').value,layout:ph?'cards':$('#layoutSel').value},ctl.signal);
+    var j=await callFn('generate',{text:text,lang:$('#lang').value,layout:ph?'cards':$('#layoutSel').value},ctl.signal,aiProg(status,'جارٍ قراءة النص وترتيب التصميم…'));
     if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
     rvIg(ph?igpShape(j.data,text):j.data);
     status('راجع البيانات في النافذة وعدّلها، وبعدين اضغط «ارسم التصميم».');
@@ -4770,7 +4791,7 @@ async function czGenerate(imgs,opt){
   var guide=(($('#czGuide')||{}).value||'').trim();
   czCtl=new AbortController();$('#czGen').disabled=true;$('#czStop').hidden=false;czStatus('جارٍ قراءة النص وتقسيمه إلى شرائح…',false,true);
   try{
-    var verb=typeof vbEditOn==='function'&&!vbEditOn(),j=verb?{data:await vbPlanCz(text,czCtl.signal)}:await callFn('generate',{text:text,lang:$('#czLang').value,mode:'carousel',look:CZ.look==='sky'?'sky':'classic',guidance:guide},czCtl.signal);
+    var verb=typeof vbEditOn==='function'&&!vbEditOn(),j=verb?{data:await vbPlanCz(text,czCtl.signal)}:await callFn('generate',{text:text,lang:$('#czLang').value,mode:'carousel',look:CZ.look==='sky'?'sky':'classic',guidance:guide},czCtl.signal,aiProg(czStatus,'جارٍ قراءة النص وتقسيمه إلى شرائح…'));
     if(!j||!j.data||typeof j.data!=='object'||!j.data.cover)throw{code:'invalid_json'};
     var rdata=await rvCz(j.data);
     czLoad(rdata,true);if(typeof vbSetRest==='function')vbSetRest(rdata.vbNote&&rdata.vbNote.rest,'cz');czDistribute(imgs);czShowPhotoNotes(null);
@@ -11934,7 +11955,7 @@ async function vbGenerate(text){
   ctl=new AbortController();$('#gen').disabled=true;$('#stopGen').hidden=false;status('جارٍ توزيع النص على التصميم دون أي تعديل عليه…',false,true);
   try{
     var ph=typeof igpOn==='function'&&igpOn(),lay=$('#layoutSel').value;
-    var j=await callFn('plan',{lines:lines,lang:$('#lang').value,layout:ph?'cards':lay,photo:!!ph},ctl.signal);
+    var j=await callFn('plan',{lines:lines,lang:$('#lang').value,layout:ph?'cards':lay,photo:!!ph},ctl.signal,aiProg(status,'جارٍ توزيع النص على التصميم دون أي تعديل عليه…'));
     if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
     var d=vbBuild(j.data,lines);
     rvIg(ph?igpShape(d,text):d);
@@ -11996,7 +12017,7 @@ function vbBuildCz(plan,lines,look){
 async function vbPlanCz(text,signal){
   var lines=vbLines(text);
   if(lines.length>80)throw{code:'text_too_long'};
-  var j=await callFn('plan-carousel',{lines:lines,lang:$('#czLang').value,look:CZ.look==='sky'?'sky':'classic',guidance:(($('#czGuide')||{}).value||'').trim()},signal);
+  var j=await callFn('plan-carousel',{lines:lines,lang:$('#czLang').value,look:CZ.look==='sky'?'sky':'classic',guidance:(($('#czGuide')||{}).value||'').trim()},signal,aiProg(czStatus,'جارٍ تقسيم النص إلى شرائح…'));
   if(!j||!j.data||typeof j.data!=='object')throw{code:'invalid_json'};
   return vbBuildCz(j.data,lines,CZ.look==='sky'?'sky':'classic');
 }
