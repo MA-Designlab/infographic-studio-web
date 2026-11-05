@@ -199,6 +199,28 @@ input[type=password],input[type=email]{width:100%;font:inherit;color:var(--ink);
 .su-sw{margin:2px 0 0;font-size:13.5px;color:#d9ccf7}
 .su-sw button{border:0;background:none;color:#fff;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:2px}
 .err2.ok{color:#9BE7B9}
+.lp-sec-h{max-width:1100px;margin:0 auto 22px;text-align:center}
+.lp-sec-h h2{margin:0 0 8px;font-size:clamp(22px,3vw,30px);font-weight:800}
+.lp-sec-h p{margin:0;color:#d9ccf7;font-size:15px}
+.lp-pricing{background:var(--lp-bg2);padding:20px 20px 40px}
+.lp-plans{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.lp-plan{position:relative;display:flex;flex-direction:column;gap:12px;background:rgba(255,255,255,.06);border:1px solid rgba(201,187,255,.22);border-radius:18px;padding:24px 20px}
+.lp-plan.pop{border:2px solid var(--lp-pink);background:rgba(243,45,126,.08)}
+.lp-plan .tag{position:absolute;top:-11px;inset-inline-start:16px;background:var(--lp-pink);color:#fff;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px}
+.lp-plan h3{margin:0;font-size:19px}
+.lp-plan .pr{display:flex;align-items:baseline;gap:6px}
+.lp-plan .pr b{font-size:30px;direction:ltr}
+.lp-plan .pr small{color:#cbbbf0}
+.lp-plan ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:14px;color:#e6dcff;flex:1}
+.lp-plan li::before{content:'✓';color:var(--lp-pink);font-weight:800;margin-inline-end:7px}
+.lp-plan .lp-btn{justify-content:center;text-align:center}
+@media (max-width:980px){.lp-plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.lp-plans{grid-template-columns:1fr}}
+.lp-feats-in{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){.lp-feats-in{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.lp-feats-in{grid-template-columns:1fr}}
+.lp-foot a{color:#fff;font-weight:700}
+.lp-foot{margin:0}.lp-plan a.lp-btn{text-decoration:none;display:inline-flex;align-items:center}
 
 /* interface font: Alexandria (Google Fonts). The infographic canvas keeps the house fonts. */
 :root{--fb:Alexandria,"Segoe UI",Tahoma,Arial,sans-serif;--fh:Alexandria,"Segoe UI",Tahoma,sans-serif}
@@ -1163,6 +1185,42 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .ws-add select{flex:0 0 auto}
 #viewTeam .utable{padding:6px 16px;margin-top:8px}
 @media (max-width:560px){.ws-pill{max-width:40vw;padding:5px 10px}.ws-pill small{font-size:10.5px}}
+
+/* ---- «الاشتراك» (billing.js) ---- */
+.bl-now{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:18px}
+.bl-now .lab{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.bl-now b{font-size:16px}
+.bl-use{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.bl-use h2{grid-column:1/-1;margin:0;font-size:16px}
+.bl-use .hint{grid-column:1/-1;margin:0}
+.bl-u{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.bl-ut{display:flex;justify-content:space-between;gap:8px;font-size:13.5px}
+.bl-ut b{direction:ltr}
+.bl-u small{color:var(--muted);font-size:12px}
+.bl-ub{height:8px;border-radius:999px;background:var(--soft);overflow:hidden}
+.bl-ub i{display:block;height:100%;border-radius:999px;background:var(--navy,#6D2FBF)}
+.bl-ub.hi i{background:#E04A7A}
+.bl-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.bl-head h2{margin:0;font-size:18px}
+.bl-plans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.bl-p{position:relative;display:flex;flex-direction:column;gap:12px;padding:22px 18px;background:#fff;border:1px solid var(--line);border-radius:18px}
+.bl-p.pop{border:2px solid var(--pink,#F32D7E);box-shadow:0 14px 34px rgba(243,45,126,.12)}
+.bl-p.cur{border-color:var(--navy,#6D2FBF)}
+.bl-p h3{margin:0;font-size:18px}
+.bl-tag{position:absolute;top:-11px;inset-inline-start:16px;background:var(--pink,#F32D7E);color:#fff;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px}
+.bl-price{display:flex;align-items:baseline;gap:6px}
+.bl-price b{font-size:28px;direction:ltr}
+.bl-price small,.bl-eq{color:var(--muted);font-size:12.5px}
+.bl-p ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:13.5px;flex:1}
+.bl-p li{padding-inline-start:20px;position:relative}
+.bl-p li::before{content:'';position:absolute;inset-inline-start:2px;top:.45em;width:9px;height:5px;border:solid var(--navy,#6D2FBF);border-width:0 0 2px 2px;transform:rotate(-45deg)}
+.bl-p .btn{justify-content:center}
+@media (max-width:1100px){.bl-plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.bl-plans,.bl-use{grid-template-columns:1fr}}
+.bar .ws-pill{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(201,187,255,.3);height:auto;box-shadow:none}
+.bar .ws-pill:hover{background:rgba(255,255,255,.14)}
+.bl-ws{margin:4px 0 0;font-size:14px}
+@media (max-width:560px){.bar:has(.ws-pill:not([hidden])) .bar-name{display:none}.bar .ws-pill{max-width:52vw}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1176,6 +1234,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
     <nav class="lp-links" aria-label="التنقل">
       <a href="#top" data-go="top">الرئيسية</a>
       <a href="#feats" data-go="feats">المزايا</a>
+      <a href="#pricing" data-go="pricing">الأسعار</a>
       <a href="#contact" data-go="contact">تواصل</a>
     </nav>
     <button type="button" class="lp-btn ghost nav-login" id="navLogin">دخول</button>
@@ -1229,27 +1288,36 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
     </div>
     <div class="lp-hero-in">
       <div class="lp-copy">
-        <p class="lp-eyebrow">مركز الاتحاد للأخبار</p>
+        <p class="lp-eyebrow">لغرف الأخبار وفرق المحتوى العربية</p>
         <h1>حوّل نصك إلى <span class="u">إنفوجراف<svg viewBox="0 0 300 16" preserveAspectRatio="none"><path d="M3 11C60 3 130 2 200 6s80 4 97 2" stroke="#f32d7e" stroke-width="5" stroke-linecap="round" fill="none"/></svg></span> جاهز للنشر</h1>
-        <p class="lead">الصق النص، ويرتّبه الذكاء الاصطناعي بخطوطكم وقوالبكم وهويتكم البصرية، وتنزّل الصورة جاهزة بمقاس السوشيال ميديا.</p>
+        <p class="lead">الصق الخبر، ويحوّله الذكاء الاصطناعي لإنفوجراف أو كاروسيل أو فيديو موشن بهوية كل عميل: خطوطه وألوانه وشعاره، جاهز بمقاسات السوشيال ميديا في دقائق.</p>
         <button type="button" class="lp-btn" id="heroStart">ابدأ الآن</button>
       </div>
     </div>
   </section>
 
   <section class="lp-feats" id="feats">
+    <div class="lp-sec-h"><h2>كل اللي فريق المحتوى محتاجه في مكان واحد</h2></div>
     <div class="lp-feats-in">
-      <div class="lp-feat"><i>1</i><h3>هوية المركز كاملة</h3><p>الخطوط والشعارات وشارات الأقسام وألوان الستراب بنفس أسلوب فريق التصميم.</p></div>
-      <div class="lp-feat"><i>2</i><h3>من النص إلى التصميم</h3><p>الصق الخبر أو البيانات وسيُستخرج العنوان والأرقام المميّزة وتُرتَّب في القالب المناسب.</p></div>
-      <div class="lp-feat"><i>3</i><h3>عربي وإنجليزي</h3><p>مقاس 4:5 للمنصات الاجتماعية، بجودة عالية تنزّلها بضغطة واحدة.</p></div>
+      <div class="lp-feat"><i>1</i><h3>من الخبر للتصميم</h3><p>الصق النص، ويطلع العنوان والأرقام المهمة ويترتبوا في القالب المناسب. والنص المعتمد يفضل زي ما هو لو حبيت.</p></div>
+      <div class="lp-feat"><i>2</i><h3>هوية لكل عميل</h3><p>ارفع الشعار، وهنقرأ ألوانه لوحدنا. ضيف الخطوط، وكل تصميم يطلع بهوية العميل من غير ما تظبط حاجة.</p></div>
+      <div class="lp-feat"><i>3</i><h3>إنفوجراف وكاروسيل وتشارت</h3><p>صورة واحدة، أو سلسلة شرائح، أو رسم بياني من جدول Excel، بمقاسات 4:5 و1:1 و9:16.</p></div>
+      <div class="lp-feat"><i>4</i><h3>فيديو موشن</h3><p>حوّل أي تصميم لفيديو MP4 متحرك بموسيقى، جاهز للريلز والستوري.</p></div>
+      <div class="lp-feat"><i>5</i><h3>مراجعة العميل برابط</h3><p>ابعت رابط، والعميل يعلّق ويوافق من غير حساب. وأنت تتابع كل تصميم: مسودة، قيد المراجعة، معتمد.</p></div>
+      <div class="lp-feat"><i>6</i><h3>عربي أولاً وفريق واحد</h3><p>تايبوجرافي عربي سليم، وترجمة للإنجليزي بضغطة، ومساحة عمل لفريقك بأدوار وصلاحيات.</p></div>
     </div>
   </section>
-  <p class="lp-foot" id="contact">للحصول على حساب تواصل مع مسؤول الأداة. الدخول للمعتمدين فقط.</p>
+  <section class="lp-pricing" id="pricing">
+    <div class="lp-sec-h"><h2>الأسعار</h2><p id="lpPriceNote">ابدأ بتجربة مجانية 14 يوماً. بدون بطاقة.</p></div>
+    <div class="lp-plans" id="lpPlans"></div>
+  </section>
+  <p class="lp-foot" id="contact">للاشتراك أو عرض سعر للمؤسسات، تواصل معنا.</p>
 
   <div class="lp-menu" id="lpMenu" hidden>
     <div class="top"><a class="lp-brand" href="#top" data-go="top" style="padding:0">مصمم الإنفوجراف</a><button type="button" class="lp-burger" id="menuClose" aria-label="إغلاق" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <a href="#top" data-go="top">الرئيسية</a>
     <a href="#feats" data-go="feats">المزايا</a>
+    <a href="#pricing" data-go="pricing">الأسعار</a>
     <a href="#contact" data-go="contact">تواصل</a>
     <button type="button" class="lp-btn ghost" id="menuLogin">دخول</button>
   </div>
@@ -1258,7 +1326,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
     <form class="lp-card" id="loginForm">
       <button type="button" class="lp-x" id="modalClose" aria-label="إغلاق">×</button>
       <h2>تسجيل الدخول</h2>
-      <p>الدخول للمعتمدين فقط. لو محتاج حساب، اطلبه من المسؤول.</p>
+      <p>ادخل بالإيميل وكلمة السر.</p>
       <div><label for="email">الإيميل</label><input type="text" inputmode="email" id="email" name="email" dir="ltr" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
       <div><label for="password">كلمة السر</label><input type="password" id="password" name="password" dir="ltr" autocomplete="current-password"></div>
       <button class="lp-btn" id="loginBtn" type="submit">دخول</button>
@@ -3814,7 +3882,7 @@ async function clCreate(){
   var b=$('#clNew');b.disabled=true;
   var r=await sb.from('clients').insert({name:'عميل جديد',profile:{v:1},created_by:me.email}).select('id,name,profile,active,updated_at').maybeSingle();
   b.disabled=false;
-  if(r.error||!r.data){toast('تعذّرت إضافة العميل.',true);return}
+  if(r.error||!r.data){toast(r.error&&/identity_limit/.test(r.error.message||'')&&typeof ERR!=='undefined'&&ERR.identity_limit?ERR.identity_limit:'تعذّرت إضافة العميل.',true);return}
   CLI.list.push(r.data);cliPaint();edOpen(r.data.id);$('#edName').select();
 }
 function clInit(){
@@ -14768,6 +14836,7 @@ async function bkCreate(){
   try{
     var name=BK.name.trim().slice(0,60);
     var r=await sb.from('clients').insert({name:name,profile:{v:1},created_by:me.email}).select('id,name,profile,active,updated_at').maybeSingle();
+    if(r.error&&/identity_limit/.test(r.error.message||'')){BK.busy=false;nb.disabled=false;bkMsg(ERR.identity_limit||'وصلت لعدد الهويات المسموح في باقتك.');return}
     if(r.error||!r.data)throw new Error('create');
     var row=r.data,id=row.id,prof={v:1,colors:{}},miss=[];
     CLI.list.push(row);
@@ -14886,7 +14955,7 @@ var WS_ROLES=[['owner','مالك','يدير العملاء والفريق'],['de
 function wsTeamEl(){
   var v=$('#viewTeam');if(v)return v;
   v=document.createElement('section');v.className='view';v.id='viewTeam';v.hidden=true;v.setAttribute('aria-label','الفريق');
-  v.innerHTML='<div class="page-in"><div class="page-head"><div><h1>الفريق</h1><p class="sub" id="wsTeamSub"></p></div></div>'
+  v.innerHTML='<div class="page-in"><div class="page-head"><div><h1>الفريق</h1><p class="hint bl-ws" id="wsTeamSub"></p></div></div>'
     +'<form class="ws-add" id="wsAdd"><input type="text" inputmode="email" dir="ltr" id="wsAddEmail" placeholder="name@company.com" aria-label="إيميل العضو" autocomplete="off" autocapitalize="off" spellcheck="false">'
     +'<select id="wsAddRole" aria-label="الدور">'+WS_ROLES.map(function(r){return '<option value="'+r[0]+'"'+(r[0]==='designer'?' selected':'')+'>'+r[1]+'</option>'}).join('')+'</select>'
     +'<button type="submit" class="btn pink">إضافة</button></form><p class="dlg-msg" id="wsMsg" role="status" aria-live="polite"></p>'
@@ -14910,7 +14979,7 @@ async function wsTeam(){
       +'<button type="button" class="btn ghost sm danger" data-wsrm="'+esc(x.email)+'">إزالة</button></div></div>';
   }).join('')||'<p class="empty">ما فيه أعضاء.</p>';
 }
-function wsErr(r){var m=(r&&r.error&&(r.error.message||''))||'';return /last_owner/.test(m)?'لازم يفضل مالك واحد على الأقل في المساحة.':/duplicate|unique/.test(m)?'الإيميل ده موجود في الفريق بالفعل.':'تعذّر الحفظ. أعد المحاولة.'}
+function wsErr(r){var m=(r&&r.error&&(r.error.message||''))||'';return /seat_limit/.test(m)?(ERR.seat_limit||'وصلت لعدد الأعضاء المسموح في باقتك.'):/last_owner/.test(m)?'لازم يفضل مالك واحد على الأقل في المساحة.':/duplicate|unique/.test(m)?'الإيميل ده موجود في الفريق بالفعل.':'تعذّر الحفظ. أعد المحاولة.'}
 async function wsAdd(e){
   e.preventDefault();var em=$('#wsAddEmail').value.trim().toLowerCase(),role=$('#wsAddRole').value;
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){wsMsg('اكتب إيميل صحيح.');return}
@@ -14986,6 +15055,161 @@ function wsSignupInit(){
 }
 function wsInit(){wsTeamEl();wsSignupInit()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wsInit);else wsInit();
+
+/* ===== «الاشتراك»: the plan of a subscriber workspace, its usage this month, and Stripe checkout / portal =====
+   Plans and prices come from the plans table (edited in Supabase); without it the page shows the plan doc's
+   prices. Until Stripe is set up the buttons say so instead of failing. The house workspace has no such page. */
+var BL={plans:null,usage:null,interval:'month',busy:false};
+var BL_FALLBACK=[
+  {id:'solo',name_ar:'فردي',price_month_usd:29,price_year_usd:290,seats:1,identities:2,conversions_month:100,images_month:20,features:['إنفوجراف وكاروسيل وتشارت','فيديو موشن MP4','معالج هوية العميل'],sort:1},
+  {id:'team',name_ar:'فريق',price_month_usd:79,price_year_usd:790,seats:5,identities:5,conversions_month:400,images_month:80,features:['كل مزايا الفردي','روابط مراجعة للعميل','مكتبة وقوالب مشتركة للفريق'],sort:2},
+  {id:'agency',name_ar:'وكالة',price_month_usd:249,price_year_usd:2490,seats:15,identities:25,conversions_month:1500,images_month:300,features:['كل مزايا الفريق','هوية لكل عميل','أولوية في الدعم'],sort:3},
+  {id:'enterprise',name_ar:'مؤسسات',price_month_usd:null,price_year_usd:null,seats:null,identities:null,conversions_month:null,images_month:null,features:['قوالب مخصصة','تجهيز الهوية','فاتورة سنوية'],sort:4}
+];
+var BL_TRIAL={conversions_month:20,images_month:5,seats:3,identities:2};
+var BL_CONTACT='';   /* your sales e-mail for the enterprise plan (empty = the button is hidden). See BILLING.md */
+/* error texts for the plan limits, used by every AI call */
+try{
+  ERR.plan_limit='وصلت لحد باقتك من العمليات هذا الشهر. رقّ الباقة من «الاشتراك» أو استنى الشهر الجاي.';
+  ERR.plan_inactive='الاشتراك متوقف. جدّده من «الاشتراك» علشان ترجع تستخدم الذكاء الاصطناعي.';
+  ERR.billing_not_configured='الدفع الإلكتروني لسه ما اتفعّلش. تواصل معنا علشان نفعّل اشتراكك.';
+  ERR.seat_limit='وصلت لعدد الأعضاء المسموح في باقتك. رقّ الباقة لإضافة أعضاء أكثر.';
+  ERR.identity_limit='وصلت لعدد الهويات المسموح في باقتك. رقّ الباقة لإضافة هويات أكثر.';
+  ERR_ADMIN.billing_not_configured='أضف STRIPE_SECRET_KEY وأرقام الأسعار في جدول plans (راجع BILLING.md).';
+}catch(e){}
+function blMoney(v){return v==null?'':'$'+NF.format(v)}
+function blPlan(id){return (BL.plans||BL_FALLBACK).filter(function(p){return p.id===id})[0]||null}
+function blLimit(k){
+  var w=WS.cur;if(!w)return null;
+  if(w.plan==='trial')return BL_TRIAL[k];
+  var p=blPlan(w.plan);return p?p[k]:null;
+}
+async function blLoad(){
+  try{var r=await sb.from('plans').select('*').eq('active',true).order('sort');if(!r.error&&r.data&&r.data.length)BL.plans=r.data}catch(e){}
+  try{var u=await sb.rpc('ws_usage',{ws:WS.cur.id});BL.usage=u&&!u.error?u.data:null}catch(e){BL.usage=null}
+  try{var w=await sb.from('workspaces').select('id,name,plan,trial_ends_at,is_house,plan_status,billing_interval,current_period_end,cancel_at_period_end,stripe_customer_id').eq('id',WS.cur.id).maybeSingle();if(w&&!w.error&&w.data)Object.assign(WS.cur,w.data)}catch(e){}
+}
+function blEl(){
+  var v=$('#viewBilling');if(v)return v;
+  v=document.createElement('section');v.className='view';v.id='viewBilling';v.hidden=true;v.setAttribute('aria-label','الاشتراك');
+  v.innerHTML='<div class="page-in"><div class="page-head"><div><h1>الاشتراك</h1><p class="hint bl-ws" id="blSub"></p></div></div>'
+    +'<div class="bl-now" id="blNow"></div><div class="bl-use" id="blUse"></div>'
+    +'<div class="bl-head"><h2>الباقات</h2><div class="seg" role="radiogroup" aria-label="مدة الدفع"><label><input type="radio" name="blInt" value="month" checked><span>شهري</span></label><label><input type="radio" name="blInt" value="year"><span>سنوي · شهرين مجاناً</span></label></div></div>'
+    +'<div class="bl-plans" id="blPlans"></div><p class="dlg-msg" id="blMsg" role="status" aria-live="polite"></p>'
+    +'<p class="hint">الأسعار بالدولار الأمريكي، والدفع بالبطاقة عن طريق Stripe. تقدر تغيّر الباقة أو تلغيها في أي وقت من «إدارة الاشتراك».</p></div>';
+  $('#viewDesigns').parentNode.appendChild(v);
+  v.addEventListener('change',function(e){if(e.target.name==='blInt'){BL.interval=e.target.value;blPaintPlans()}});
+  v.addEventListener('click',function(e){var b=e.target.closest('[data-blbuy],[data-blportal]');if(!b||BL.busy)return;if(b.dataset.blportal!=null)blPortal(b);else blBuy(b.dataset.blbuy,b)});
+  return v;
+}
+function blMsg(m,ok){var e=$('#blMsg');if(e){e.textContent=m||'';e.className='dlg-msg'+(ok?' ok':'')}}
+function blStatusText(){
+  var w=WS.cur,d=wsDays(w);
+  if(w.plan==='trial')return d>0?'تجربة مجانية · باقي '+NF.format(d)+' '+(d===1?'يوم':d===2?'يومين':d<=10?'أيام':'يوماً'):'انتهت التجربة المجانية';
+  var p=blPlan(w.plan),name=p?p.name_ar:w.plan,st=w.plan_status||'active';
+  var end=w.current_period_end?new Date(w.current_period_end).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'}):'';
+  if(st==='canceled')return 'باقة «'+name+'» · ملغية';
+  if(st==='past_due'||st==='unpaid')return 'باقة «'+name+'» · الدفع متأخر، حدّث البطاقة من «إدارة الاشتراك»';
+  return 'باقة «'+name+'»'+(w.billing_interval==='year'?' · سنوي':' · شهري')+(end?(w.cancel_at_period_end?' · تنتهي في '+end:' · التجديد في '+end):'');
+}
+function blBar(label,used,lim){
+  used=+used||0;var pct=lim?Math.min(100,Math.round(used/lim*100)):0;
+  return '<div class="bl-u"><div class="bl-ut"><span>'+label+'</span><b>'+NF.format(used||0)+(lim?' / '+NF.format(lim):'')+'</b></div>'+(lim?'<div class="bl-ub'+(pct>=90?' hi':'')+'"><i style="width:'+pct+'%"></i></div>':'<small>بدون حد</small>')+'</div>';
+}
+function blPaint(){
+  var w=WS.cur;$('#blSub').textContent=w.name;
+  var paid=w.plan!=='trial'&&w.stripe_customer_id;
+  $('#blNow').innerHTML='<div><span class="lab">باقتك الحالية</span><b>'+esc(blStatusText())+'</b></div>'+(paid?'<button type="button" class="btn ghost" data-blportal>إدارة الاشتراك والفواتير</button>':'');
+  var u=BL.usage||{};
+  $('#blUse').innerHTML='<h2>الاستهلاك هذا الشهر</h2>'+blBar('عمليات الذكاء الاصطناعي',u.conversions,blLimit('conversions_month'))+blBar('أعضاء الفريق',u.members,blLimit('seats'))+blBar('هويات العملاء',u.identities,blLimit('identities'))
+    +(BL.usage?'':'<p class="hint">الأرقام هتظهر بعد تفعيل جداول الاشتراك في قاعدة البيانات.</p>');
+  blPaintPlans();
+}
+function blPaintPlans(){
+  var w=WS.cur,yr=BL.interval==='year',L=(BL.plans||BL_FALLBACK).slice().sort(function(a,b){return a.sort-b.sort});
+  $('#blPlans').innerHTML=L.map(function(p){
+    var cur=w.plan===p.id&&['active','trialing','past_due'].indexOf(w.plan_status||'active')>-1&&w.plan!=='trial';
+    var price=yr?p.price_year_usd:p.price_month_usd,ent=p.price_month_usd==null;
+    var lim=function(v,t){return v==null?'بدون حد':NF.format(v)+' '+t};
+    return '<div class="bl-p'+(p.id==='team'?' pop':'')+(cur?' cur':'')+'">'+(p.id==='team'?'<span class="bl-tag">الأكثر طلباً</span>':'')
+      +'<h3>'+esc(p.name_ar)+'</h3>'
+      +(ent?'<div class="bl-price"><b>حسب الاتفاق</b></div>':'<div class="bl-price"><b>'+blMoney(price)+'</b><small>'+(yr?'في السنة':'في الشهر')+'</small></div>'+(yr&&p.price_month_usd?'<small class="bl-eq">يعني '+blMoney(Math.round(p.price_year_usd/12))+' في الشهر</small>':''))
+      +'<ul><li>'+lim(p.conversions_month,'عملية ذكاء اصطناعي في الشهر')+'</li><li>'+lim(p.images_month,'صورة مولّدة في الشهر')+'</li><li>'+lim(p.seats,p.seats===1?'مستخدم':'مستخدمين')+'</li><li>'+lim(p.identities,'هويات عملاء')+'</li>'
+      +(p.features||[]).map(function(f){return '<li>'+esc(f)+'</li>'}).join('')+'</ul>'
+      +(ent?(BL_CONTACT?'<a class="btn ghost" href="mailto:'+esc(BL_CONTACT)+'?subject='+encodeURIComponent('باقة المؤسسات · '+w.name)+'">تواصل معنا</a>':'<p class="hint">للمؤسسات: تواصل معنا لعرض سعر.</p>')
+        :cur?'<button type="button" class="btn ghost" disabled>باقتك الحالية</button>'
+        :'<button type="button" class="btn '+(p.id==='team'?'pink':'ghost')+'" data-blbuy="'+p.id+'">'+(w.plan!=='trial'&&w.stripe_customer_id?'التحويل لهذه الباقة':'اشترك')+'</button>')
+      +'</div>';
+  }).join('');
+}
+async function blGo(fn,payload,b){
+  BL.busy=true;var t=b.textContent;b.disabled=true;b.textContent='جارٍ التحويل لصفحة الدفع…';blMsg('');
+  try{
+    var j=await callFn(fn,payload);
+    if(j&&j.url){location.href=j.url;return}
+    blMsg(errText('stripe_error'));
+  }catch(e){blMsg(errText(e&&e.code))}
+  BL.busy=false;b.disabled=false;b.textContent=t;
+}
+function blBuy(id,b){blGo('billing-checkout',{plan:id,interval:BL.interval,workspace_id:WS.cur.id},b)}
+function blPortal(b){blGo('billing-portal',{workspace_id:WS.cur.id},b)}
+async function blShow(){blEl().hidden=false;blPaint();await blLoad();blPaint()}
+/* coming back from Stripe */
+function blReturn(){
+  var m=(location.search.match(/[?&]billing=(success|cancel|back)/)||[])[1];if(!m)return;
+  try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
+  setTimeout(function(){toast(m==='success'?'شكراً! تم الاشتراك، والتفعيل بياخد ثواني.':m==='cancel'?'ما تمّش الدفع. تقدر تحاول تاني في أي وقت.':'رجعت من إدارة الاشتراك.')},800);
+  if(m==='success')setTimeout(function(){if(typeof go==='function'&&WS.on&&!wsHouse()&&me.role==='admin')go('billing')},1200);
+}
+/* drawer + page switching + the trial pill opens this page */
+(function(){
+  var go1=go;
+  go=function(v){
+    if(v==='billing'&&(!WS.on||wsHouse()||me.role!=='admin'))v='studio';
+    go1(v);
+    var b=$('#viewBilling');if(b)b.hidden=v!=='billing';
+    if(v==='billing')blShow();
+  };
+  var nav0=wsNav;
+  wsNav=function(){
+    nav0();
+    var house=wsHouse(),t=$('.dr-nav [data-nav=billing]');
+    if(!t&&!house){
+      var ref=$('.dr-nav [data-nav=team]');if(!ref)return;
+      t=document.createElement('button');t.type='button';t.dataset.nav='billing';
+      t.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3"/></svg>الاشتراك';
+      ref.after(t);t.addEventListener('click',function(e){e.preventDefault();go('billing')});
+    }
+    if(t)t.hidden=house||me.role!=='admin';
+  };
+  var menu0=wsMenu;
+  wsMenu=function(){if(WS.list.length<2&&me.role==='admin'&&!wsHouse()){go('billing');return}menu0()};
+})();
+
+/* ---------- landing page: the same plans for visitors (read with the public key; built-in list before the table exists) ---------- */
+async function lpPricing(){
+  var box=$('#lpPlans');if(!box)return;
+  var L=BL_FALLBACK;
+  try{if(sb){var r=await sb.from('plans').select('*').eq('active',true).order('sort');if(!r.error&&r.data&&r.data.length)L=r.data}}catch(e){}
+  var open=typeof WS_SIGNUP!=='undefined'&&WS_SIGNUP;
+  var note=$('#lpPriceNote');if(note)note.textContent=open?'ابدأ بتجربة مجانية 14 يوماً بكل المزايا، من غير بطاقة.':'الأسعار بالدولار الأمريكي. للاشتراك تواصل معنا.';
+  var lim=function(v,t){return v==null?'بدون حد':NF.format(v)+' '+t};
+  box.innerHTML=L.slice().sort(function(a,b){return a.sort-b.sort}).map(function(p){
+    var ent=p.price_month_usd==null,pop=p.id==='team';
+    return '<div class="lp-plan'+(pop?' pop':'')+'">'+(pop?'<span class="tag">الأكثر طلباً</span>':'')+'<h3>'+esc(p.name_ar)+'</h3>'
+      +(ent?'<div class="pr"><b>حسب الاتفاق</b></div>':'<div class="pr"><b>'+blMoney(p.price_month_usd)+'</b><small>في الشهر</small></div>')
+      +'<ul>'+(ent?'':'<li>'+lim(p.conversions_month,'عملية ذكاء اصطناعي شهرياً')+'</li><li>'+lim(p.seats,p.seats===1?'مستخدم':'مستخدمين')+'</li><li>'+lim(p.identities,'هويات عملاء')+'</li>')+(p.features||[]).map(function(f){return '<li>'+esc(f)+'</li>'}).join('')+'</ul>'
+      +(open&&!ent?'<button type="button" class="lp-btn'+(pop?'':' ghost')+'" data-lptrial>ابدأ التجربة المجانية</button>':'<a class="lp-btn ghost" href="#contact" data-lpgo="contact">تواصل معنا</a>')
+      +'</div>';
+  }).join('');
+  box.addEventListener('click',function(e){
+    var t=e.target.closest('[data-lptrial]');if(t){var n=$('#navLogin');if(n)n.click();setTimeout(function(){var o=$('#suOpen');if(o)o.click()},60);return}
+    var g=e.target.closest('[data-lpgo]');if(g){e.preventDefault();var el=document.getElementById(g.dataset.lpgo);if(el)el.scrollIntoView({behavior:'smooth'})}
+  });
+  if(BL_CONTACT){var f=$('#contact');if(f)f.innerHTML='للاشتراك أو عرض سعر للمؤسسات: <a href="mailto:'+esc(BL_CONTACT)+'">'+esc(BL_CONTACT)+'</a>'}
+}
+function blInit(){blReturn();lpPricing()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',blInit);else blInit();
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
