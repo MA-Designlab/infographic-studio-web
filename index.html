@@ -1101,6 +1101,49 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
   .bar2[data-ab] .abrow .abshare{width:44px;padding:0!important}
   .bar2[data-ab] .abrow .abshare .abt,.bar2[data-ab] .abrow .abshare svg:not(.abico){display:none}
 }
+
+/* ---- undo / redo on the preview (undo.js) ---- */
+.unbar{position:absolute;top:10px;inset-inline-end:10px;z-index:5;display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line,#E4DDF1);border-radius:999px;background:rgba(255,255,255,.92)}
+.unbar[hidden]{display:none}
+.unb{width:32px;height:28px;display:grid;place-items:center;border:0;border-radius:999px;background:none;color:var(--ink,#241B3F);cursor:pointer;padding:0}
+.unb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+[dir=rtl] .unb svg{transform:scaleX(-1)}
+.unb:hover:not(:disabled){background:var(--soft,#F3EEFC)}
+.unb:disabled{opacity:.35;cursor:default}
+.unb:focus-visible{outline:2px solid var(--focus,#6D2FBF);outline-offset:1px}
+@media(max-width:920px){.unb{width:40px;height:36px}.unbar{position:fixed;top:auto;bottom:calc(84px + env(safe-area-inset-bottom));inset-inline-end:auto;inset-inline-start:12px;z-index:39;box-shadow:0 6px 18px rgba(43,15,77,.16)}}
+
+/* ---- new client identity wizard (brandkit.js) ---- */
+.dlg.bk{width:min(100%,860px)}
+.bk-steps{display:flex;gap:6px;list-style:none;margin:-4px 0 0;padding:0;flex-wrap:wrap}
+.bk-steps li{display:flex;align-items:center;gap:8px;padding:7px 12px 7px 14px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:13px;font-weight:600}
+.bk-steps li i{font-style:normal;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;font-size:11.5px}
+.bk-steps li.cur{background:var(--navy,#6D2FBF);color:#fff}
+.bk-steps li.cur i{color:var(--navy,#6D2FBF)}
+.bk-steps li.done{color:var(--ink)}
+.bk-grid{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:20px;align-items:start}
+.bk-body{display:flex;flex-direction:column;gap:14px;min-width:0}
+.bk-pv{margin:0;position:sticky;top:0;display:flex;flex-direction:column;gap:6px;align-items:center}
+.bk-pv canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(43,15,77,.10)}
+.bk-pv figcaption{font-size:12px;color:var(--muted)}
+.bk-logos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bk-lg{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;min-width:0}
+.bk-lg.dk{background:#24103F;color:#fff;border-color:#24103F}
+.bk-lg.dk small{color:#CFC3EA}
+.bk-lg small{color:var(--muted);font-size:12px}
+.bk-lg img{max-width:100%;max-height:70px;object-fit:contain;align-self:flex-start}
+.bk-lg .bk-none{font-size:12.5px;opacity:.7;padding:18px 0}
+.bk-lg.dk .btn{color:#fff;border-color:rgba(255,255,255,.35)}
+.bk-lg .x{border:0;background:none;color:#B3135F;font:500 12.5px/1 var(--fh);padding:8px 6px;cursor:pointer}
+.bk-lg.dk .x{color:#FFB3CF}
+.bk-sugg{display:flex;gap:8px;flex-wrap:wrap}
+.bk-sw{width:40px;height:40px;border-radius:12px;border:2px solid #fff;background:var(--c);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.bk-sw.on{box-shadow:0 0 0 2px var(--navy,#6D2FBF)}
+.bk-sw:focus-visible{outline:2px solid var(--focus,#6D2FBF);outline-offset:2px}
+.bk input[type=color]{width:100%;height:44px;padding:4px;border-radius:11px}
+.bk .bk-skip{margin-inline-start:auto}
+@media (max-width:720px){.bk-grid{grid-template-columns:1fr}.bk-pv{position:static;order:-1}.bk-pv canvas{width:150px}.bk-logos{grid-template-columns:1fr}}
+.bk-pv figcaption{text-align:center;max-width:240px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2719,7 +2762,7 @@ function dlgDismiss(id){
   if(id==='dlgPhotos'){var c=$('#pgCancel');if(c){c.click();return}}
   closeDlg('#'+id);
 }
-function openedDlg(){return ['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].filter(function(i){return !$(i).hidden})[0]}
+function openedDlg(){return ['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn','#dlgBrand'].filter(function(i){return !$(i).hidden})[0]}
 
 /* user dialog (add / new password) */
 var udMode='add';
@@ -2860,7 +2903,7 @@ async function loadStats(){
 
 /* ---------- sign-in flow ---------- */
 function showLogin(open){
-  setDrawer(false);['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn'].forEach(function(i){$(i).hidden=true});
+  setDrawer(false);['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn','#dlgBrand'].forEach(function(i){$(i).hidden=true});
   $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
   if(open)setTimeout(function(){$('#email').focus()},30);
 }
@@ -12678,6 +12721,7 @@ async function desOpenRow(d,own,note){
   else if(d.kind==='cz')desApplyCz(state);
   else desApplyCh(state);
   DES.cur[d.kind]=own?d.id:null;
+  if(typeof unReset==='function')unReset(d.kind);
   toast(note||(own?'تم فتح «'+d.name+'». كمّل التعديل وبعدها احفظه.':'فتحت «'+d.name+'» كنسخة من تصميم زميل. احفظها لتصير ملكك.'));
 }
 function desApplyIg(st){
@@ -12718,6 +12762,7 @@ function desBlankAll(o,base){Object.keys(o).forEach(function(k){delete o[k]});Ob
 async function desNew(kind){
   closeDlg('#dlgNew');
   DES.cur[kind]=null;if(typeof drClear==='function')drClear(kind);
+  if(typeof unReset==='function')unReset(kind);
   var c=CLI.cur&&cliFind(CLI.cur);
   try{
     if(kind==='ig'){
@@ -14425,6 +14470,313 @@ function opInit(){
   }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',opInit);else opInit();
+
+/* ===== undo / redo for every change to the design (Ctrl+Z, Ctrl+Shift+Z or Ctrl+Y, and two buttons on the preview) =====
+   A snapshot of the current mode's state is taken whenever it changes and then stays still for a moment
+   (a drag or a run of typing becomes ONE step). Pictures are kept as the same Image objects, so a step costs
+   only its JSON. The text in the source box is left alone: it has the browser's own undo. */
+var UN={ig:{h:[],i:-1},cz:{h:[],i:-1},ch:{h:[],i:-1},cand:{},down:false,max:80,bar:{}};
+function unMode(){return (document.querySelector('input[name=mode]:checked')||{}).value||'ig'}
+function unTake(k){
+  var reg={map:new Map(),list:[],n:0},st;
+  if(k==='ig')st=desPack(S,reg,'jpeg');
+  else if(k==='cz')st=desPack(CZ,reg,'jpeg');
+  else{
+    st=desPack(CH,reg,'jpeg');
+    st.__chi={pic:desPack(CHI.pic,reg,'png'),bg:desPack(CHI.bg,reg,'jpeg'),ov:{}};
+    Object.keys(CHI.ov).forEach(function(id){st.__chi.ov[id]=desPack(CHI.ov[id],reg,'png')});
+  }
+  var imgs={};reg.list.forEach(function(it){imgs[it.key]=it.im});
+  return{json:JSON.stringify(st),imgs:imgs};
+}
+function unOpenSecs(){return $$('.ac.open[data-ac]').filter(function(a){return a.offsetParent}).map(function(a){return a.dataset.ac})}
+/* drop keys the step does not have (it is assigned on top afterwards); keep what a snapshot never holds */
+function unTrim(o,st){Object.keys(o).forEach(function(x){if(x!=='geo'&&typeof o[x]!=='function'&&!(x in st))delete o[x]})}
+function unApply(k,snap){
+  var st=desRevive(JSON.parse(snap.json),snap.imgs),open=unOpenSecs();
+  if(k==='ig'){
+    var src=$('#src').value;
+    unTrim(S,st);st.__src=src;desApplyIg(st);
+  }else if(k==='cz'){
+    var src2=$('#czSrc').value;
+    unTrim(CZ,st);st.__src=src2;desApplyCz(st);
+  }else{
+    var tsv=$('#chSrc').value;desApplyCh(st);$('#chSrc').value=tsv;
+  }
+  /* keep the sections the person had open */
+  open.forEach(function(id){var a=document.querySelector('.ac[data-ac="'+id+'"]');if(a&&!a.classList.contains('open')){var h=a.querySelector('.ac-h');if(h)h.click()}});
+}
+function unBlank(k){try{return typeof ehBlank==='function'&&ehBlank(k)}catch(e){return false}}
+function unTick(){
+  if(document.hidden||UN.down)return;
+  var k=unMode(),H=UN[k];if(!H)return;
+  var s;try{s=unTake(k)}catch(e){return}
+  var top=H.i>=0?H.h[H.i]:null;
+  if(top&&top.json===s.json){UN.cand[k]=null;return}
+  /* changed: wait one more tick so a drag or a burst of typing becomes a single step */
+  var c=UN.cand[k];
+  if(!c||c.json!==s.json){UN.cand[k]=s;return}
+  UN.cand[k]=null;
+  H.h=H.h.slice(0,H.i+1);H.h.push(s);
+  if(H.h.length>UN.max)H.h.shift();
+  H.i=H.h.length-1;unPaint();
+}
+function unCan(k,d){var H=UN[k];return d<0?H.i>0:H.i<H.h.length-1}
+function unStep(d){
+  var k=unMode(),H=UN[k];
+  unTick();                       /* a change still settling becomes a step before it is undone */
+  var c=UN.cand[k];if(c){UN.cand[k]=null;H.h=H.h.slice(0,H.i+1);H.h.push(c);H.i=H.h.length-1}
+  if(!unCan(k,d))return false;
+  H.i+=d;
+  try{unApply(k,H.h[H.i])}catch(e){H.i-=d;return false}
+  /* the state as the page now holds it (drawing can tidy a few values) becomes this step */
+  try{H.h[H.i]=unTake(k)}catch(e){}
+  UN.cand[k]=null;unPaint();
+  return true;
+}
+/* a fresh history whenever a different design is opened, made new, or generated from text */
+function unReset(k){var H=UN[k||unMode()];H.h=[];H.i=-1;UN.cand[k||unMode()]=null;unPaint()}
+function unPaint(){
+  var k=unMode();
+  Object.keys(UN.bar).forEach(function(m){
+    var b=UN.bar[m];if(!b)return;
+    b.u.disabled=!unCan(m,-1);b.r.disabled=!unCan(m,1);
+    b.el.hidden=unBlank(m)&&!unCan(m,-1)&&!unCan(m,1);
+  });
+}
+function unEditable(t){
+  if(!t||!t.closest)return false;
+  if(t.closest('textarea,[contenteditable=""],[contenteditable=true]'))return true;
+  var i=t.closest('input');return !!(i&&!/^(checkbox|radio|range|color|button|submit|file)$/.test(i.type));
+}
+function unInit(){
+  var IC={u:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>',
+          r:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/></svg>'};
+  [['.sheetwrap','ig'],['#czWrap','cz'],['#chWrap','ch']].forEach(function(p){
+    var w=document.querySelector(p[0]);if(!w||w.querySelector('.unbar'))return;
+    var el=document.createElement('div');el.className='unbar';el.setAttribute('role','group');el.setAttribute('aria-label','التراجع والإعادة');
+    el.innerHTML='<button type="button" class="unb" data-un="-1" aria-label="تراجع" title="تراجع (Ctrl+Z)">'+IC.u+'</button><button type="button" class="unb" data-un="1" aria-label="إعادة" title="إعادة (Ctrl+Shift+Z)">'+IC.r+'</button>';
+    w.appendChild(el);
+    UN.bar[p[1]]={el:el,u:el.querySelector('[data-un="-1"]'),r:el.querySelector('[data-un="1"]')};
+    ['pointerdown','mousedown','touchstart'].forEach(function(ev){el.addEventListener(ev,function(e){e.stopPropagation()})});
+    el.addEventListener('click',function(e){var b=e.target.closest('[data-un]');if(b){unStep(+b.dataset.un)}});
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.defaultPrevented||!(e.ctrlKey||e.metaKey)||e.altKey)return;   /* a delete of a free element has its own undo */
+    var key=(e.key||'').toLowerCase(),code=e.code||'';
+    var z=key==='z'||code==='KeyZ',y=key==='y'||code==='KeyY';
+    if(!z&&!y)return;
+    if(unEditable(e.target)||(typeof openedDlg==='function'&&openedDlg()))return;
+    var v=$('#viewStudio');if(v&&v.offsetParent===null&&v.hidden!==false)return;
+    e.preventDefault();unStep(z&&!e.shiftKey?-1:1);
+  });
+  /* while a finger or the mouse is down a drag is still going on */
+  document.addEventListener('pointerdown',function(){UN.down=true},true);
+  ['pointerup','pointercancel'].forEach(function(ev){document.addEventListener(ev,function(){UN.down=false},true)});
+  document.addEventListener('change',function(e){if(e.target&&e.target.name==='mode')setTimeout(unPaint,0)});
+  setInterval(unTick,350);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',unInit);else unInit();
+
+/* ===== new client identity, step by step: name + logo -> colours (read from the logo) -> fonts, with a live preview =====
+   Nothing is stored until «إنشاء الهوية»: then the client row is made, the files go to clients/<id>/ and the
+   profile is saved, exactly as the full editor would. «المحرر الكامل» keeps the old one-click path. */
+var BK={step:0,name:'',logo:{light:null,dark:null},urls:{},colors:{main:'',accent:''},theme:'',fonts:{head:null,body:null,num:null},fam:{},sugg:[],busy:false};
+var BK_STEPS=['الاسم والشعار','الألوان','الخطوط'];
+function bkReset(){
+  Object.keys(BK.urls).forEach(function(k){try{URL.revokeObjectURL(BK.urls[k])}catch(e){}});
+  BK={step:0,name:'',logo:{light:null,dark:null},urls:{},colors:{main:'',accent:''},theme:'',fonts:{head:null,body:null,num:null},fam:{},sugg:[],busy:false};
+}
+function bkEl(){
+  var w=$('#dlgBrand');if(w)return w;
+  w=document.createElement('div');w.className='dlg-wrap';w.id='dlgBrand';w.hidden=true;
+  w.innerHTML='<div class="dlg wide bk" role="dialog" aria-modal="true" aria-labelledby="bkTitle">'
+    +'<h3 id="bkTitle">هوية عميل جديد</h3>'
+    +'<ol class="bk-steps" id="bkSteps"></ol>'
+    +'<div class="bk-grid"><div class="bk-body" id="bkBody"></div>'
+    +'<figure class="bk-pv"><canvas id="bkCv" width="540" height="675" role="img" aria-label="معاينة الهوية"></canvas><figcaption>معاينة تقريبية</figcaption></figure></div>'
+    +'<p class="dlg-msg" id="bkMsg" role="status" aria-live="polite"></p>'
+    +'<div class="dlg-act"><button type="button" class="btn pink" id="bkNext"></button><button type="button" class="btn ghost" id="bkBack">رجوع</button>'
+    +'<button type="button" class="btn ghost bk-skip" id="bkSkip">المحرر الكامل</button></div></div>';
+  document.body.appendChild(w);
+  w.addEventListener('click',bkClick);w.addEventListener('input',bkInput);w.addEventListener('change',bkChange);
+  w.addEventListener('mousedown',function(e){if(e.target===w&&!BK.busy)bkClose()});
+  w.addEventListener('keydown',function(e){if(e.key==='Escape'&&!BK.busy){e.stopPropagation();bkClose()}});
+  return w;
+}
+function bkOpen(){bkReset();bkEl();bkPaint();openDlg('#dlgBrand','#bkName')}
+function bkClose(){var w=$('#dlgBrand');if(w)closeDlg('#dlgBrand');bkReset()}
+function bkMsg(m,ok){var e=$('#bkMsg');if(e){e.textContent=m||'';e.className='dlg-msg'+(ok?' ok':'')}}
+function bkSw(c,on,lab){return '<button type="button" class="bk-sw'+(on?' on':'')+'" data-bkc="'+c+'" style="--c:'+c+'" aria-label="'+(lab||c)+'" aria-pressed="'+!!on+'"></button>'}
+function bkPaint(){
+  $('#bkSteps').innerHTML=BK_STEPS.map(function(t,i){return '<li class="'+(i===BK.step?'cur':i<BK.step?'done':'')+'"'+(i===BK.step?' aria-current="step"':'')+'><i>'+(i+1)+'</i>'+t+'</li>'}).join('');
+  var h='';
+  if(BK.step===0){
+    h='<div class="field"><label for="bkName">اسم العميل أو الجهة</label><input type="text" id="bkName" maxlength="60" value="'+esc(BK.name)+'" placeholder="مثال: هيئة الطرق"></div>'
+      +'<div class="bk-logos">'+[['light','الشعار للخلفية الفاتحة','غالباً الشعار الملوّن'],['dark','للخلفية الداكنة (اختياري)','غالباً الأبيض']].map(function(k){
+        var f=BK.logo[k[0]];
+        return '<div class="bk-lg'+(k[0]==='dark'?' dk':'')+'"><b>'+k[1]+'</b><small>'+k[2]+'</small>'+(f?'<img alt="" src="'+BK.urls['logo_'+k[0]]+'">':'<span class="bk-none">لا يوجد</span>')
+          +'<div class="row"><label class="btn ghost sm upl">'+(f?'استبدال':'رفع الشعار')+'<input type="file" hidden accept="image/png,image/jpeg,image/webp" data-bkup="logo:'+k[0]+'"></label>'+(f?'<button type="button" class="x" data-bkrm="logo:'+k[0]+'">إزالة</button>':'')+'</div></div>';
+      }).join('')+'</div><p class="hint">PNG بخلفية شفافة أفضل. نقرأ ألوان الهوية من الشعار في الخطوة التالية.</p>';
+  }else if(BK.step===1){
+    var s=BK.sugg;
+    h=(s.length?'<div class="field"><span class="lab">ألوان من الشعار</span><div class="bk-sugg">'+s.map(function(c){return bkSw(c,c===BK.colors.main||c===BK.colors.accent)}).join('')+'</div><p class="hint">اضغط لون ليبقى الرئيسي، واضغط آخر ليبقى لون التمييز.</p></div>':'<p class="hint">ما فيه شعار نقرأ منه الألوان، فاختارها بنفسك.</p>')
+      +'<div class="two"><div class="field"><label for="bkMain">اللون الرئيسي</label><input type="color" id="bkMain" value="'+(BK.colors.main||'#0C5750')+'"></div>'
+      +'<div class="field"><label for="bkAccent">لون التمييز</label><input type="color" id="bkAccent" value="'+(BK.colors.accent||'#E59B0F')+'"></div></div>'
+      +'<div class="field"><span class="lab">النمط الافتراضي</span><div class="seg full">'+[['','حسب كل تصميم'],['light','فاتح'],['dark','داكن']].map(function(o){return '<label><input type="radio" name="bkTheme" value="'+o[0]+'"'+(BK.theme===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div></div>';
+  }else{
+    h='<p class="hint">ارفع خطوط الهوية (WOFF أو TTF أو OTF، حتى 6 ميجابايت). كل خانة اختيارية، واللي تسيبها يستخدم الخط الافتراضي. تقدر تضيف خطوطاً أكثر بعدين من المحرر الكامل.</p>'
+      +CL_ROLES.map(function(r){var f=BK.fonts[r[0]];
+        return '<div class="rowf frow"><div class="ft"><b>'+r[1]+'</b><small>'+r[2]+'</small><span class="fn"'+(BK.fam[r[0]]?' style="font-family:\''+BK.fam[r[0]]+'\'"':'')+'>'+(f?esc(f.name.replace(/\.[a-z0-9]+$/i,'').slice(0,40))+' · أبجد 123':'الخط الافتراضي')+'</span></div>'
+          +'<div class="row"><label class="btn ghost sm upl">'+(f?'استبدال':'رفع خط')+'<input type="file" hidden accept=".woff,.woff2,.ttf,.otf" data-bkup="font:'+r[0]+'"></label>'+(f?'<button type="button" class="x" data-bkrm="font:'+r[0]+'">إزالة</button>':'')+'</div></div>';
+      }).join('');
+  }
+  $('#bkBody').innerHTML=h;
+  $('#bkNext').textContent=BK.step<2?'التالي':'إنشاء الهوية';
+  $('#bkBack').hidden=BK.step===0;
+  bkDraw();
+}
+/* ---------- colours read from the logo: the most common saturated tones, merged when close ---------- */
+function bkHex(r,g,b){return '#'+[r,g,b].map(function(x){return ('0'+Math.round(x).toString(16)).slice(-2)}).join('').toUpperCase()}
+function bkColors(im){
+  var n=96,k=Math.min(1,n/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k));
+  var c=document.createElement('canvas');c.width=w;c.height=h;var g=c.getContext('2d');g.drawImage(im,0,0,w,h);
+  var d;try{d=g.getImageData(0,0,w,h).data}catch(e){return []}
+  var bins={};
+  for(var i=0;i<d.length;i+=4){
+    if(d[i+3]<160)continue;
+    var r=d[i],gg=d[i+1],b=d[i+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);
+    if(mx>240&&mn>225)continue;                   /* white paper */
+    var sat=mx?(mx-mn)/mx:0;if(sat<.18&&mx>60)continue;  /* greys (keep near-black) */
+    var key=(r>>4)+','+(gg>>4)+','+(b>>4),o=bins[key]||(bins[key]={n:0,r:0,g:0,b:0});o.n++;o.r+=r;o.g+=gg;o.b+=b;
+  }
+  var L=Object.keys(bins).map(function(k){var o=bins[k];return{n:o.n,r:o.r/o.n,g:o.g/o.n,b:o.b/o.n}}).sort(function(a,b){return b.n-a.n});
+  var out=[];
+  L.forEach(function(c){
+    if(out.length>=5)return;
+    if(out.some(function(o){return Math.abs(o.r-c.r)+Math.abs(o.g-c.g)+Math.abs(o.b-c.b)<90}))return;
+    out.push(c);
+  });
+  return out.map(function(c){return bkHex(c.r,c.g,c.b)});
+}
+function bkLum(hex){var v=parseInt(hex.slice(1),16),r=(v>>16)&255,g=(v>>8)&255,b=v&255;return (r*299+g*587+b*114)/1000}
+function bkLoadImg(file){return new Promise(function(res){var u=URL.createObjectURL(file),im=new Image();im.onload=function(){res({im:im,url:u})};im.onerror=function(){URL.revokeObjectURL(u);res(null)};im.src=u})}
+async function bkLoadFont(role,file){
+  try{var fam='BkF_'+role+'_'+Date.now();var f=new FontFace(fam,await file.arrayBuffer());await f.load();document.fonts.add(f);return fam}catch(e){return ''}
+}
+/* ---------- preview: a small cover in the identity ---------- */
+function bkDraw(){
+  var cv=$('#bkCv');if(!cv)return;var g=cv.getContext('2d'),W=cv.width,H=cv.height;
+  var main=BK.colors.main||'#0C5750',acc=BK.colors.accent||'#E59B0F',dark=BK.theme==='dark'||(BK.theme===''&&bkLum(main)<110);
+  var bg=dark?main:'#FFFFFF',ink=dark?'#FFFFFF':main,head=BK.fam.head||'BahijXBold, AlIttihad, sans-serif',body=BK.fam.body||'BahijPlain, sans-serif',num=BK.fam.num||'DINCond, sans-serif';
+  var q=function(f){return /,/.test(f)?f:'"'+f+'"'};
+  g.fillStyle=bg;g.fillRect(0,0,W,H);
+  if(!dark){g.fillStyle=main;g.globalAlpha=.07;g.fillRect(0,H*.62,W,H*.38);g.globalAlpha=1}
+  var lg=dark?(BK.logo.dark||BK.logo.light):(BK.logo.light||BK.logo.dark),im=lg&&lg.im;
+  if(im){var k=Math.min(150/im.naturalWidth,70/im.naturalHeight);g.drawImage(im,W-30-im.naturalWidth*k,28,im.naturalWidth*k,im.naturalHeight*k)}
+  else{g.fillStyle=ink;g.globalAlpha=.25;g.fillRect(W-170,34,140,46);g.globalAlpha=1}
+  g.direction='rtl';g.textAlign='center';
+  g.fillStyle=acc;var t='خبر اقتصادي';g.font='600 22px '+q(body);var tw=g.measureText(t).width+28;g.fillRect(W/2-tw/2,150,tw,40);
+  g.fillStyle=bkLum(acc)>150?'#1A1A1A':'#FFFFFF';g.fillText(t,W/2,178);
+  g.fillStyle=ink;g.font='800 46px '+q(head);g.fillText(BK.name||'اسم العميل',W/2,262);
+  g.font='400 24px '+q(body);g.globalAlpha=.85;g.fillText('عنوان فرعي يشرح الخبر في سطر واحد',W/2,306);g.globalAlpha=1;
+  g.fillStyle=dark?acc:main;g.font='700 150px '+q(num);g.fillText('176',W/2,500);
+  g.fillStyle=ink;g.font='500 24px '+q(body);g.fillText('ألف مستفيد خلال العام',W/2,550);
+  g.fillStyle=acc;g.fillRect(W/2-40,590,80,6);
+  var cap=cv.parentNode&&cv.parentNode.querySelector('figcaption');
+  if(cap)cap.textContent=dark&&BK.logo.light&&!BK.logo.dark?'الخلفية هنا داكنة: ارفع شعاراً للخلفية الداكنة (غالباً الأبيض) ليظهر بوضوح.':'معاينة تقريبية';
+}
+/* ---------- events ---------- */
+async function bkChange(e){
+  var t=e.target,up=t.dataset&&t.dataset.bkup;
+  if(t.name==='bkTheme'){BK.theme=t.value;bkDraw();return}
+  if(!up||!t.files||!t.files[0])return;
+  var file=t.files[0],k=up.split(':'),ext=((file.name.match(/\.([a-z0-9]+)$/i)||[])[1]||'').toLowerCase();t.value='';
+  if(k[0]==='logo'){
+    if(!/^(png|jpe?g|webp)$/.test(ext)){bkMsg('الشعار لازم يكون PNG أو JPG أو WebP.');return}
+    if(file.size>3*1048576){bkMsg('الشعار كبير. الحد 3 ميجابايت.');return}
+    var r=await bkLoadImg(file);if(!r){bkMsg('تعذّر قراءة الصورة.');return}
+    if(BK.urls['logo_'+k[1]])URL.revokeObjectURL(BK.urls['logo_'+k[1]]);
+    BK.logo[k[1]]={file:file,im:r.im};BK.urls['logo_'+k[1]]=r.url;
+    if(k[1]==='light'||!BK.logo.light){
+      BK.sugg=bkColors(r.im);
+      var s=BK.sugg.slice().sort(function(a,b){return bkLum(a)-bkLum(b)});
+      if(BK.sugg.length){BK.colors.main=BK.sugg[0];BK.colors.accent=BK.sugg[1]||s[s.length-1]||BK.colors.accent}
+    }
+    bkMsg('');bkPaint();return;
+  }
+  if(!/^(woff2?|ttf|otf)$/.test(ext)){bkMsg('الخط لازم يكون WOFF أو TTF أو OTF.');return}
+  if(file.size>6*1048576){bkMsg('الخط كبير. الحد 6 ميجابايت.');return}
+  var fam=await bkLoadFont(k[1],file);
+  if(!fam){bkMsg('تعذّر قراءة ملف الخط.');return}
+  BK.fonts[k[1]]=file;BK.fam[k[1]]=fam;bkMsg('');bkPaint();
+}
+function bkInput(e){
+  var t=e.target;
+  if(t.id==='bkName'){BK.name=t.value;bkDraw()}
+  else if(t.id==='bkMain'){BK.colors.main=t.value.toUpperCase();bkSugPaint();bkDraw()}
+  else if(t.id==='bkAccent'){BK.colors.accent=t.value.toUpperCase();bkSugPaint();bkDraw()}
+}
+function bkSugPaint(){$$('[data-bkc]',$('#bkBody')).forEach(function(b){var on=b.dataset.bkc===BK.colors.main||b.dataset.bkc===BK.colors.accent;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))})}
+function bkClick(e){
+  var b=e.target.closest('button');if(!b||BK.busy)return;
+  if(b.dataset.bkc){
+    var c=b.dataset.bkc;
+    if(c===BK.colors.main)return;
+    if(c===BK.colors.accent){BK.colors.accent=BK.colors.main;BK.colors.main=c}else{BK.colors.accent=BK.colors.main;BK.colors.main=c}
+    $('#bkMain').value=BK.colors.main;$('#bkAccent').value=BK.colors.accent;bkSugPaint();bkDraw();return;
+  }
+  if(b.dataset.bkrm){var k=b.dataset.bkrm.split(':');if(k[0]==='logo'){BK.logo[k[1]]=null}else{BK.fonts[k[1]]=null;BK.fam[k[1]]=''}bkPaint();return}
+  if(b.id==='bkBack'){BK.step=Math.max(0,BK.step-1);bkMsg('');bkPaint();return}
+  if(b.id==='bkSkip'){bkClose();clCreate();return}
+  if(b.id==='bkNext'){
+    if(BK.step===0&&!BK.name.trim()){bkMsg('اكتب اسم العميل.');var n=$('#bkName');if(n)n.focus();return}
+    if(BK.step<2){BK.step++;bkMsg('');bkPaint();var f=$('#bkBody input,#bkBody button,#bkBody label');if(f&&f.focus)try{f.focus()}catch(x){}return}
+    bkCreate();
+  }
+}
+async function bkUp(id,kind,file){
+  var ext=((file.name.match(/\.([a-z0-9]+)$/i)||[])[1]||'').toLowerCase();
+  var ct={woff:'font/woff',woff2:'font/woff2',ttf:'font/ttf',otf:'font/otf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp'}[ext];
+  var path=id+'/'+kind.replace(':','-')+'-'+Date.now()+'.'+ext;
+  var r=await sb.storage.from('clients').upload(path,file,{contentType:ct,upsert:false});
+  return r.error?null:path;
+}
+async function bkCreate(){
+  BK.busy=true;var nb=$('#bkNext');nb.disabled=true;bkMsg('جارٍ إنشاء الهوية…',true);
+  try{
+    var name=BK.name.trim().slice(0,60);
+    var r=await sb.from('clients').insert({name:name,profile:{v:1},created_by:me.email}).select('id,name,profile,active,updated_at').maybeSingle();
+    if(r.error||!r.data)throw new Error('create');
+    var row=r.data,id=row.id,prof={v:1,colors:{}},miss=[];
+    CLI.list.push(row);
+    if(BK.colors.main)prof.colors.main=BK.colors.main;
+    if(BK.colors.accent)prof.colors.accent=BK.colors.accent;
+    if(BK.theme)prof.colors.theme=BK.theme;
+    var lgs=['light','dark'].filter(function(k){return BK.logo[k]});
+    for(var i=0;i<lgs.length;i++){var p=await bkUp(id,'logo:'+lgs[i],BK.logo[lgs[i]].file);if(p){prof.logo=prof.logo||{};prof.logo[lgs[i]]=p}else miss.push('الشعار')}
+    if(prof.logo)prof.logo.mode='client';
+    var roles=CL_ROLES.map(function(x){return x[0]}).filter(function(k){return BK.fonts[k]});
+    for(var j=0;j<roles.length;j++){var f=BK.fonts[roles[j]],q=await bkUp(id,'font:'+roles[j],f);if(q){prof.fonts=prof.fonts||{};prof.fonts[roles[j]]={path:q,name:f.name.replace(/\.[a-z0-9]+$/i,'').slice(0,40),lang:'all'}}else miss.push('خط')}
+    var u=await sb.from('clients').update({profile:edClean(prof)}).eq('id',id).select('id,name,profile,active,updated_at').maybeSingle();
+    if(u.error||!u.data)throw new Error('save');
+    var ix=CLI.list.findIndex(function(c){return c.id===id});if(ix>-1)CLI.list[ix]=u.data;
+    CLI.list.sort(function(a,b){return a.name.localeCompare(b.name,'ar')});cliPaint();
+    BK.busy=false;bkClose();
+    edOpen(id);
+    edMsg(miss.length?('اتعملت الهوية، لكن تعذّر رفع: '+miss.join('، ')+'. ارفعها من هنا.'):'اتعملت الهوية. تقدر تكمّل التفاصيل هنا (الشارات، النبرة، معالجة الصور) أو تضغط «تطبيق».',!miss.length);
+    toast('تم إنشاء هوية «'+name+'».');
+  }catch(x){
+    BK.busy=false;nb.disabled=false;bkMsg('تعذّر إنشاء الهوية. تأكد أن حسابك مسؤول وأعد المحاولة.');
+  }
+}
+function bkInit(){
+  bkEl();   /* the dialog exists from the start: the app's dialog list looks it up */
+  var b=$('#clNew');if(!b||b.dataset.bk)return;b.dataset.bk='1';
+  /* the wizard takes the button's click before the old one-step create */
+  b.addEventListener('click',function(e){e.stopImmediatePropagation();bkOpen()},true);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bkInit);else bkInit();
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
