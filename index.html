@@ -2045,7 +2045,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 <script>
 (function(){
 'use strict';
-var W=1080,H=1350,K=2250/1080,M=70;
+var W=1080,H=1350,K=2250/1080,M=70,OV_K=2250/1080;
 var IG_SIZES={'4:5':1350,'1:1':1080,'9:16':1920};
 /* story (9:16): keep logos and numbers clear of the platform's own top bar and reply bar */
 function igDy(){return S.size==='9:16'?216:0}
@@ -2219,9 +2219,10 @@ function bgPhotoFaded(im,ph,fd,th){
 function drawOverlay0(){
   var sec=S.sec;if(sec==='none')return;
   var key=sec+'_'+S.theme,im=OV[key];
-  if(im&&sec!=='news'){ctx.drawImage(im,0,0,im.naturalWidth,Math.min(520,im.naturalHeight),0,0,W,Math.min(520,im.naturalHeight)/K);return}
+  /* the artwork is drawn for a 2250-px-wide export: its scale is fixed, not the canvas scale K (the motion preview draws with K=1) */
+  if(im&&sec!=='news'){ctx.drawImage(im,0,0,im.naturalWidth,Math.min(520,im.naturalHeight),0,0,W,Math.min(520,im.naturalHeight)/OV_K);return}
   var base=OV['eco_'+S.theme];if(!base)return;
-  ctx.drawImage(base,0,0,1125,520,0,0,1125/K,520/K);
+  ctx.drawImage(base,0,0,1125,520,0,0,1125/OV_K,520/OV_K);
 }
 
 /* ---------- title block ---------- */
@@ -9271,6 +9272,7 @@ function mvChips(){
     mvQ(r,'.chips').innerHTML=list.map(function(t){return '<button type="button" class="chip" data-mvmus="'+t.id+'" aria-pressed="'+(V.music===t.id)+'">'+esc(t.n)+'</button>'}).join('');
     mvQ(r,'.mvmine').hidden=!(V.mine&&V.music==='mine');
     mvQ(r,'.mvmusname').textContent=V.mine?V.mineName+' · '+Math.round(V.mine.duration)+' ث':'';
+    var cv0=mvQ(r,'[data-mvcov][value="'+(V.cover||'frame')+'"]');if(cv0)cv0.checked=true;
     var vol=mvQ(r,'.mvvol');vol.value=Math.round(V.vol*100);mvQ(r,'.mvvolv').textContent=vol.value;mvQ(r,'.mvsfx').checked=!!V.sfx;
   });
 }
@@ -9284,6 +9286,7 @@ function mvHtml(m){
     +'<div class="mvmine" hidden><label>يبدأ التراك من الثانية</label><input type="number" class="mvstart" min="0" step="0.5" value="0" aria-label="يبدأ التراك من الثانية"></div></div>'
     +'<div class="field"><label>مستوى الصوت <b class="mvvolv">80</b>%</label><input type="range" class="mvvol" min="0" max="100" value="80" aria-label="مستوى الصوت"></div>'
     +'<div class="field"><label class="check"><input type="checkbox" class="mvsfx" checked> مؤثرات صوتية مع ظهور العناصر</label></div>'
+    +'<div class="field"><span class="lab">غلاف الفيديو</span><div class="seg full"><label><input type="radio" name="mvcov_'+m+'" data-mvcov value="frame"><span>أول فريم</span></label><label><input type="radio" name="mvcov_'+m+'" data-mvcov value="hold"><span>نص ثانية</span></label><label><input type="radio" name="mvcov_'+m+'" data-mvcov value="off"><span>بدون</span></label></div><p class="hint">التصميم كامل في أول الفيديو، علشان الصورة المصغّرة على المنصات متبقاش فاضية.</p></div>'
     +'<div class="row"><button type="button" class="tool" data-mvplay aria-pressed="false">تشغيل الحركة</button><button type="button" class="primary" data-mvdl>تنزيل فيديو MP4</button></div>'
     +'<div class="mvprog" hidden><div class="mvbar"><i></i></div><p class="hint mvtxt"></p><button type="button" class="mini" data-mvcancel hidden>إلغاء</button></div>'
     +'<p class="hint">'+hint+' الفيديو يُنزَّل كملف مباشرة على جهازك.</p>'
@@ -9315,10 +9318,15 @@ async function mvExport(m,opts){
   var D=opts.dur||MV.V.dur,fps=30,out=null,msg='',ret=null;
   try{
     anBegin(D,m);
-    var mix=null;try{mix=await MV.getMix(D,anPops())}catch(e){mix=null}
+    /* the cover: the finished design as the first frame (what platforms show as the thumbnail), or held half a second
+       before the animation starts (then the animation and its sound effects start that much later) */
+    var cover=opts.cover||MV.V.cover||'frame',hold=cover==='hold'?.5:0;
+    var pops=anPops();if(hold)pops=pops.map(function(x){return Math.round((x+hold)*100)/100});
+    var mix=null;try{mix=await MV.getMix(D,pops)}catch(e){mix=null}
+    var frame=function(t){if(cover!=='off'&&t<(hold||.5/fps))anFrame(D);else anFrame(Math.max(0,t-hold))};
     var cancelled=function(){return MVS.cancel},C=anT().cv();
-    if(!opts.mr&&window.VideoEncoder&&window.VideoFrame){try{out=await MV.encodeWC(C,mix,D,fps,anFrame,mvProg,cancelled)}catch(e){if(e==='cancel')throw e;if(window.console)console.warn(e);out=null}}
-    if(!out)out=await MV.encodeMR(C,mix,D,fps,anFrame,mvProg,cancelled);
+    if(!opts.mr&&window.VideoEncoder&&window.VideoFrame){try{out=await MV.encodeWC(C,mix,D,fps,frame,mvProg,cancelled)}catch(e){if(e==='cancel')throw e;if(window.console)console.warn(e);out=null}}
+    if(!out)out=await MV.encodeMR(C,mix,D,fps,frame,mvProg,cancelled);
     anFinish();
     var name=mvName(m)+' '+D+'s.'+out.ext;mvSave(out.blob,name);ret={name:name,size:out.blob.size,type:out.blob.type,ext:out.ext};
     msg='تم تنزيل الفيديو ('+(out.blob.size/1048576).toFixed(1)+' ميجابايت)'+(out.ext==='mp4'?'.':' بصيغة WebM لأن هذا المتصفح لا يصنع MP4. جرّب Chrome أو Edge أو Safari الحديث للحصول على MP4.');
@@ -9341,6 +9349,7 @@ function mvBind(r){
       else{var sel=$('#igSize');if(sel){sel.value=t.value;sel.dispatchEvent(new Event('change',{bubbles:true}))}else{S.size=t.value;render()}}
       mvNote();return}
     if(t.hasAttribute('data-mvdur')){MV.V.dur=+t.value;mvStop();mvNote();return}
+    if(t.hasAttribute('data-mvcov')){MV.V.cover=t.value;try{localStorage.setItem('mv_cover',t.value)}catch(x){}mvRoots().forEach(function(o){var q=mvQ(o,'[data-mvcov][value="'+t.value+'"]');if(q)q.checked=true});return}
     if(t.classList.contains('mvsfx')){MV.V.sfx=t.checked;mvChips();return}
     if(t.classList.contains('mvstart')){MV.V.mineStart=Math.max(0,parseFloat(t.value)||0);return}
     if(t.classList.contains('mvfile')){
@@ -9363,6 +9372,8 @@ function mvBind(r){
   });
 }
 function mvInit(){
+  try{var c0=localStorage.getItem('mv_cover');if(/^(frame|hold|off)$/.test(c0||''))MV.V.cover=c0}catch(e){}
+  if(!MV.V.cover)MV.V.cover='frame';
   [['ig','#acc'],['ch','#chAccordion']].forEach(function(p){
     var acc=$(p[1]);if(!acc||mvRoot(p[0]))return;
     acc.insertAdjacentHTML('beforeend',mvHtml(p[0]));mvBind(mvRoot(p[0]));
