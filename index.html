@@ -221,6 +221,35 @@ input[type=password],input[type=email]{width:100%;font:inherit;color:var(--ink);
 @media (max-width:560px){.lp-feats-in{grid-template-columns:1fr}}
 .lp-foot a{color:#fff;font-weight:700}
 .lp-foot{margin:0}.lp-plan a.lp-btn{text-decoration:none;display:inline-flex;align-items:center}
+/* ---- live demo (demo.js) ---- */
+.lp-try{background:var(--lp-bg2);padding:64px 24px 40px}
+.lp-try-in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:start}
+.lp-try-form textarea{width:100%;box-sizing:border-box;min-height:220px;resize:vertical;border-radius:16px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff;font:400 16px/1.7 inherit;font-family:inherit;padding:16px 18px}
+.lp-try-form textarea::placeholder{color:#bda9e8}
+.lp-try-form textarea:focus{outline:none;border-color:var(--lp-pink);box-shadow:0 0 0 3px rgba(243,45,126,.25)}
+.lp-try-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:14px}
+.lp-try-row .lp-btn.ghost{padding:11px 22px}
+.lp-try-left{color:#bda9e8;font-size:13.5px}
+.lp-try-msg{min-height:22px;margin:12px 0 0;color:#ffd2e5;font-size:14.5px}
+.lp-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.lp-try-out{display:flex;flex-direction:column;align-items:center;gap:14px}
+.lp-try-card{width:100%;max-width:420px;aspect-ratio:4/5;border-radius:22px;background:linear-gradient(160deg,#fff 0%,#f6f0ff 100%);color:#24113f;padding:28px 26px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px rgba(0,0,0,.35);overflow:hidden}
+.lp-try-card .dm-ph{margin:auto;color:#8f7bb3;font-size:15px}
+.lp-try-card .dm-kick{align-self:flex-start;background:var(--lp-p);color:#fff;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px}
+.lp-try-card h3{margin:0;font-size:clamp(20px,2.4vw,26px);line-height:1.35;font-weight:800;color:#2b0f4d}
+.lp-try-card .dm-sub{margin:0;color:#5e4580;font-size:14.5px;line-height:1.6}
+.lp-try-card .dm-hero{margin-top:4px;padding:16px 18px;border-radius:16px;background:linear-gradient(135deg,var(--lp-pink),var(--lp-mag));color:#fff}
+.lp-try-card .dm-hero b{display:block;font-size:clamp(34px,4.4vw,46px);line-height:1.05;font-weight:800;direction:ltr;text-align:start;unicode-bidi:plaintext}
+.lp-try-card .dm-hero span{font-weight:700;font-size:15px}
+.lp-try-card .dm-hero p{margin:6px 0 0;font-size:13.5px;line-height:1.55;opacity:.95}
+.lp-try-card .dm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:auto}
+.lp-try-card .dm-st{border-radius:14px;background:#efe7ff;padding:12px}
+.lp-try-card .dm-st b{display:block;font-size:24px;font-weight:800;color:var(--lp-p);unicode-bidi:plaintext}
+.lp-try-card .dm-st span{font-size:12.5px;font-weight:700;color:#3a1763}
+.lp-try-card .dm-st p{margin:4px 0 0;font-size:12px;line-height:1.5;color:#5e4580}
+.lp-try-card .dm-mark{margin-top:auto;align-self:flex-end;font-size:11px;color:#8f7bb3}
+.lp-try-card.busy{opacity:.55;transition:opacity .2s}
+@media (max-width:860px){.lp-try-in{grid-template-columns:1fr}.lp-try{padding:44px 18px 28px}}
 
 /* interface font: Alexandria (Google Fonts). The infographic canvas keeps the house fonts. */
 :root{--fb:Alexandria,"Segoe UI",Tahoma,Arial,sans-serif;--fh:Alexandria,"Segoe UI",Tahoma,sans-serif}
@@ -1095,6 +1124,10 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .bar2 .abmenu button{height:auto;width:100%;justify-content:flex-start;text-align:start;border:0;border-radius:9px;background:none;padding:11px 12px;font-weight:500;font-size:14px;color:var(--ink)}
 .bar2 .abmenu button:hover,.bar2 .abmenu button:focus-visible{background:var(--soft)}
 .bar2[data-ab]>.note{text-align:center}
+/* numbers-vs-text chip beside the download button (qagate.js) */
+.bar2 .qachip{align-self:center;height:auto;padding:6px 11px;border-radius:999px;border:1px solid #bfe3c6;background:#eef8f0;color:#1d6b33;font:600 12.5px/1.2 inherit;font-family:inherit;cursor:pointer}
+.bar2 .qachip.bad{border-color:#f1d29a;background:#fdf5e6;color:#8a5a00}
+.bar2 .qachip[hidden]{display:none}
 @media (max-width:700px){.abmenu{min-width:200px}.bar2 .abmenu button{padding:13px 12px}}
 
 /* ---- conversion options folded (opts.js) ---- */
@@ -1233,6 +1266,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
     <a class="lp-brand" href="#top" data-go="top"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z"/><circle cx="12" cy="10" r="1.6"/><path d="M9 16l-2 4M15 16l2 4"/></svg>مصمم الإنفوجراف</a>
     <nav class="lp-links" aria-label="التنقل">
       <a href="#top" data-go="top">الرئيسية</a>
+      <a href="#try" data-go="try">جرّب</a>
       <a href="#feats" data-go="feats">المزايا</a>
       <a href="#pricing" data-go="pricing">الأسعار</a>
       <a href="#contact" data-go="contact">تواصل</a>
@@ -1296,6 +1330,26 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
     </div>
   </section>
 
+  <section class="lp-try" id="try">
+    <div class="lp-sec-h"><h2>جرّبها دلوقتي</h2><p>الصق خبر قصير فيه أرقام، وشوف الإنفوجراف في ثواني. من غير تسجيل.</p></div>
+    <div class="lp-try-in">
+      <div class="lp-try-form">
+        <label for="tryText" class="lp-vh">نص الخبر</label>
+        <textarea id="tryText" rows="8" maxlength="1500" placeholder="الصق هنا خبراً من 40 إلى 1500 حرف…"></textarea>
+        <div class="lp-try-row">
+          <button type="button" class="lp-btn" id="tryGo">حوّل</button>
+          <button type="button" class="lp-btn ghost" id="trySample">نص تجريبي</button>
+          <span class="lp-try-left" id="tryLeft"></span>
+        </div>
+        <p class="lp-try-msg" id="tryMsg" role="status" aria-live="polite"></p>
+      </div>
+      <div class="lp-try-out" id="tryOut">
+        <div class="lp-try-card" id="tryCard" aria-live="polite"><p class="dm-ph">هنا هيظهر التصميم</p></div>
+        <button type="button" class="lp-btn ghost" id="tryCta" hidden>عايز تنزّله وتعدّل عليه؟ ابدأ الآن</button>
+      </div>
+    </div>
+  </section>
+
   <section class="lp-feats" id="feats">
     <div class="lp-sec-h"><h2>كل اللي فريق المحتوى محتاجه في مكان واحد</h2></div>
     <div class="lp-feats-in">
@@ -1316,6 +1370,7 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
   <div class="lp-menu" id="lpMenu" hidden>
     <div class="top"><a class="lp-brand" href="#top" data-go="top" style="padding:0">مصمم الإنفوجراف</a><button type="button" class="lp-burger" id="menuClose" aria-label="إغلاق" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <a href="#top" data-go="top">الرئيسية</a>
+    <a href="#try" data-go="try">جرّب</a>
     <a href="#feats" data-go="feats">المزايا</a>
     <a href="#pricing" data-go="pricing">الأسعار</a>
     <a href="#contact" data-go="contact">تواصل</a>
@@ -5539,27 +5594,30 @@ function czShowPhotoNotes(r,total){
 pgBoot();
 
 /* ---------- first-login tour (skippable, remembered per account) ---------- */
-var TOUR_V=1,TR={i:0,steps:[],first:false,on:false};
+var TOUR_V=2,TR={i:0,steps:[],first:false,on:false};
 function trMode(m){var r=document.querySelector('input[name="mode"][value="'+m+'"]');if(r&&!r.checked){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}}
 function trSteps(){
   var adm=me.role==='admin';
   return [
     {t:'أهلاً بك في مصمم الإنفوجراف',b:'الأداة تحوّل أي نص إلى إنفوجراف أو كاروسيل بهوية جاهزة، وتوفّر عليك ساعات التنسيق. جولة قصيرة تعرّفك على كل قسم. تقدر تتخطاها الآن أو تعيدها لاحقاً من قائمة حسابك.'},
     {sel:'.modebar .seg',pre:function(){go('studio');trMode('ig')},t:'اختر نوع المنتج',b:'«إنفوجراف» صورة واحدة بمقاس 4:5. «كاروسيل» سلسلة شرائح تُمرَّر يميناً ويساراً. لكل منهما إعداداته ومعاينته.'},
-    {sel:'#cliPick',t:'اختر العميل',b:'كل عميل له هوية: ألوان وخطوط وشعار ونبرة كتابة. اخترته من هنا فتتبدّل الهوية كلها في الإنفوجراف والكاروسيل بنقرة واحدة، وتُطبَّق نبرته على كتابة النظام الذكي.'},
+    {sel:'#cliPick',t:'اختر العميل',b:'كل عميل له هوية: ألوان وخطوط وشعار ونبرة كتابة. اخترته من هنا فتتبدّل الهوية كلها في الإنفوجراف والكاروسيل بنقرة واحدة، وتُطبَّق نبرته على كتابة النظام الذكي. ولعميل جديد، «عميل جديد» في صفحة «العملاء» يفتح معالجاً من 3 خطوات: الشعار، ثم الألوان المأخوذة منه، ثم الخطوط.'},
     {sel:'#src',pre:function(){trMode('ig')},t:'الصق النص هنا',b:'الصق الخبر أو التقرير كما هو. تقدر تجرّب بزر «نص تجريبي» لو أردت أن ترى شكل النتيجة أولاً.'},
-    {sel:'#gen',t:'اضغط «حوّل»',b:'يقرأ النظام الذكي النص ويرتّبه في تصميم: عنوان وأرقام وعناصر. قبل البدء يسألك: هل عندك صور؟ ارفعها، أو اختر «صور من الإنترنت» ليقترح لك صوراً مجانية مناسبة لنصك، أو «بدون صور».'},
+    {sel:'#gen',t:'اضغط «حوّل»',b:'يقرأ النظام الذكي النص ويرتّبه في تصميم: عنوان وأرقام وعناصر. قبل البدء يسألك: هل عندك صور؟ ارفعها، أو اختر «صور من الإنترنت» ليقترح لك صوراً مجانية مناسبة لنصك، أو «بدون صور». وأثناء التحويل يظهر لك التقدّم أولاً بأول.'},
     {sel:'#plBtn',t:'وزّع كما هو',b:'لو تريد نصك بحروفه بدون أي تعديل، هذا الزر يوزّعه على خانات القالب ويقترح القالب الأنسب. كل كلمة تظهر كما كتبتها.'},
     {sel:'#pfBtn',t:'مراجعة لغوية',b:'تدقيق عربي وإنجليزي: إملاء وترقيم وأخطاء واضحة. تراجع كل اقتراح وتقبله أو ترفضه، ولا تتغيّر الأسماء ولا الأرقام.'},
     {sel:'#acc .ac-h',t:'عدّل أي صندوق',b:'الصناديق في تبويبين: «المحتوى» لما تكتبه (العنوان والأرقام والسطر السفلي)، و«الشكل» للألوان والقالب والخلفية. لكل رقم لونه، وأي لون تختاره يبقى بجانب أداة اللون لتعيده بنقرة. وفي «تكويناتي اللونية» تحفظ ألوانك باسم.'},
+    {t:'تراجع وإعادة',b:'أي تعديل تقدر ترجع فيه بـ Ctrl+Z وتعيده بـ Ctrl+Shift+Z، أو من زرّي التراجع والإعادة اللذين يظهران فوق المعاينة بعد أول تعديل. على الموبايل يظهران في شريط صغير أسفل الشاشة.'},
+    {sel:'[data-ac=motion] .ac-h',opt:true,t:'فيديو موشن',b:'من صندوق «الحركة» تشغّل الحركة على التصميم وتصدّره فيديو MP4 بموسيقى ومؤثرات صوتية. أول فريم في الفيديو يكون التصميم كاملاً، فيظهر كغلاف.'},
     {sel:'#igOpts',t:'خيارات التحويل',b:'اللغة والتخطيط ومقاس المنصة (4:5 أو 1:1 أو 9:16) والقالب، كلها تلقائية. افتح الصندوق لو حابب تغيّر حاجة، والسطر بيوضح المختار حالياً.'},
-    {sel:'#dl',t:'نزّل التصميم',b:'صورة PNG عالية الدقة بالمقاس الذي اخترته، جاهزة للنشر مباشرة.'},
+    {sel:'#dl',t:'نزّل التصميم',b:'صورة PNG عالية الدقة بالمقاس الذي اخترته، جاهزة للنشر مباشرة. وبجانبه علامة صغيرة تقول لك هل كل أرقام التصميم موجودة في النص، والتنزيل والفيديو والإرسال للمراجعة يمرّون على فحص الجودة أولاً.'},
     {sel:'#abShareIg',t:'مشاركة',b:'من «مشاركة» تكتب نص المنشور (كابشن وهاشتاغات ونص بديل للصورة حسب المنصة ونبرة العميل)، أو ترسل التصميم للعميل برابط مراجعة يعلّق فيه ويوافق.'},
     {sel:'#abMoreIg',t:'أدوات إضافية',b:'من زر «⋯»: فحص الجودة قبل النشر (يقارن الأرقام بالنص وينبّهك للنصوص المقصوصة)، وترجمة التصميم للإنجليزية أو العكس، والمعاينة الكبيرة.'},
     {t:'القوالب والوسوم في «تصاميمي»',b:'في «تصاميمي» ابحث بالاسم أو الوسم، وصفِّ بالنوع والحالة، وحدّد عدة تصاميم لحذفها معاً. وحوّل أي تصميم أسبوعي إلى قالب: كل أسبوع تفتحه وتغيّر الأرقام والكلمات فقط من نافذة التعبئة السريعة.'},
     {t:'صور من الإنترنت',b:'أي زر «رفع صورة» (خلفية الإنفوجراف، صور الشرائح، صور التشارت) يعرض لك أيضاً صوراً مجانية من مكتبات الصور. تختار الصورة فتُضاف كأنك رفعتها، والنظام يقترح كلمات البحث من نصك.'},
     {t:'مسودتك لا تضيع',b:'شغلك يُحفظ تلقائياً في هذا المتصفح. لو أغلقت الصفحة قبل «حفظ التصميم»، تظهر لك رسالة لاستعادته عند رجوعك. ولحفظ دائم اضغط «حفظ التصميم» ليظهر في تصاميمي.'},
     {sel:'#czGen',pre:function(){trMode('cz')},t:'الكاروسيل',b:'الصق النصّ فيُقسَّم إلى غلاف وشرائح وختام. اسحب الشريحة الكبيرة يميناً أو يساراً للتنقل، وعدّل أي شريحة، ونزّل الكل في ملف ZIP. الصور تُوزَّع على الشرائح حسب المعنى.'},
+    {sel:'#wsPill',opt:true,t:'مساحة العمل',b:'هنا اسم مساحتك وباقتها. منها تضيف فريقك وتتابع استهلاك الشهر.'},
     {sel:'#userChip',pre:function(){trMode('ig')},t:'قائمة حسابك',b:adm?'من هنا تصل إلى: إنتاج المحتوى، العملاء (لضبط هوية كل عميل)، المستخدمين (لإضافة الفريق)، لوحة التحكم، وتغيير كلمة السر. وتجد «الجولة التعريفية» لإعادة هذه الخطوات.':'من هنا تصل إلى إنتاج المحتوى وتغيير كلمة السر وتسجيل الخروج، وتجد «الجولة التعريفية» لإعادة هذه الخطوات.'}
   ];
 }
@@ -5614,7 +5672,7 @@ function trPlace(){
   card.style.cssText='left:'+left+'px;top:'+top+'px';
 }
 function tourStart(first){
-  TR.first=!!first;go('studio');trMode('ig');TR.steps=trSteps().filter(function(x){return x.sel!=='#cliPick'||trTarget(x)});TR.i=0;TR.on=true;
+  TR.first=!!first;go('studio');trMode('ig');TR.steps=trSteps().filter(function(x){return (x.sel!=='#cliPick'&&!x.opt)||trTarget(x)});TR.i=0;TR.on=true;
   var e=trEl();e.hidden=false;document.body.classList.add('touring');
   trGo(0);
 }
@@ -14591,6 +14649,88 @@ function opInit(){
   }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',opInit);else opInit();
+
+/* ===== quality check, part 2: the same check before the video export and before sending for review,
+   and a small chip beside the download button that says at a glance whether the numbers match the text ===== */
+function qgMode(b){
+  if(b.hasAttribute('data-rev'))return b.dataset.rev==='cz'?'cz':b.dataset.rev==='ch'?'ch':'ig';
+  var r=b.closest('[data-mvm]');return r?r.dataset.mvm:'ig';
+}
+function qgInit(){
+  /* video and review go through the check too (pictures and PNGs already do, in qa.js) */
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('[data-mvdl],[data-rev]');
+    if(!b||QA.bypass||b.disabled||typeof qaCheck!=='function')return;
+    var m=qgMode(b),out=qaCheck(m);
+    if(!out.some(function(x){return x.lv==='warn'}))return;
+    e.stopImmediatePropagation();e.preventDefault();
+    QA.btn=b;qaShow(m,out,false);
+    var go=$('#qaGo');if(go)go.textContent=b.hasAttribute('data-rev')?'إرسال رغم ذلك':'تصدير رغم ذلك';
+  },true);
+  /* the chip: numbers only (cheap), refreshed shortly after the person stops typing or clicking */
+  [['ig','#dl'],['cz','#czDlAll']].forEach(function(p){
+    var dl=$(p[1]);if(!dl)return;var g=dl.closest('.abdl')||dl.parentNode;if(!g||g.querySelector('.qachip'))return;
+    var c=document.createElement('button');c.type='button';c.className='qachip';c.hidden=true;c.dataset.qgm=p[0];
+    c.addEventListener('click',function(){qaShow(p[0],qaCheck(p[0]),true)});
+    var row=g.closest('.abrow');if(row)row.after(c);else g.parentNode.insertBefore(c,g.nextSibling);
+  });
+  var t=null,kick=function(){clearTimeout(t);t=setTimeout(qgPaint,700)};
+  ['input','change','click'].forEach(function(ev){document.addEventListener(ev,kick,true)});
+  setTimeout(qgPaint,1500);
+}
+function qgPaint(){
+  $$('.qachip').forEach(function(c){
+    var m=c.dataset.qgm,src='';try{src=qaSource(m).trim()}catch(e){}
+    var has=m==='ig'?!!(typeof S!=='undefined'&&S&&(S.title||(S.stats||[]).length||(S.items||[]).length)):!!(typeof CZ!=='undefined'&&CZ.slides&&CZ.slides.length);
+    if(!src||!has){c.hidden=true;return}
+    var out=[];try{qaNumbers(m,out)}catch(e){c.hidden=true;return}
+    var w=out.filter(function(x){return x.lv==='warn'});
+    c.hidden=false;c.classList.toggle('bad',!!w.length);
+    c.textContent=w.length?'! أرقام تحتاج مراجعة':'✓ الأرقام مطابقة للنص';
+    c.title=w.length?w[0].t:'كل رقم في التصميم موجود في النص المصدر.';
+  });
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgInit);else qgInit();
+window.__qg={paint:qgPaint};
+
+/* ===== landing page live demo: paste a short news text, see a preview card (no account; 3 tries a day) ===== */
+/* The public anon key is meant to be in pages; the demo function itself limits tries and length. */
+var DEMO_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZmpyYXRoZnVqYW9qZ3JrYXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4OTU3OTgsImV4cCI6MjEwNzQ3MTc5OH0.Q14YDSD04fl4be7PBIwccEDH2pPsyNzVNndPI8P9HbQ';
+var DEMO_SAMPLE='أعلنت هيئة الطرق والمواصلات أن عدد مستخدمي المترو بلغ 275 مليون راكب خلال عام 2025، بنمو 12% مقارنة بالعام السابق. وسجّلت محطة برج خليفة أعلى عدد من الركاب بأكثر من 9 ملايين راكب، فيما وصلت نسبة الالتزام بالمواعيد إلى 99.7%.';
+var DEMO_ERR={text_too_short:'النص قصير. الصق خبراً من 40 حرفاً على الأقل.',text_too_long:'النص طويل. التجربة لحد 1500 حرف.',demo_limit:'خلصت محاولاتك المجانية النهارده. سجّل علشان تكمّل من غير حدود.',demo_busy:'التجربة عليها ضغط النهارده. جرّب بكرة أو سجّل.',demo_off:'التجربة مش متاحة دلوقتي.',ai_timeout:'التحويل أخد وقت طويل. جرّب تاني.',network:'مفيش اتصال. اتأكد من الإنترنت وجرّب تاني.'};
+function dmEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function dmCard(d){
+  var h='';
+  if(d.kicker)h+='<span class="dm-kick">'+dmEsc(d.kicker)+'</span>';
+  h+='<h3>'+dmEsc(d.title)+'</h3>';
+  if(d.subtitle)h+='<p class="dm-sub">'+dmEsc(d.subtitle)+'</p>';
+  if(d.hero)h+='<div class="dm-hero"><b>'+dmEsc(d.hero.value)+'</b><span>'+dmEsc(d.hero.label)+'</span>'+(d.hero.text?'<p>'+dmEsc(d.hero.text)+'</p>':'')+'</div>';
+  if(d.stats&&d.stats.length)h+='<div class="dm-grid">'+d.stats.map(function(s){return '<div class="dm-st"><b>'+dmEsc(s.value)+'</b><span>'+dmEsc(s.label)+'</span>'+(s.text?'<p>'+dmEsc(s.text)+'</p>':'')+'</div>'}).join('')+'</div>';
+  else if(!d.hero)h+='<p class="dm-sub">ملقيناش أرقام في النص. في الأداة الكاملة بيتحوّل لبطاقات ونقاط بدل الأرقام.</p>';
+  h+='<span class="dm-mark">معاينة تجريبية · مصمم الإنفوجراف</span>';
+  return h;
+}
+async function dmGo(){
+  var ta=$('#tryText'),btn=$('#tryGo'),msg=$('#tryMsg'),card=$('#tryCard'),t=(ta.value||'').trim();
+  if(t.length<40){msg.textContent=DEMO_ERR.text_too_short;ta.focus();return}
+  btn.disabled=true;msg.textContent='جاري التحويل…';card.classList.add('busy');
+  try{
+    var r=await fetch(SB_URL+'/functions/v1/demo',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEMO_ANON,'apikey':DEMO_ANON},body:JSON.stringify({text:t})});
+    var j={};try{j=await r.json()}catch(e){}
+    if(!r.ok){msg.textContent=DEMO_ERR[j.error]||'حصل خطأ. جرّب تاني.';if(j.error==='demo_limit'){$('#tryLeft').textContent='';$('#tryCta').hidden=false}return}
+    card.innerHTML=dmCard(j.data||{});msg.textContent='';
+    $('#tryLeft').textContent=j.left>0?('فاضلك '+j.left+(j.left===1?' محاولة':' محاولات')+' النهارده'):'دي كانت آخر محاولة مجانية النهارده';
+    $('#tryCta').hidden=false;
+  }catch(e){msg.textContent=DEMO_ERR.network}
+  finally{btn.disabled=false;card.classList.remove('busy')}
+}
+function dmInit(){
+  if(!$('#tryGo'))return;
+  $('#tryGo').addEventListener('click',dmGo);
+  $('#trySample').addEventListener('click',function(){$('#tryText').value=DEMO_SAMPLE;$('#tryText').focus()});
+  $('#tryCta').addEventListener('click',function(){var b=$('#heroStart');if(b)b.click()});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dmInit);else dmInit();
 
 /* ===== undo / redo for every change to the design (Ctrl+Z, Ctrl+Shift+Z or Ctrl+Y, and two buttons on the preview) =====
    A snapshot of the current mode's state is taken whenever it changes and then stays still for a moment
