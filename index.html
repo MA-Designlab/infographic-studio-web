@@ -196,6 +196,9 @@ input[type=password],input[type=email]{width:100%;font:inherit;color:var(--ink);
   -webkit-box-shadow:0 0 0 1000px #34177A inset!important;box-shadow:0 0 0 1000px #34177A inset!important;transition:background-color 99999s ease-out 0s}
 .lp-card input:autofill{-webkit-text-fill-color:#fff!important;box-shadow:0 0 0 1000px #34177A inset!important}
 .lp-card input::selection{background:rgba(243,45,126,.55);color:#fff;-webkit-text-fill-color:#fff}
+.su-sw{margin:2px 0 0;font-size:13.5px;color:#d9ccf7}
+.su-sw button{border:0;background:none;color:#fff;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:2px}
+.err2.ok{color:#9BE7B9}
 
 /* interface font: Alexandria (Google Fonts). The infographic canvas keeps the house fonts. */
 :root{--fb:Alexandria,"Segoe UI",Tahoma,Arial,sans-serif;--fh:Alexandria,"Segoe UI",Tahoma,sans-serif}
@@ -1144,6 +1147,22 @@ label.tool.upl{display:inline-flex;align-items:center;justify-content:center;cur
 .bk .bk-skip{margin-inline-start:auto}
 @media (max-width:720px){.bk-grid{grid-template-columns:1fr}.bk-pv{position:static;order:-1}.bk-pv canvas{width:150px}.bk-logos{grid-template-columns:1fr}}
 .bk-pv figcaption{text-align:center;max-width:240px}
+
+/* ---- workspace pill, switcher, team page (ws.js) ---- */
+.ws-pill{display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin-inline-start:auto;margin-inline-end:10px;padding:6px 14px;border-radius:12px;border:1px solid rgba(201,187,255,.28);background:rgba(255,255,255,.07);color:#fff;font:inherit;cursor:pointer;line-height:1.2;max-width:46vw}
+.ws-pill b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ws-pill small{font-size:11.5px;color:#D9CCFF}
+.ws-pill small.warn{color:#FFC48A}
+.ws-pill[hidden]{display:none}
+.bar{position:relative}
+.ws-menu{position:absolute;top:calc(100% - 4px);inset-inline-end:120px;z-index:30;min-width:220px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 18px 40px rgba(43,15,77,.18);display:flex;flex-direction:column}
+.ws-menu button{border:0;background:none;text-align:start;padding:10px 12px;border-radius:9px;font:500 14px/1.2 var(--fh);color:var(--ink);cursor:pointer}
+.ws-menu button[aria-checked=true]{background:var(--soft);font-weight:700}
+.ws-add{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px}
+.ws-add input{flex:1 1 240px;min-width:0}
+.ws-add select{flex:0 0 auto}
+#viewTeam .utable{padding:6px 16px;margin-top:8px}
+@media (max-width:560px){.ws-pill{max-width:40vw;padding:5px 10px}.ws-pill small{font-size:10.5px}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2762,7 +2781,7 @@ function dlgDismiss(id){
   if(id==='dlgPhotos'){var c=$('#pgCancel');if(c){c.click();return}}
   closeDlg('#'+id);
 }
-function openedDlg(){return ['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn','#dlgBrand'].filter(function(i){return !$(i).hidden})[0]}
+function openedDlg(){return ['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn','#dlgBrand'].filter(function(i){var d=$(i);return d&&!d.hidden})[0]}
 
 /* user dialog (add / new password) */
 var udMode='add';
@@ -2903,7 +2922,7 @@ async function loadStats(){
 
 /* ---------- sign-in flow ---------- */
 function showLogin(open){
-  setDrawer(false);['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn','#dlgBrand'].forEach(function(i){$(i).hidden=true});
+  setDrawer(false);['#dlgUser','#dlgPw','#dlgRef','#dlgPlace','#dlgProof','#dlgPhotos','#dlgLibEdit','#dlgSave','#dlgNew','#dlgPost','#dlgRev','#dlgVer','#dlgQa','#dlgFill','#dlgTags','#dlgXl','#dlgLn','#dlgBrand'].forEach(function(i){var d=$(i);if(d)d.hidden=true});
   $('#auth').hidden=false;$('#lpModal').hidden=!open;$('#loginForm').hidden=false;$('#pending').hidden=true;$('#userChip').hidden=true;$('#password').value='';
   if(open)setTimeout(function(){$('#email').focus()},30);
 }
@@ -2933,12 +2952,14 @@ async function enter(session){
   if(r.error||!r.data){showPending(email);return}
   if(r.data.active===false){await sb.auth.signOut();showLogin(true);$('#authErr').textContent=errText('account_disabled');return}
   me={email:email,role:r.data.role,is_super:!!r.data.is_super,name:r.data.name||''};
-  $('#auth').hidden=true;paintMe();
+  if(typeof wsLoad==='function'){await wsLoad();if(wsBlocked())return}
+  $('#auth').hidden=true;paintMe();if(typeof wsPaint==='function')wsPaint();
   if(!inited){initUI();inited=true}
   CLI.cur=null;desReset();
   go(window.__startView||'designs');
   status('جارٍ تحميل الخطوط والشعارات…',false,true);
-  var missing=await loadAssets();
+  /* the house fonts and artwork belong to the house workspace; a subscriber gets neutral open fonts */
+  var missing=(typeof wsHouse!=='function'||wsHouse())?await loadAssets():await wsNeutral();
   render();fit();
   status(missing?'بعض الخطوط أو الشعارات غير مرفوعة في التخزين الخاص، فيظهر التصميم بخطوط بديلة حتى ترفعها.':'',!!missing);
   /* per-account extras: preferences, clients, saved colour sets, first-time tour */
@@ -3653,9 +3674,9 @@ function edHtml(){
   var colors=colorField('اللون الرئيسي (الأرقام والخلفية الأساسية)','colors.main')+colorField('لون التمييز (الشريط وعناصر الإبراز)','colors.accent')+colorField('لون العنوان','colors.title','يتبع الرئيسي')+colorField('لون السطر السفلي','colors.foot')
     +'<div class="field"><span class="lab">النمط الافتراضي</span><div class="seg full">'+[['','حسب اختيارك'],['light','فاتح'],['dark','داكن']].map(function(o){return '<label><input type="radio" name="edTheme" data-k="colors.theme" value="'+o[0]+'"'+(th===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div></div>'
     +'<div class="field"><label for="edSec">القالب الافتراضي</label><select id="edSec" data-k="sec"><option value="">حسب اختيارك</option>'+SECS.map(function(s){return '<option value="'+s[0]+'"'+(sec===s[0]?' selected':'')+'>'+s[1]+'</option>'}).join('')+'<option value="none"'+(sec==='none'?' selected':'')+'>بدون شعار</option></select></div>';
-  var fonts='<p class="hint">ارفع ملف الخط (WOFF أو TTF أو OTF). لو ما رفعت خطاً، يستخدم التصميم خطوط الاتحاد.</p>'+CL_ROLES.map(function(r){
+  var fonts='<p class="hint">ارفع ملف الخط (WOFF أو TTF أو OTF). لو ما رفعت خطاً، يستخدم التصميم '+(wsHouse()?'خطوط الاتحاد':'الخطوط الافتراضية')+'.</p>'+CL_ROLES.map(function(r){
     var f=(p.fonts&&p.fonts[r[0]])||{};
-    return '<div class="rowf frow"><div class="ft"><b>'+r[1]+'</b><small>'+r[2]+'</small><span class="fn">'+(f.path?esc(f.name||'خط مرفوع'):'خطوط الاتحاد الافتراضية')+'</span></div>'
+    return '<div class="rowf frow"><div class="ft"><b>'+r[1]+'</b><small>'+r[2]+'</small><span class="fn">'+(f.path?esc(f.name||'خط مرفوع'):(wsHouse()?'خطوط الاتحاد الافتراضية':'الخط الافتراضي'))+'</span></div>'
       +'<select data-k="fonts.'+r[0]+'.lang" aria-label="لغة '+r[1]+'"'+(f.path?'':' disabled')+'><option value="all"'+((f.lang||'all')==='all'?' selected':'')+'>العربية والإنجليزية</option><option value="ar"'+(f.lang==='ar'?' selected':'')+'>العربية فقط</option><option value="en"'+(f.lang==='en'?' selected':'')+'>الإنجليزية فقط</option></select>'
       +'<div class="row">'+upBtn('font:'+r[0],f.path?'استبدال':'رفع خط','.woff,.woff2,.ttf,.otf')+(f.path?'<button type="button" class="x" data-rm="font:'+r[0]+'">إزالة</button>':'')+'</div></div>';
   }).join('');
@@ -3664,7 +3685,7 @@ function edHtml(){
     +fx.map(function(f,i){return '<div class="rowf frow"><div class="ft"><input type="text" data-k="fontx.'+i+'.name" maxlength="40" value="'+esc(f.name||'')+'" placeholder="اسم الخط" aria-label="اسم الخط"><span class="lfx" data-fxp="'+esc(f.path)+'">أبجد Abc 123</span></div><div class="row"><button type="button" class="x" data-rm="fontx:'+i+'">إزالة</button></div></div>'}).join('')
     +(fx.length<CLI_XMAX?'<div class="row"><label class="btn ghost sm upl">+ إضافة خطوط<input type="file" hidden multiple accept=".woff,.woff2,.ttf,.otf" data-up="font:add"></label></div>':'<p class="hint">وصلت للحد الأقصى ('+CLI_XMAX+' خطوط).</p>');
   var lg=p.logo||{};
-  var marks='<div class="field"><span class="lab">الشعار الذي يظهر في التصميم</span><div class="seg full"><label><input type="radio" name="edLogo" data-k="logo.mode" value="brand"'+(lm==='brand'?' checked':'')+'><span>'+(ED.house?'الشعارات الجاهزة':'شعارات الاتحاد')+'</span></label><label><input type="radio" name="edLogo" data-k="logo.mode" value="client"'+(lm==='client'?' checked':'')+'><span>'+(ED.house?'شعار أرفعه أنا':'شعار العميل')+'</span></label></div></div>'
+  var marks='<div class="field"><span class="lab">الشعار الذي يظهر في التصميم</span><div class="seg full"><label><input type="radio" name="edLogo" data-k="logo.mode" value="brand"'+(lm==='brand'?' checked':'')+'><span>'+(ED.house?'الشعارات الجاهزة':wsHouse()?'شعارات الاتحاد':'بدون شعار')+'</span></label><label><input type="radio" name="edLogo" data-k="logo.mode" value="client"'+(lm==='client'?' checked':'')+'><span>'+(ED.house?'شعار أرفعه أنا':'شعار العميل')+'</span></label></div></div>'
     +'<div class="two">'+[['light','للخلفية الفاتحة'],['dark','للخلفية الداكنة']].map(function(k){return '<div class="rowf mk"><b>شعار '+k[1]+'</b>'+prevImg(lg[k[0]])+'<div class="row">'+upBtn('logo:'+k[0],lg[k[0]]?'استبدال':'رفع','image/png,image/jpeg,image/webp')+(lg[k[0]]?'<button type="button" class="x" data-rm="logo:'+k[0]+'">إزالة</button>':'')+'</div></div>'}).join('')+'</div>'
     +'<p class="hint">يُفضّل PNG بخلفية شفافة. شعار الخلفية الداكنة غالباً أبيض أو فاتح. لو رفعت واحداً فقط يُستخدم في الحالتين.</p>'
     +'<span class="lab">شارات الأقسام (تظهر في الركن حسب القالب)</span>'+(ED.house?'<p class="hint">الأقسام اللي ليها شارة جاهزة في النظام تستخدمها تلقائياً. ارفع شارة هنا للقسم الناقص وتظهر في تصاميمه تلقائياً.</p>':'')+'<div class="bgrid">'+SECS.filter(function(s){return s[0]!=='news'}).map(function(s){var b=(p.badges||{})[s[0]];return '<div class="rowf mk"><b>'+s[1]+'</b>'+prevImg(b)+'<div class="row">'+upBtn('badge:'+s[0],b?'استبدال':'رفع','image/png,image/jpeg,image/webp')+(b?'<button type="button" class="x" data-rm="badge:'+s[0]+'">إزالة</button>':'')+'</div></div>'}).join('')+'</div>';
@@ -14777,6 +14798,194 @@ function bkInit(){
   b.addEventListener('click',function(e){e.stopImmediatePropagation();bkOpen()},true);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bkInit);else bkInit();
+
+/* ===== workspaces: the subscriber the person works for =====
+   «الاتحاد» is one workspace among others (is_house). Before the workspaces tables exist in the database
+   everything below stays off and the app behaves exactly as it always did.
+   Outside the house: neutral open fonts registered under the family names the drawing code already uses,
+   no house artwork, a trial counter, and a «الفريق» page for the owner. */
+var WS={on:false,list:[],cur:null,role:'',signup:false};
+var WS_SIGNUP=false||!!window.__wsSignup;   /* turn on once sign-up is allowed in Supabase (Auth -> Sign In / Providers) */
+function wsHouse(){return !WS.on||!WS.cur||!!WS.cur.is_house}
+function wsDays(w){if(!w||w.plan!=='trial'||!w.trial_ends_at)return null;return Math.ceil((Date.parse(w.trial_ends_at)-Date.now())/864e5)}
+function wsPick(){try{return localStorage.getItem('ws_cur')||''}catch(e){return ''}}
+async function wsLoad(){
+  WS.on=false;WS.list=[];WS.cur=null;WS.role='';
+  try{
+    var r=await sb.from('workspaces').select('id,name,plan,trial_ends_at,is_house');
+    if(r.error||!r.data||!r.data.length)return;
+    var m=await sb.from('workspace_members').select('workspace_id,role').eq('email',me.email);
+    var roles={};(m.data||[]).forEach(function(x){roles[x.workspace_id]=x.role});
+    WS.list=r.data.filter(function(w){return roles[w.id]});if(!WS.list.length)return;
+    var want=wsPick();
+    WS.cur=WS.list.filter(function(w){return w.id===want})[0]||WS.list.filter(function(w){return w.is_house})[0]||WS.list[0];
+    WS.role=roles[WS.cur.id]||'designer';WS.on=true;
+    /* inside a subscriber workspace the owner manages its clients and team; house roles stay as they are */
+    if(!WS.cur.is_house)me.role=WS.role==='owner'?'admin':'member';
+  }catch(e){WS.on=false}
+}
+/* ---------- neutral fonts for subscriber workspaces (free, from Google Fonts) ---------- */
+var WS_FONTS='https://fonts.googleapis.com/css2?family=Cairo:wght@800&family=IBM+Plex+Sans+Arabic:wght@400;700&family=Barlow+Condensed:wght@700&family=IBM+Plex+Sans:wght@400;700&display=swap';
+function wsAlias(fam,w){
+  if(fam==='Cairo')return ['BahijXBold','AlIttihad'];
+  if(fam==='IBM Plex Sans Arabic')return [w>=600?'BahijBold':'BahijPlain'];
+  if(fam==='Barlow Condensed')return ['DINCond'];
+  if(fam==='IBM Plex Sans')return ['Acumin'];
+  return [];
+}
+async function wsNeutral(){
+  try{
+    var css=await (await fetch(WS_FONTS)).text(),jobs=[],re=/@font-face\s*\{([^}]*)\}/g,b;
+    while((b=re.exec(css))){
+      var t=b[1],fam=(t.match(/font-family:\s*'([^']+)'/)||[])[1],w=+((t.match(/font-weight:\s*(\d+)/)||[])[1]||400),
+          src=(t.match(/url\(([^)]+)\)/)||[])[1],rng=(t.match(/unicode-range:\s*([^;]+)/)||[])[1];
+      if(!fam||!src)continue;
+      wsAlias(fam,w).forEach(function(a){
+        var o={weight:a==='Acumin'?String(w):'100 900'};if(rng)o.unicodeRange=rng.trim();
+        jobs.push((function(f){return f.load().then(function(){document.fonts.add(f)},function(){})})(new FontFace(a,'url('+src+')',o)));
+      });
+    }
+    await Promise.all(jobs);
+    return jobs.length?0:1;
+  }catch(e){return 1}
+}
+/* ---------- top bar: workspace name, trial counter, switcher ---------- */
+function wsPaint(){
+  var bar=$('.bar'),p=$('#wsPill');
+  if(!WS.on||wsHouse()&&WS.list.length<2){if(p)p.hidden=true;wsNav();return}
+  if(!p){p=document.createElement('button');p.type='button';p.id='wsPill';p.className='ws-pill';bar.insertBefore(p,$('#userChip'));p.addEventListener('click',wsMenu)}
+  var d=wsDays(WS.cur),tr=d==null?'':d>0?'<small class="'+(d<=3?'warn':'')+'">تجربة مجانية · باقي '+NF.format(d)+' '+(d===1?'يوم':d===2?'يومين':d<=10?'أيام':'يوماً')+'</small>':'<small class="warn">انتهت التجربة</small>';
+  p.innerHTML='<b>'+esc(WS.cur.name)+'</b>'+tr;p.hidden=false;
+  p.setAttribute('aria-label','مساحة العمل: '+WS.cur.name);
+  wsNav();
+}
+function wsMenu(){
+  if(WS.list.length<2){if(me.role==='admin'&&!wsHouse())go('team');return}
+  var m=$('#wsMenu');if(m){m.remove();return}
+  m=document.createElement('div');m.id='wsMenu';m.className='ws-menu';m.setAttribute('role','menu');
+  m.innerHTML=WS.list.map(function(w){return '<button type="button" role="menuitemradio" aria-checked="'+(w.id===WS.cur.id)+'" data-ws="'+w.id+'">'+esc(w.name)+'</button>'}).join('');
+  $('#wsPill').after(m);
+  m.addEventListener('click',function(e){var b=e.target.closest('[data-ws]');if(!b)return;try{localStorage.setItem('ws_cur',b.dataset.ws)}catch(x){}location.reload()});
+  setTimeout(function(){document.addEventListener('click',function c(e){if(!e.target.closest('#wsMenu,#wsPill')){var x=$('#wsMenu');if(x)x.remove();document.removeEventListener('click',c)}})},0);
+}
+/* ---------- drawer: house-only pages hide outside the house; «الفريق» for subscriber owners ---------- */
+function wsNav(){
+  var house=wsHouse();
+  $$('.dr-nav [data-nav=users],.dr-nav [data-nav=dash]').forEach(function(b){if(!house)b.hidden=true});
+  var t=$('.dr-nav [data-nav=team]');
+  if(!t&&!house){
+    var ref=$('.dr-nav [data-nav=clients]');if(!ref)return;
+    t=document.createElement('button');t.type='button';t.dataset.nav='team';
+    t.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="2.8"/><circle cx="16" cy="9" r="2.8"/><path d="M2.8 18.5c.5-2.7 2.6-4.3 5.2-4.3s4.7 1.6 5.2 4.3M10.8 18.5c.5-2.7 2.6-4.3 5.2-4.3s4.7 1.6 5.2 4.3"/></svg>الفريق';
+    ref.after(t);t.addEventListener('click',function(e){e.preventDefault();go('team')});
+  }
+  if(t)t.hidden=house||me.role!=='admin';
+}
+/* ---------- «الفريق» page ---------- */
+var WS_ROLES=[['owner','مالك','يدير العملاء والفريق'],['designer','مصمم','يصمم ويحفظ ويرسل للمراجعة'],['reviewer','مراجع','يشوف التصاميم المشتركة']];
+function wsTeamEl(){
+  var v=$('#viewTeam');if(v)return v;
+  v=document.createElement('section');v.className='view';v.id='viewTeam';v.hidden=true;v.setAttribute('aria-label','الفريق');
+  v.innerHTML='<div class="page-in"><div class="page-head"><div><h1>الفريق</h1><p class="sub" id="wsTeamSub"></p></div></div>'
+    +'<form class="ws-add" id="wsAdd"><input type="text" inputmode="email" dir="ltr" id="wsAddEmail" placeholder="name@company.com" aria-label="إيميل العضو" autocomplete="off" autocapitalize="off" spellcheck="false">'
+    +'<select id="wsAddRole" aria-label="الدور">'+WS_ROLES.map(function(r){return '<option value="'+r[0]+'"'+(r[0]==='designer'?' selected':'')+'>'+r[1]+'</option>'}).join('')+'</select>'
+    +'<button type="submit" class="btn pink">إضافة</button></form><p class="dlg-msg" id="wsMsg" role="status" aria-live="polite"></p>'
+    +'<div class="utable" id="wsList"></div>'
+    +'<p class="hint">العضو الجديد يدخل من صفحة الدخول بنفس الإيميل (إنشاء حساب)، ويلاقي نفسه في مساحة «<span id="wsTeamName"></span>» مباشرة.</p></div>';
+  $('#viewDesigns').parentNode.appendChild(v);
+  $('#wsAdd',v).addEventListener('submit',wsAdd);
+  v.addEventListener('change',function(e){var s=e.target.closest('[data-wsrole]');if(s)wsSetRole(s.dataset.wsrole,s.value)});
+  v.addEventListener('click',function(e){var b=e.target.closest('[data-wsrm]');if(b)wsRemove(b.dataset.wsrm,b)});
+  return v;
+}
+function wsMsg(m,ok){var e=$('#wsMsg');e.textContent=m||'';e.className='dlg-msg'+(ok?' ok':'')}
+async function wsTeam(){
+  var v=wsTeamEl();$('#wsTeamSub').textContent=WS.cur.name;$('#wsTeamName').textContent=WS.cur.name;
+  var r=await sb.from('workspace_members').select('email,role,created_at').eq('workspace_id',WS.cur.id).order('created_at');
+  var L=r.data||[];
+  $('#wsList').innerHTML=L.map(function(x){
+    var self=x.email===me.email;
+    return '<div class="urow"><div class="uid"><span class="em">'+esc(x.email)+'</span>'+(self?'<span class="badge">أنت</span>':'')+'</div><div class="acts">'
+      +'<select data-wsrole="'+esc(x.email)+'" aria-label="دور '+esc(x.email)+'">'+WS_ROLES.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===x.role?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select>'
+      +'<button type="button" class="btn ghost sm danger" data-wsrm="'+esc(x.email)+'">إزالة</button></div></div>';
+  }).join('')||'<p class="empty">ما فيه أعضاء.</p>';
+}
+function wsErr(r){var m=(r&&r.error&&(r.error.message||''))||'';return /last_owner/.test(m)?'لازم يفضل مالك واحد على الأقل في المساحة.':/duplicate|unique/.test(m)?'الإيميل ده موجود في الفريق بالفعل.':'تعذّر الحفظ. أعد المحاولة.'}
+async function wsAdd(e){
+  e.preventDefault();var em=$('#wsAddEmail').value.trim().toLowerCase(),role=$('#wsAddRole').value;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){wsMsg('اكتب إيميل صحيح.');return}
+  var r=await sb.from('workspace_members').insert({workspace_id:WS.cur.id,email:em,role:role});
+  if(r.error){wsMsg(wsErr(r));return}
+  $('#wsAddEmail').value='';wsMsg('أضفنا '+em+'. خليه يعمل حساب بنفس الإيميل من صفحة الدخول.',true);wsTeam();
+}
+async function wsSetRole(em,role){
+  var r=await sb.from('workspace_members').update({role:role}).eq('workspace_id',WS.cur.id).eq('email',em);
+  if(r.error){wsMsg(wsErr(r));wsTeam();return}
+  wsMsg('تم تغيير الدور.',true);
+}
+async function wsRemove(em,b){
+  if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='تأكيد الإزالة';return}
+  var r=await sb.from('workspace_members').delete().eq('workspace_id',WS.cur.id).eq('email',em);
+  if(r.error){wsMsg(wsErr(r));return}
+  wsMsg('تمت إزالة '+em+'.',true);wsTeam();
+}
+/* ---------- an expired trial: a clear stop instead of empty pages ---------- */
+function wsBlocked(){
+  if(!WS.on||wsHouse())return false;
+  var d=wsDays(WS.cur);if(d==null||d>0)return false;
+  var o=$('#wsEnd');if(!o){o=document.createElement('div');o.id='wsEnd';o.className='auth';o.innerHTML='<div class="authbox"><h1>انتهت فترة التجربة</h1><p>انتهت التجربة المجانية لمساحة «<b id="wsEndName"></b>». تصاميمك محفوظة، وترجع لها أول ما تشترك.</p><button type="button" class="btn ghost" id="wsEndOut">تسجيل الخروج</button></div>';document.body.appendChild(o);$('#wsEndOut').addEventListener('click',function(){sb.auth.signOut();o.hidden=true})}
+  $('#wsEndName').textContent=WS.cur.name;o.hidden=false;return true;
+}
+/* ---------- wiring: page switching knows «team»; texts that name the house fit a subscriber ---------- */
+/* these two run at once, not on DOMContentLoaded: sign-in can finish before the page is "ready" */
+(function(){
+  var rl0=roleLabel;
+  roleLabel=function(u){u=u||me;if(u===me&&WS.on&&!wsHouse()){return (WS_ROLES.filter(function(r){return r[0]===WS.role})[0]||['','عضو'])[1]}return rl0(u)};
+  var go0=go;
+  go=function(v){
+    if((v==='users'||v==='dash')&&!wsHouse())v='studio';
+    if(v==='team'&&(wsHouse()||me.role!=='admin'))v='studio';
+    go0(v);
+    var t=$('#viewTeam');if(t)t.hidden=v!=='team';
+    if(v==='team')wsTeam();
+  };
+})();
+
+/* ---------- sign-up: a new workspace with a 14-day trial (shown only when WS_SIGNUP is on) ---------- */
+function wsSignupInit(){
+  if(!WS_SIGNUP||$('#signupForm'))return;
+  var lf=$('#loginForm');if(!lf)return;
+  var sw=document.createElement('p');sw.className='su-sw';sw.innerHTML='جديد هنا؟ <button type="button" id="suOpen">أنشئ مساحة عمل وجرّب 14 يوماً مجاناً</button>';
+  lf.appendChild(sw);
+  var f=document.createElement('form');f.className=lf.className;f.id='signupForm';f.hidden=true;f.setAttribute('novalidate','');
+  f.innerHTML='<h2>مساحة عمل جديدة</h2><p>تجربة مجانية 14 يوماً بكل المزايا. تقدر تضيف فريقك وهويات عملائك بعد الدخول.</p>'
+    +'<div><label for="suName">اسمك</label><input type="text" id="suName" autocomplete="name" maxlength="60"></div>'
+    +'<div><label for="suWs">اسم الجهة أو الوكالة</label><input type="text" id="suWs" autocomplete="organization" maxlength="80"></div>'
+    +'<div><label for="suEmail">الإيميل</label><input type="text" inputmode="email" id="suEmail" dir="ltr" autocomplete="email" autocapitalize="off" spellcheck="false"></div>'
+    +'<div><label for="suPw">كلمة السر (8 أحرف أو أكثر)</label><input type="password" id="suPw" dir="ltr" autocomplete="new-password"></div>'
+    +'<button class="'+(($('#loginBtn')||{}).className||'primary')+'" id="suBtn" type="submit">إنشاء الحساب</button>'
+    +'<div id="suMsg" class="err2" role="alert"></div><p class="su-sw"><button type="button" id="suBack">عندي حساب بالفعل</button></p>';
+  lf.after(f);
+  $('#suOpen').addEventListener('click',function(){lf.hidden=true;f.hidden=false;$('#suName').focus()});
+  $('#suBack').addEventListener('click',function(){f.hidden=true;lf.hidden=false;$('#email').focus()});
+  f.addEventListener('submit',async function(e){
+    e.preventDefault();var m=$('#suMsg'),btn=$('#suBtn');m.className='err2';m.textContent='';
+    var name=$('#suName').value.trim(),ws=$('#suWs').value.trim(),em=$('#suEmail').value.trim().toLowerCase(),pw=$('#suPw').value;
+    if(!name||!ws){m.textContent='اكتب اسمك واسم الجهة.';return}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){m.textContent='اكتب إيميل صحيح.';return}
+    if(pw.length<8){m.textContent='كلمة السر لازم تكون 8 أحرف أو أكثر.';return}
+    btn.disabled=true;
+    try{
+      var r=await sb.auth.signUp({email:em,password:pw,options:{data:{name:name,workspace:ws},emailRedirectTo:location.origin+location.pathname}});
+      if(r.error){var t=r.error.message||'';m.textContent=/not allowed|disabled/i.test(t)?'التسجيل مقفول حالياً.':/registered|exists/i.test(t)?'الإيميل ده عنده حساب بالفعل. ادخل من «عندي حساب».':/password/i.test(t)?'كلمة السر ضعيفة. جرّب واحدة أطول.':'تعذّر إنشاء الحساب. أعد المحاولة.';return}
+      m.className='err2 ok';m.textContent='بعتنالك رسالة تأكيد على '+em+'. افتحها واضغط الرابط، وبعدين ادخل بالإيميل وكلمة السر.';
+      f.reset();
+    }catch(x){m.textContent='تعذّر الاتصال. أعد المحاولة.'}
+    finally{btn.disabled=false}
+  });
+}
+function wsInit(){wsTeamEl();wsSignupInit()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wsInit);else wsInit();
 
 /* ---------- verbatim placement (no rewriting), template suggestion, proofreading ---------- */
 /* Capacity of each fixed template. When the real templates arrive, only this list changes. */
