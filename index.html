@@ -4126,6 +4126,22 @@ function czFont0(kind,s){
 }
 function czWord(v){return ndWord(v)}
 /* a big word has letters that hang below the line (ن ي ج…): reserve that room under it */
+/* the figure's font: its own choice, else the house one (a big word uses the headline font) */
+function czNF(st,nk,ns){var k=st&&st.vf;if(k&&typeof ttFont==='function'){var f=ttFont(k,ns);if(f)return f}return czFont(nk,ns)}
+/* a word keeps real gaps between its parts, whatever the font does with a space */
+function czSpGap(ns){return Math.round(ns*.26)}
+function czTW(t,font,ns){cx.font=font;cx.direction='ltr';var w=0;String(t).split(/(\s+)/).forEach(function(p){w+=/^\s+$/.test(p)?p.length*czSpGap(ns):cx.measureText(p).width});return w}
+function czNW(nt,wd,font,ns){return wd?czTW(nt,font,ns):(cx.font=font,cx.direction='ltr',cx.measureText(nt).width)}
+function czPutW(t,x,y,font,color,align,dir,ns){
+  if(!/\s/.test(t)){czPut(t,x,y,font,color,align,dir);return}
+  var w=czTW(t,font,ns),rtl=dir==='rtl',left=align==='center'?x-w/2:align==='right'?x-w:x,parts=String(t).split(/(\s+)/),cur=rtl?left+w:left;
+  cx.font=font;cx.fillStyle=color;cx.textAlign='left';cx.direction=dir||'ltr';cx.textBaseline='alphabetic';
+  parts.forEach(function(p){
+    if(/^\s+$/.test(p)){var g=p.length*czSpGap(ns);cur+=rtl?-g:g;return}
+    var pw=cx.measureText(p).width;if(rtl){cur-=pw;cx.fillText(p,cur,y)}else{cx.fillText(p,cur,y);cur+=pw}
+  });
+  HC.txt(cx,t,x,y,font,align||'center');
+}
 function czWM(wd,nt,font){if(!wd)return{dh:czDigitH(font),ds:0};cx.font=font;cx.direction='ltr';var m=cx.measureText(nt),d=Math.round(m.actualBoundingBoxDescent||0),a=Math.round(m.actualBoundingBoxAscent||czDigitH(font));return{dh:Math.max(a,czDigitH(font))+d,ds:d}}
 function czVs(st){var v=+(st&&st.vs);return v>=40&&v<=220?v/100:1}
 function czVc(st){return st&&/^#[0-9a-f]{6}$/i.test(st.vc||'')?st.vc:''}
@@ -4343,20 +4359,19 @@ function czStats(list,tier,w){
     if(side){
       /* number + highlighted word on the start side, the explanatory text on the other side, both centred on the same height */
       var pad=26,inner=w-2*pad,aw=Math.round(inner*.46),bw=inner-aw-44,ns=Math.round(num*.8*vz);
-      cx.font=czFont(nk,ns);cx.direction='ltr';
-      while(ns>46&&cx.measureText(nt).width>aw-10){ns-=4;cx.font=czFont(nk,ns)}
+      while(ns>46&&czNW(nt,wd,czNF(st,nk,ns),ns)>aw-10)ns-=4;
       var ts=txt+2,ll=st.label?czCut(czBal(fixPct(st.label),function(){return czFont('head',lab)},aw-10),2):[];
       var tl=st.text?czCut(czWrap(ndSt(st),function(){return czFont('body',ts)},bw),czPtLines(5)):[];
-      var wm=czWM(wd,nt,czFont(nk,ns)),dh=wm.dh,lH=ll.length*lab*1.3,tH=tl.length*ts*1.45,Ah=lH+(lH?14:0)+dh;
-      return{side:1,ds:wm.ds,nt:nt,ns:ns,nk:nk,vc:vc,wd:wd,ll:ll,tl:tl,dh:dh,lH:lH,tH:tH,Ah:Ah,h:Math.max(Ah,tH),lab:lab,txt:ts,lp:lp,aw:aw,bw:bw,pad:pad};
+      var wm=czWM(wd,nt,czNF(st,nk,ns)),dh=wm.dh,lH=ll.length*lab*1.3,tH=tl.length*ts*1.45,Ah=lH+(lH?14:0)+dh;
+      return{side:1,ds:wm.ds,nt:nt,ns:ns,nk:nk,nf:czNF(st,nk,ns),vc:vc,wd:wd,ll:ll,tl:tl,dh:dh,lH:lH,tH:tH,Ah:Ah,h:Math.max(Ah,tH),lab:lab,txt:ts,lp:lp,aw:aw,bw:bw,pad:pad};
     }
-    var ns2=Math.round(num*vz);cx.font=czFont(nk,ns2);cx.direction='ltr';
-    while(ns2>46&&cx.measureText(nt).width>cw-30){ns2-=4;cx.font=czFont(nk,ns2)}
+    var ns2=Math.round(num*vz);
+    while(ns2>46&&czNW(nt,wd,czNF(st,nk,ns2),ns2)>cw-30)ns2-=4;
     var ll2=st.label?czCut(czBal(fixPct(st.label),function(){return czFont('head',lab)},cw-34),2):[];
     var tl2=st.text?czCut(czWrap(ndSt(st),function(){return czFont('body',txt)},cw-40),czPtLines(3)):[];
-    var wm2=czWM(wd,nt,czFont(nk,ns2)),dh2=wm2.dh,lH2=ll2.length*lab*1.3,tH2=tl2.length*txt*1.45;
+    var wm2=czWM(wd,nt,czNF(st,nk,ns2)),dh2=wm2.dh,lH2=ll2.length*lab*1.3,tH2=tl2.length*txt*1.45;
     var h=(lp==='above'?lH2+(lH2?14:0)+dh2:dh2+(lH2?14:0)+lH2)+16+6+(tl2.length?16+tH2:0);
-    return{ds:wm2.ds,nt:nt,ns:ns2,nk:nk,vc:vc,wd:wd,ll:ll2,tl:tl2,dh:dh2,lH:lH2,tH:tH2,h:h,lab:lab,txt:txt,lp:lp,tp:st.tp==='above'?'above':''};
+    return{ds:wm2.ds,nt:nt,ns:ns2,nk:nk,nf:czNF(st,nk,ns2),vc:vc,wd:wd,ll:ll2,tl:tl2,dh:dh2,lH:lH2,tH:tH2,h:h,lab:lab,txt:txt,lp:lp,tp:st.tp==='above'?'above':''};
   }
   var rcells=rows.map(function(r){var sd=r.length===1&&czSideOf(r[0]);return r.map(function(st){return mk(st,sd)})});
   var rowGap=[34,30,26,22,18][tier],rh=rcells.map(function(r){var m=0;r.forEach(function(c){m=Math.max(m,c.h)});return m});
@@ -4372,7 +4387,7 @@ function czStats(list,tier,w){
           var ax=R?x0+w-c.pad-c.aw/2:x0+c.pad+c.aw/2,bx=R?x0+c.pad+c.bw/2:x0+w-c.pad-c.bw/2,dvx=R?x0+c.pad+c.bw+22:x0+c.pad+c.aw+22,yc=yy+(rh[ri]-c.Ah)/2;
           HC.tag(sg,'','الرقم');HC.box(x0+8,yy-6,x0+w-8,yy+rh[ri]+6,-1);HC.tag();
           if(c.lp==='above'&&c.ll.length){HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],ax,yc+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag();yc+=c.lH+14}
-          HC.tag(sg,'value','الرقم');czPut(c.nt,ax,yc+c.dh-c.ds,czFont(c.nk,c.ns),c.vc||p.main,'center',c.wd&&R?'rtl':'ltr');HC.tag();yc+=c.dh;
+          HC.tag(sg,'value','الرقم');czPutW(c.nt,ax,yc+c.dh-c.ds,c.nf,c.vc||p.main,'center',c.wd&&R?'rtl':'ltr',c.ns);HC.tag();yc+=c.dh;
           if(c.lp!=='above'&&c.ll.length){yc+=14;HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],ax,yc+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag()}
           if(c.tl.length){var yb=yy+(rh[ri]-c.tH)/2;HC.tag(sg,'text','النص');c.tl.forEach(function(l,k){czDraw([l],bx,yb+c.txt*.95+k*c.txt*1.45,0,function(){return czFont('body',c.txt)},function(){return p.gray},'center')});HC.tag()}
           cx.fillStyle=p.accent;cx.fillRect(dvx-2,yy+Math.max(0,(rh[ri]-Math.max(c.Ah,c.tH))/2),4,Math.max(c.Ah,c.tH));
@@ -4381,7 +4396,7 @@ function czStats(list,tier,w){
         var cxm=R?x0+w-(idx+.5)*cw:x0+(idx+.5)*cw,yc2=CZ.statMid?yy+(rh[ri]-c.h)/2:yy;
         HC.tag(sg,'','الرقم');HC.box(cxm-cw/2+6,yy-6,cxm+cw/2-6,yy+rh[ri]+6,-1);HC.tag();
         function lb(){HC.tag(sg,'label','الكلمة المميزة');c.ll.forEach(function(l,k){czDraw([l],cxm,yc2+c.lab*.92+k*c.lab*1.3,0,function(){return czFont('head',c.lab)},function(){return p.main},'center')});HC.tag();yc2+=c.lH+(c.lH?14:0)}
-        function nm(){HC.tag(sg,'value','الرقم');czPut(c.nt,cxm,yc2+c.dh-c.ds,czFont(c.nk,c.ns),c.vc||p.main,'center',c.wd&&R?'rtl':'ltr');HC.tag();yc2+=c.dh}
+        function nm(){HC.tag(sg,'value','الرقم');czPutW(c.nt,cxm,yc2+c.dh-c.ds,c.nf,c.vc||p.main,'center',c.wd&&R?'rtl':'ltr',c.ns);HC.tag();yc2+=c.dh}
         function tx(){HC.tag(sg,'text','النص');c.tl.forEach(function(l,k){czDraw([l],cxm,yc2+c.txt*.95+k*c.txt*1.45,0,function(){return czFont('body',c.txt)},function(){return p.gray},'center')});HC.tag();yc2+=c.tH}
         if(c.tp==='above'&&c.tl.length){tx();yc2+=16}
         if(c.lp==='above'){if(c.ll.length)lb();nm()}else{nm();if(c.ll.length){yc2+=14;lb();yc2-=14}}
@@ -4711,7 +4726,8 @@ function czLoad(d,keepPhotos){
 function czIn(path,val,ph,color){return '<div class="inrow"><input type="text" dir="auto" data-cz="'+path+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+(color?'<button type="button" class="tool hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
 function czTa(path,val,ph,color){return '<div class="inrow ta"><textarea dir="auto" rows="5" data-cz="'+path+'" placeholder="'+esc(ph||'')+'" aria-label="'+esc(ph||path)+'">'+esc(val)+'</textarea>'+(color?'<button type="button" class="tool hl" data-hl="'+path+'" title="لوّن الكلمات المحددة">تلوين</button>':'')+'</div>'}
 /* size and colour of the figure (or of the big word that replaces it) */
-function czVsHtml(j,t){var v=Math.round(czVs(t)*100),c=czVc(t)||czP().main;return '<label class="czvs">حجم الرقم/الكلمة <b>'+v+'%</b> <input type="range" min="50" max="200" step="5" value="'+v+'" data-czst="'+j+':vs" aria-label="حجم الرقم أو الكلمة الكبيرة"></label> <label>لونه <input type="color" value="'+c+'" data-czst="'+j+':vc" aria-label="لون الرقم أو الكلمة الكبيرة"></label> '+((t.vs||t.vc)?'<button type="button" class="mini" data-czstrst="'+j+'">إعادة ضبط</button>':'')}
+function czVfHtml(j,t){return '<label>الخط <select data-czst="'+j+':vf" aria-label="خط الرقم أو الكلمة الكبيرة">'+ttOptions(t.vf||'')+'</select></label> '}
+function czVsHtml(j,t){var v=Math.round(czVs(t)*100),c=czVc(t)||czP().main;return '<label class="czvs">حجم الرقم/الكلمة <b>'+v+'%</b> <input type="range" min="50" max="200" step="5" value="'+v+'" data-czst="'+j+':vs" aria-label="حجم الرقم أو الكلمة الكبيرة"></label> <label>لونه <input type="color" value="'+c+'" data-czst="'+j+':vc" aria-label="لون الرقم أو الكلمة الكبيرة"></label> '+czVfHtml(j,t)+((t.vs||t.vc||t.vf)?'<button type="button" class="mini" data-czstrst="'+j+'">إعادة ضبط</button>':'')}
 function czSel(path,val,opts){return '<select data-czsel="'+path+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+((val||'')===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select>'}
 /* flag of one number: pick another from the library, upload your own, or remove it */
 function czFlagCtl(t,j){
@@ -4948,7 +4964,7 @@ if(t.dataset&&t.dataset.cz){czSet(t.dataset.cz,t.value);$('#czNote').hidden=true
       inp.value=nv;czSet(inp.dataset.cz,nv);czSchedule();czStatus('');return;
     }
     if(t.dataset.cflagup!==undefined){czFlagFor=+t.dataset.cflagup;$('#czFlagFile').click();return}
-    if(t.dataset.czstrst!==undefined){var rs=s.stats[+t.dataset.czstrst];if(rs){delete rs.vs;delete rs.vc;czBuildEditor();czSchedule()}return}
+    if(t.dataset.czstrst!==undefined){var rs=s.stats[+t.dataset.czstrst];if(rs){delete rs.vs;delete rs.vc;delete rs.vf;czBuildEditor();czSchedule()}return}
     if(t.dataset.cflagrm!==undefined){var fs=s.stats[+t.dataset.cflagrm];if(fs){fs.flag='';delete fs.pimg;czBuildEditor();czSchedule()}return}
     if(t.dataset.cadd){var k=t.dataset.cadd;if(k==='stats'&&s.stats.length<4){s.stats.push({value:'',label:'',text:'',flag:''});s.points=[]}if(k==='points'&&s.points.length<6){s.points.push({title:'',text:''});s.stats=[]}czBuildEditor();czSchedule()}
     else if(t.dataset.crm){var p=t.dataset.crm.split('.');s[p[0]].splice(+p[1],1);czBuildEditor();czSchedule()}
@@ -5138,13 +5154,12 @@ function skCell(st,o){
   var R=czR(),nt=czVal(st.value),wd=czWord(nt),nk=wd?'title':'num',vc=czVc(st),ns=Math.round(o.num*czVs(st)),lab=String(st.label||'').trim(),inl=o.inline===true?!!lab:(o.inline==='auto'&&!!lab&&lab.length<=2);
   var short=inl&&lab.length<=2,preSz=short?Math.round(o.num*.4):o.lab,preK=short?'sub':'head',lw=0,gap=Math.round(preSz*.3);
   if(inl){cx.font=czFont(preK,preSz);cx.direction=R?'rtl':'ltr';lw=cx.measureText(lab).width+gap}
-  cx.font=czFont(nk,ns);cx.direction='ltr';
-  while(ns>38&&cx.measureText(nt).width>o.w-lw){ns-=4;cx.font=czFont(nk,ns)}
-  var nw=cx.measureText(nt).width,wm=czWM(wd,nt,czFont(nk,ns)),dh=wm.dh;
+  while(ns>38&&czNW(nt,wd,czNF(st,nk,ns),ns)>o.w-lw)ns-=4;
+  var nw=czNW(nt,wd,czNF(st,nk,ns),ns),wm=czWM(wd,nt,czNF(st,nk,ns)),dh=wm.dh;
   var ll=!inl&&lab?czCut(czBal(fixPct(lab),skFont('head',o.lab,'sub'),o.w),czPtLines(4)):[];
   var tl=st.text?czCut(czBal(fixPct(ndSt(st)),skFont('head',o.txt,'sub'),o.tw||o.w),czPtLines(3)):[];
   var labH=ll.length*o.lab*1.32,txtH=tl.length*o.txt*1.34;
-  return{ds:wm.ds,nk:nk,vc:vc,wd:wd,preSz:preSz,preK:preK,preCol:short?CZ.main:SKY.ink,st:st,nt:nt,ns:ns,nw:nw,dh:dh,inl:inl,lab:lab,lw:lw,gap:gap,ll:ll,tl:tl,labH:labH,txtH:txtH,o:o,
+  return{nf:czNF(st,nk,ns),ds:wm.ds,nk:nk,vc:vc,wd:wd,preSz:preSz,preK:preK,preCol:short?CZ.main:SKY.ink,st:st,nt:nt,ns:ns,nw:nw,dh:dh,inl:inl,lab:lab,lw:lw,gap:gap,ll:ll,tl:tl,labH:labH,txtH:txtH,o:o,
     h:labH+(labH?8:0)+dh+(tl.length?16+txtH:0)};
 }
 /* mode 'center': x is the middle of the cell; 'start': x is the edge the reading starts from.
@@ -5157,7 +5172,7 @@ function skCellDraw(c,sg,mode,x,y,resv){
   var yn=y+resv+(resv?8:0)+c.dh,total=c.nw+c.lw,S=mode==='center'?x+(R?total/2:-total/2):x,ta=R?'right':'left',e0,e1;
   var xn=R?S-c.lw:S+c.lw;
   if(c.inl){HC.tag(sg,'label','الكلمة قبل الرقم');czPut(c.lab,S,yn-(o.lift||0),czFont(c.preK,c.preSz),c.preCol,ta,R?'rtl':'ltr');HC.tag()}
-  HC.tag(sg,'value','الرقم');czPut(c.nt,xn,yn-c.ds,czFont(c.nk,c.ns),c.vc||blue,ta,c.wd&&R?'rtl':'ltr');HC.tag();
+  HC.tag(sg,'value','الرقم');czPutW(c.nt,xn,yn-c.ds,c.nf,c.vc||blue,ta,c.wd&&R?'rtl':'ltr',c.ns);HC.tag();
   e0=R?S-total:S;e1=R?S:S+total;
   if(c.tl.length){HC.tag(sg,'text','النص');c.tl.forEach(function(l,j){czDraw([l],x,yn+16+o.txt*.98+j*o.txt*1.34,0,skFont('head',o.txt,'sub'),hi,al)});HC.tag()}
   return{x0:e0,x1:e1,yn:yn};
@@ -5225,7 +5240,7 @@ function skFlags(list,k,fw){
         var cc=Object.assign({},c,{labH:0}),lyy=ty;
         HC.tag(sg,'label','الكلمة قبل الرقم');c.ll.forEach(function(l,j){czDraw([l],tx,lyy+o.lab*.98+j*o.lab*1.32,0,skFont('head',o.lab,'sub'),function(b){return b?CZ.main:SKY.ink},'start')});HC.tag();
         var yn=yy+rh.top+(rh.top?10:0)+c.dh,ta=R?'right':'left';
-        HC.tag(sg,'value','الرقم');czPut(c.nt,tx,yn-c.ds,czFont(c.nk,c.ns),c.vc||CZ.main,ta,c.wd&&czR()?'rtl':'ltr');HC.tag();
+        HC.tag(sg,'value','الرقم');czPutW(c.nt,tx,yn-c.ds,c.nf,c.vc||CZ.main,ta,c.wd&&czR()?'rtl':'ltr',c.ns);HC.tag();
         if(c.tl.length){HC.tag(sg,'text','النص');c.tl.forEach(function(l,j){czDraw([l],tx,yn+16+o.txt*.98+j*o.txt*1.34,0,skFont('head',o.txt,'sub'),function(b){return b?CZ.main:SKY.ink},'start')});HC.tag()}
       });
       if(ri<rows.length-1){var ly=yy+rh.h+rg;skDash(x0+pad,ly,x0+fwF-pad,ly)}
@@ -14653,7 +14668,7 @@ function ndLbl(text,label){
   return rest||text;
 }
 function ndSt(st){return ndLbl(ndTxt(st.text,st.value),st.label)}
-function ndWord(v){v=String(v==null?'':v).trim();return v!==''&&!/[0-9٠-٩]/.test(v)}
+function ndWord(v){v=String(v==null?'':v).trim();return v!==''&&/[A-Za-z\u0621-\u064A\u066E-\u06D3]/.test(v)}
 function ndOn(){return S.ndNum!==false}
 function ndNorm(s){return String(s).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace(/٪/g,'%').replace(/٫/g,'.')}
 var ND_LEAD=/^[\s:\u060C\-\u2013\u2014.]+/,ND_TRAIL=/(?:\s+(?:بنسبة|بمعدل|بقيمة|بواقع|بحوالي|بنحو|نحو|حوالي|إلى|الى|بـ|و|to|by|at|of|and))?[\s:\u060C\-\u2013\u2014]*$/i;
