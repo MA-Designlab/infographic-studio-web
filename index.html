@@ -4590,7 +4590,12 @@ function czContent(s,i,n,num){
     if(stats.length)mods.push(czStats(stats,Math.min(tier,4),fw));
     else if(pts.length)mods.push(czPoints(pts,tier,fw,s));
     if(s.text)mods.push(czBox(s.text,Math.min(tier,4),fw));
-    if(s.mo==='text'&&mods.length>1)mods.reverse();
+    if(s.mo==='side'&&stats.length&&s.text&&!(ld&&0)){
+      /* the sentence box sits beside the numbers (one row), both centred on the same height */
+      var sg=24,w2=Math.round((fw-sg)*.36),w1=fw-sg-w2,mS=czStats(stats,Math.min(tier,4),w1),mB=czBox(s.text,Math.min(tier+1,4),w2),R2=czR(),rowH=Math.max(mS.h,mB.h);
+      var sd={h:rowH,draw:function(y,x0){var xS=R2?x0+w2+sg:x0,xB=R2?x0:x0+w1+sg;mS.draw(y+(rowH-mS.h)/2,xS);mB.draw(y+(rowH-mB.h)/2,xB)}};
+      mods=ld?[ld,sd]:[sd];
+    }else if(s.mo==='text'&&mods.length>1)mods.reverse();
     tot=mods.reduce(function(a,m){return a+m.h},0)+Math.max(0,mods.length-1)*gp;
     if(tot<=avail)break;
   }
@@ -4748,7 +4753,7 @@ function czBuildEditor(){
   if(s.type==='cover')txt=f('السترابة',czIn(pre+'kicker',s.kicker,'السترابة'))+f('العنوان الكبير',czIn(pre+'title',s.title,'العنوان الكبير',1))+f('العنوان الثانوي (تحت الكبير)',czIn(pre+'text',s.text,'وصف قصير',1))+f('جملة إضافية (غير العناوين)',czIn(pre+'lede',s.lede||'','جملة تعريفية قصيرة',1))+f('نص زر السحب',czIn(pre+'cta',s.cta,'اسحب للمزيد'));
   else if(s.type==='closing')txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('النص',czIn(pre+'text',s.text,'جملة قصيرة',1))+'<div class="two">'+f('نص الزر',czIn(pre+'cta',s.cta,'تابعونا'))+f('الحساب (اختياري)',czIn(pre+'handle',s.handle,'@aletihad'))+'</div>';
   else if(skyOn())txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('سطر تحت العنوان (اختياري)',czIn(pre+'subtitle',s.subtitle,'جملة قصيرة'))+f('حجم العنوان',czSel('tz',s.tz,[['','عادي'],['s','أصغر'],['l','أكبر']]))+f('نص الشريحة (كل سطر فقرة)',czTa(pre+'text',s.text,'اكتب الفقرات، كل سطر في فقرة',1))+'<p class="hint">في أول السطر: <b>#</b> عنوان أزرق كبير، <b>+</b> نص غامق، <b>-</b> نص صغير خفيف، و<b>---</b> فاصل ذهبي. و«تلوين» يظهر الكلمات المحددة باللون الأزرق.</p>'+f('سطر ختامي أسفل الأرقام (اختياري)',czIn(pre+'foot',s.foot,'مثال: والأرقام تشرح…',1));
-  else txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('العنوان الثانوي',czIn(pre+'subtitle',s.subtitle,'سطر رمادي قصير'))+f('نص داخل المربع الملون',czIn(pre+'text',s.text,'جملة أو جملتان',1))+f('وسوم أسفل الشريحة (افصل بفاصلة)',czIn(pre+'pills',s.pills,'مثال: التعليم، الإمارات'));
+  else txt=f('العنوان',czIn(pre+'title',s.title,'العنوان',1))+f('العنوان الثانوي',czIn(pre+'subtitle',s.subtitle,'سطر رمادي قصير'))+f('نص داخل المربع الملون',czIn(pre+'text',s.text,'جملة أو جملتان',1))+((s.stats||[]).length?f('مكان صندوق النص مقابل الأرقام',czSel('mo',s.mo,[['','تحت الأرقام'],['text','فوق الأرقام'],['side','جنب الأرقام (في صف واحد)']])):'')+f('وسوم أسفل الشريحة (افصل بفاصلة)',czIn(pre+'pills',s.pills,'مثال: التعليم، الإمارات'));
   if(s.type==='content')txt=txt.replace('<!--/sub:subtitle-->',function(m){return m+f('العنوان الثالث (جملة تحت العنوان الثانوي)',czIn(pre+'lede',s.lede||'','جملة تعريفية قصيرة',1))});
   txt+=czSubTt();
   secs.push(['txt','النصوص',sum,txt]);
@@ -11321,7 +11326,7 @@ function czaiRoot(){return [
 ]}
 var CZ_AI_SL=[
  ['paper','c0',0,'colour of the lower (normally white) background of this content slide and of its picture fade, "" = the general one'],['kicker','t',120,'strap (cover)'],['title','t',240,'title'],['subtitle','t',260,'second title (content slides)'],['lede','t',320,'third title: a sentence under the second title (content slides), **words** are highlighted'],['text','t',500,'sentence / description'],['cta','t',60,'button text'],['handle','t',60,'account (closing)'],['pills','t',120,'tags text, comma separated'],['foot','t',200,'closing line (sky look)'],
- ['tz','e',['','s','l'],'title size on this slide (sky): normal | s smaller | l larger'],['lay','e',['','single','duo','trio','hero3','flags'],'numbers arrangement (sky)'],['ho','e',['','sub'],'sub = second title above the main title'],['mo','e',['','text'],'text = the sentence box above the numbers/points'],
+ ['tz','e',['','s','l'],'title size on this slide (sky): normal | s smaller | l larger'],['lay','e',['','single','duo','trio','hero3','flags'],'numbers arrangement (sky)'],['ho','e',['','sub'],'sub = second title above the main title'],['mo','e',['','text','side'],'text = the sentence box above the numbers/points; side = the sentence box BESIDE the numbers in one row (classic look, slide with numbers and a sentence)'],
  ['pm','e',['','box'],'picture shape: "" fade into the page | box = clean frame'],['pa','e',['center','top','bottom'],'which part of the picture stays visible'],['pz','n',[30,300],'picture zoom %'],['px','n',[0,100],'picture horizontal position'],['py','n',[0,100],'picture vertical position'],
  ['pfd','e',['b','t','tb','v','l','r','diag','none'],'fade direction of the top picture: b white from below (default) | t template colour from top | tb both | v from all sides | l | r | diag | none'],['pfa','n',[10,100],'fade strength %'],['phh','n',[60,140],'picture height %'],
  ['ptn','e',['','bw','duo','sepia','warm','cool'],'colour treatment of the picture: bw black&white | duo template-colour tint | sepia | warm | cool'],['ptna','n',[10,100],'colour treatment strength %'],['pbr','n',[-50,50],'picture brightness'],['pcg','n',[0,100],'cover only: strength of the dark gradient over the picture % (lower = the picture shows more)'],
